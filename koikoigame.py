@@ -12,19 +12,19 @@ import time
 
 import numpy as np
 import torch
-
+import koikoicore
 
 class DefaultVar():
     DEFAULT_ROUND_TOTAL = 8
     DEFAULT_INIT_POINT = 30
 
 
-def card_to_multi_hot(card_list):
-    card_multi_hot = [0 for i in range(48)]
-    for card in card_list:
-        card_multi_hot[(card[0]-1)*4+(card[1]-1)] = 1
-    return card_multi_hot
-
+#def card_to_multi_hot(card_list):
+#    card_multi_hot = [0 for i in range(48)]
+#    for card in card_list:
+#        card_multi_hot[(card[0]-1)*4+(card[1]-1)] = 1
+#    return card_multi_hot
+card_to_multi_hot = koikoicore.card_to_multi_hot
 
 class KoiKoiCard():
     crane = {(1,1)}
@@ -249,63 +249,71 @@ class KoiKoiRoundStateBase():
             
         return self.state if self.silence else self.__call__()
 
-    def yaku(self,player):
-        yaku = []
-        pile = set([tuple(card) for card in self.pile[player]])
-        koikoi_num = self.koikoi_num[player]
-        
-        num_light = len(pile & KoiKoiCard.light)
-        if num_light == 5:
-            yaku.append((1,'Five Lights', 10))            
-        elif num_light == 4 and (11,1) not in pile:
-            yaku.append((2,'Four Lights', 8))            
-        elif num_light == 4:
-            yaku.append((3,'Rainy Four Lights', 7))            
-        elif num_light == 3 and (11,1) not in pile:
-            yaku.append((4,'Three Lights', 5))
-        
-        num_seed = len(pile & KoiKoiCard.seed)
-        if KoiKoiCard.boar_deer_butterfly.issubset(pile):
-            yaku.append((5,'Boar-Deer-Butterfly', 5))            
-        if KoiKoiCard.flower_sake.issubset(pile) and koikoi_num == 0:
-            yaku.append((6,'Flower Viewing Sake', 1))            
-        elif KoiKoiCard.flower_sake.issubset(pile) and koikoi_num > 0:
-            yaku.append((7,'Flower Viewing Sake', 3))
-        if KoiKoiCard.moon_sake.issubset(pile) and koikoi_num == 0:
-            yaku.append((8,'Moon Viewing Sake', 1))
-        elif KoiKoiCard.moon_sake.issubset(pile) and koikoi_num > 0:
-            yaku.append((9,'Moon Viewing Sake', 3))
-        if num_seed >= 5:
-            yaku.append((10,'Tane', num_seed-4))
-            
-        num_ribbon = len(pile & KoiKoiCard.ribbon)
-        if (KoiKoiCard.red_ribbon|KoiKoiCard.blue_ribbon).issubset(pile):
-            yaku.append((11,'Red & Blue Ribbons', 10))
-        if KoiKoiCard.red_ribbon.issubset(pile):
-            yaku.append((12,'Red Ribbons', 5))
-        if KoiKoiCard.blue_ribbon.issubset(pile):
-            yaku.append((13,'Blue Ribbons', 5))
-        if num_ribbon >= 5:
-            yaku.append((14,'Tan', num_ribbon-4))
-            
-        num_dross = len(pile & KoiKoiCard.dross)
-        if num_dross >= 10:
-            yaku.append((15,'Kasu', num_dross-9))
-            
-        if koikoi_num > 0:
-            yaku.append((16,'Koi-Koi', koikoi_num))
-        
-        return yaku
+#    def yaku(self,player):
+#        yaku = []
+#        pile = set([tuple(card) for card in self.pile[player]])
+#        koikoi_num = self.koikoi_num[player]
+#        
+#        num_light = len(pile & KoiKoiCard.light)
+#        if num_light == 5:
+#            yaku.append((1,'Five Lights', 10))            
+#        elif num_light == 4 and (11,1) not in pile:
+#            yaku.append((2,'Four Lights', 8))            
+#        elif num_light == 4:
+#            yaku.append((3,'Rainy Four Lights', 7))            
+#        elif num_light == 3 and (11,1) not in pile:
+#            yaku.append((4,'Three Lights', 5))
+#        
+#        num_seed = len(pile & KoiKoiCard.seed)
+#        if KoiKoiCard.boar_deer_butterfly.issubset(pile):
+#            yaku.append((5,'Boar-Deer-Butterfly', 5))            
+#        if KoiKoiCard.flower_sake.issubset(pile) and koikoi_num == 0:
+#            yaku.append((6,'Flower Viewing Sake', 1))            
+#        elif KoiKoiCard.flower_sake.issubset(pile) and koikoi_num > 0:
+#            yaku.append((7,'Flower Viewing Sake', 3))
+#        if KoiKoiCard.moon_sake.issubset(pile) and koikoi_num == 0:
+#            yaku.append((8,'Moon Viewing Sake', 1))
+#        elif KoiKoiCard.moon_sake.issubset(pile) and koikoi_num > 0:
+#            yaku.append((9,'Moon Viewing Sake', 3))
+#        if num_seed >= 5:
+#            yaku.append((10,'Tane', num_seed-4))
+#            
+#        num_ribbon = len(pile & KoiKoiCard.ribbon)
+#        if (KoiKoiCard.red_ribbon|KoiKoiCard.blue_ribbon).issubset(pile):
+#            yaku.append((11,'Red & Blue Ribbons', 10))
+#        if KoiKoiCard.red_ribbon.issubset(pile):
+#            yaku.append((12,'Red Ribbons', 5))
+#        if KoiKoiCard.blue_ribbon.issubset(pile):
+#            yaku.append((13,'Blue Ribbons', 5))
+#        if num_ribbon >= 5:
+#            yaku.append((14,'Tan', num_ribbon-4))
+#            
+#        num_dross = len(pile & KoiKoiCard.dross)
+#        if num_dross >= 10:
+#            yaku.append((15,'Kasu', num_dross-9))
+#            
+#        if koikoi_num > 0:
+#            yaku.append((16,'Koi-Koi', koikoi_num))
+#        
+#        return yaku
+#    
+#    def yaku_point(self, player):
+#        yaku_point = sum([yaku[2] for yaku in self.yaku(player) if yaku[1]!='Koi-Koi'])
+#        koikoi_num = self.koikoi_num[player]
+#        if koikoi_num <= 3:
+#            yaku_point += koikoi_num
+#        else:
+#            yaku_point *= koikoi_num - 2
+#        
+#        return yaku_point
+
+    def yaku(self, player):
+        # Pythonの重いset演算を廃止し、C++のBitboardに丸投げ
+        return koikoicore.evaluate_yaku(self.pile[player], self.koikoi_num[player])
     
     def yaku_point(self, player):
-        yaku_point = sum([yaku[2] for yaku in self.yaku(player) if yaku[1]!='Koi-Koi'])
-        koikoi_num = self.koikoi_num[player]
-        if koikoi_num <= 3:
-            yaku_point += koikoi_num
-        else:
-            yaku_point *= koikoi_num - 2
-        
-        return yaku_point
+        # ポイント計算もC++に丸投げ
+        return koikoicore.get_yaku_point(self.pile[player], self.koikoi_num[player])
     
     def __write_log(self, content=None):
         turn = str(self.turn_16)
@@ -663,45 +671,74 @@ class KoiKoiRoundState(KoiKoiRoundStateBase):
         f_array = np.vstack([value for key,value in f_dict.items()])
         return f_array
     
+#    @property
+#    def yaku_status_array(self):
+#        
+#        def card_list_to_set(card_list):
+#            return set([tuple(card) for card in card_list])
+#           
+#        card_dict = {
+#            'Crane':KoiKoiCard.crane,
+#            'Curtain':KoiKoiCard.curtain,
+#            'Moon':KoiKoiCard.moon,
+#            'Rainman':KoiKoiCard.rainman,
+#            'Phoenix':KoiKoiCard.phoenix,
+#            'Sake':KoiKoiCard.sake,
+#            'BoarDeerButterfly':KoiKoiCard.boar_deer_butterfly,
+#            'Seed':KoiKoiCard.seed,
+#            'RedRibbon':KoiKoiCard.red_ribbon,
+#            'BlueRibbon':KoiKoiCard.blue_ribbon,
+#            'RedAndBlue':KoiKoiCard.red_blue_ribbon,
+#            'Ribbon':KoiKoiCard.ribbon,
+#            'Dross':KoiKoiCard.dross}
+#        
+#        my_hand_card = card_list_to_set(self.hand[self.turn_player])
+#        board_card = card_list_to_set(self.field)
+#        my_collect_card = card_list_to_set(self.pile[self.turn_player])
+#        op_collect_card = card_list_to_set(self.pile[self.idle_player])
+#        unseen_card = card_list_to_set(self.hand[self.idle_player]+self.stock)
+#        
+#        f_dict = {}
+#        f_dict['NumMyHand'] = [len(card_set & my_hand_card) for _,card_set in card_dict.items()]
+#        f_dict['NumBoard'] = [len(card_set & board_card) for _,card_set in card_dict.items()]
+#        f_dict['NumMyCollect'] = [len(card_set & my_collect_card) for _,card_set in card_dict.items()]
+#        f_dict['NumOpCollect'] = [len(card_set & op_collect_card) for _,card_set in card_dict.items()]
+#        f_dict['NumUnseen'] = [len(card_set & unseen_card) for _,card_set in card_dict.items()]
+#        f_array_card_state = np.concatenate([value for key,value in f_dict.items()])
+#        f_array_card_state = np.tile(f_array_card_state,(48,1)).T
+#        f_array_card_key = np.array([card_to_multi_hot(card_set) for _,card_set in card_dict.items()])
+#        f_array = np.vstack([f_array_card_state,f_array_card_key])
+#        return f_array
+
     @property
     def yaku_status_array(self):
+        # 1. 状態カウントをC++のBitboardで一括取得（爆速）
+        features = koikoicore.get_yaku_status_features(
+            self.hand[self.turn_player], 
+            self.field, 
+            self.pile[self.turn_player], 
+            self.pile[self.idle_player], 
+            self.hand[self.idle_player] + self.stock
+        )
+        f_array_card_state = np.concatenate(features)
+        f_array_card_state = np.tile(f_array_card_state, (48, 1)).T
         
-        def card_list_to_set(card_list):
-            return set([tuple(card) for card in card_list])
+        # 2. 静的なキー配列は1度だけ計算してキャッシュする（再計算の無駄を省く）
+        if not hasattr(KoiKoiRoundState, "_cached_card_key"):
+            card_dict = {
+                'Crane':KoiKoiCard.crane, 'Curtain':KoiKoiCard.curtain, 'Moon':KoiKoiCard.moon,
+                'Rainman':KoiKoiCard.rainman, 'Phoenix':KoiKoiCard.phoenix, 'Sake':KoiKoiCard.sake,
+                'BoarDeerButterfly':KoiKoiCard.boar_deer_butterfly, 'Seed':KoiKoiCard.seed,
+                'RedRibbon':KoiKoiCard.red_ribbon, 'BlueRibbon':KoiKoiCard.blue_ribbon,
+                'RedAndBlue':KoiKoiCard.red_blue_ribbon, 'Ribbon':KoiKoiCard.ribbon, 'Dross':KoiKoiCard.dross
+            }
+            KoiKoiRoundState._cached_card_key = np.array([
+                koikoicore.card_to_multi_hot([list(c) for c in card_set]) for _, card_set in card_dict.items()
+            ])
             
-        card_dict = {
-            'Crane':KoiKoiCard.crane,
-            'Curtain':KoiKoiCard.curtain,
-            'Moon':KoiKoiCard.moon,
-            'Rainman':KoiKoiCard.rainman,
-            'Phoenix':KoiKoiCard.phoenix,
-            'Sake':KoiKoiCard.sake,
-            'BoarDeerButterfly':KoiKoiCard.boar_deer_butterfly,
-            'Seed':KoiKoiCard.seed,
-            'RedRibbon':KoiKoiCard.red_ribbon,
-            'BlueRibbon':KoiKoiCard.blue_ribbon,
-            'RedAndBlue':KoiKoiCard.red_blue_ribbon,
-            'Ribbon':KoiKoiCard.ribbon,
-            'Dross':KoiKoiCard.dross}
-        
-        my_hand_card = card_list_to_set(self.hand[self.turn_player])
-        board_card = card_list_to_set(self.field)
-        my_collect_card = card_list_to_set(self.pile[self.turn_player])
-        op_collect_card = card_list_to_set(self.pile[self.idle_player])
-        unseen_card = card_list_to_set(self.hand[self.idle_player]+self.stock)
-        
-        f_dict = {}
-        f_dict['NumMyHand'] = [len(card_set & my_hand_card) for _,card_set in card_dict.items()]
-        f_dict['NumBoard'] = [len(card_set & board_card) for _,card_set in card_dict.items()]
-        f_dict['NumMyCollect'] = [len(card_set & my_collect_card) for _,card_set in card_dict.items()]
-        f_dict['NumOpCollect'] = [len(card_set & op_collect_card) for _,card_set in card_dict.items()]
-        f_dict['NumUnseen'] = [len(card_set & unseen_card) for _,card_set in card_dict.items()]
-        f_array_card_state = np.concatenate([value for key,value in f_dict.items()])
-        f_array_card_state = np.tile(f_array_card_state,(48,1)).T
-        f_array_card_key = np.array([card_to_multi_hot(card_set) for _,card_set in card_dict.items()])
-        f_array = np.vstack([f_array_card_state,f_array_card_key])
+        f_array = np.vstack([f_array_card_state, KoiKoiRoundState._cached_card_key])
         return f_array
-    
+
     
 class KoiKoiGameState(KoiKoiGameStateBase):
     

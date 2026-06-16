@@ -1,3 +1,4 @@
+import torch.nn.modules.linear as my_linear; my_linear._LinearWithBias = my_linear.Linear
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
@@ -42,9 +43,30 @@ game_state = KoiKoiGameState(player_name=[your_name,ai_name],
                              record_path=record_fold, 
                              save_record=True)
 
-discard_model = torch.load(discard_model_path, map_location=torch.device('cpu'))
-pick_model = torch.load(pick_model_path, map_location=torch.device('cpu'))
-koikoi_model = torch.load(koikoi_model_path, map_location=torch.device('cpu'))
+discard_model = torch.load(discard_model_path, map_location=torch.device('cpu'), weights_only=False)
+for module in discard_model.modules():
+    if type(module).__name__ == 'MultiheadAttention':
+        if not hasattr(module, 'batch_first'):
+            module.batch_first = False
+    elif type(module).__name__ == 'TransformerEncoderLayer':
+        if not hasattr(module, 'norm_first'):
+            module.norm_first = False
+pick_model = torch.load(pick_model_path, map_location=torch.device('cpu'), weights_only=False)
+for module in pick_model.modules():
+    if type(module).__name__ == 'MultiheadAttention':
+         if not hasattr(module, 'batch_first'):
+            module.batch_first = False
+    elif type(module).__name__ == 'TransformerEncoderLayer':
+        if not hasattr(module, 'norm_first'):
+            module.norm_first = False
+koikoi_model = torch.load(koikoi_model_path, map_location=torch.device('cpu'), weights_only=False)
+for module in koikoi_model.modules():
+    if type(module).__name__ == 'MultiheadAttention':
+        if not hasattr(module, 'batch_first'):
+            module.batch_first = False
+    elif type(module).__name__ == 'TransformerEncoderLayer':
+        if not hasattr(module, 'norm_first'):
+            module.norm_first = False
 
 ai_agent = AgentForTest(discard_model, pick_model, koikoi_model)
 

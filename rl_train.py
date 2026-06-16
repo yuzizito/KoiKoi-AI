@@ -1,3 +1,4 @@
+import torch.nn.modules.linear as my_linear; my_linear._LinearWithBias = my_linear.Linear
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
@@ -15,10 +16,28 @@ import os
 import time
 import pickle
 import multiprocessing
+import threading
 
 import koikoigame
 import koikoilearn
 from koikoinet2L import DiscardModel, PickModel, KoiKoiModel, TargetQNet
+
+# 終了を検知するためのシグナルオブジェクト
+stop_event = threading.Event()
+
+def wait_for_exit_key():
+    """裏でキー入力を監視するサブスレッド用の関数"""
+    print("\n[システム] 画面上で 'q' キーを押して Enter を入力すると、現在のループ終了時に安全に停止します。\n")
+    while True:
+        try:
+            # 入力を待つ（Enterが必要ですが、標準機能だけで速度低下なく実現できます）
+            user_input = input()
+            if user_input.strip().lower() == 'q':
+                print("\n[停止シグナル検知] 現在のイテレーションが終了次第、モデルを保存して安全に終了します。お待ちください...")
+                stop_event.set()
+                break
+        except Exception:
+            break
 
 # training settings
 task_name = 'point' # wp, point
@@ -26,16 +45,18 @@ log_path = f'log_rl_{task_name}.txt'
 rl_folder = f'model_rl_{task_name}'
 
 # continue training with trained models
-start_loop_num = 1
-saved_model_path = {'discard':f'{rl_folder}/discard_0_0.pt', 
-                    'pick':f'{rl_folder}/pick_0_0.pt',
-                    'koikoi':f'{rl_folder}/koikoi_0_0.pt'}
+start_loop_num = 35
+saved_model_path = {'discard':f'{rl_folder}/discard_final_stop.pt', 
+                    'pick':f'{rl_folder}/pick_final_stop.pt',
+                    'koikoi':f'{rl_folder}/koikoi_final_stop.pt'}
 
 assert task_name in ['point', 'wp']
+
+# GPUが利用可能ならcuda、なければcpu
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-with open('win_prob_mat.pkl','rb') as f:
-    win_prob_mat = pickle.load(f)
+# 【メモリ対策】子プロセスで二重に読み込まれないよう、グローバルでの読み込みを廃止（__main__内で読み込む）
+win_prob_mat = None
 
 TraceSlot = namedtuple(
     'TraceSlot', ['key','state','action'])
@@ -77,7 +98,7 @@ class Buffer():
 
 
 class TraceSimulator():
-    def __init__(self, agent,
+    def __init__(self, agent, global_win_prob_mat,
                  record_state=['discard','discard-pick','draw-pick','koikoi'], 
                  discount=1):
         self.agent = {1:agent, 2:agent}
@@ -85,7 +106,7 @@ class TraceSimulator():
         self.record_state = record_state
         self.discount = discount
         
-        self.win_prob_mat = win_prob_mat
+        self.win_prob_mat = global_win_prob_mat
         self.buffer = {'discard':[], 'pick':[], 'koikoi':[]}
     
     def __reward_wp(self, player):
@@ -166,26 +187,59 @@ def get_master_net():
     discard_model_path = 'model_agent/discard_sl.pt'
     pick_model_path = 'model_agent/pick_sl.pt'
     koikoi_model_path = 'model_agent/koikoi_sl.pt'
-    discard_model = torch.load(discard_model_path, map_location)
-    pick_model = torch.load(pick_model_path, map_location)
-    koikoi_model = torch.load(koikoi_model_path, map_location)  
+
+    discard_model = torch.load(discard_model_path, map_location, weights_only=False)
+    for module in discard_model.modules():
+        if type(module).__name__ == 'MultiheadAttention':
+            if not hasattr(module, 'batch_first'):
+                module.batch_first = False
+        elif type(module).__name__ == 'TransformerEncoderLayer':
+            if not hasattr(module, 'norm_first'):
+                module.norm_first = False
+
+    pick_model = torch.load(pick_model_path, map_location, weights_only=False)
+    for module in pick_model.modules():
+        if type(module).__name__ == 'MultiheadAttention':
+            if not hasattr(module, 'batch_first'):
+                module.batch_first = False
+        elif type(module).__name__ == 'TransformerEncoderLayer':
+            if not hasattr(module, 'norm_first'):
+                module.norm_first = False
+
+    koikoi_model = torch.load(koikoi_model_path, map_location, weights_only=False)  
+    for module in koikoi_model.modules():
+        if type(module).__name__ == 'MultiheadAttention':
+            if not hasattr(module, 'batch_first'):
+                module.batch_first = False
+        elif type(module).__name__ == 'TransformerEncoderLayer':
+            if not hasattr(module, 'norm_first'):
+                module.norm_first = False
     return discard_model, pick_model, koikoi_model
 
 
 def get_value_action_net(action_net_path, value_net):
     map_location = torch.device('cpu')
-    action_net = torch.load(action_net_path, map_location)
+    action_net = torch.load(action_net_path, map_location, weights_only=False)
+    
+    for module in action_net.modules():
+        if type(module).__name__ == 'MultiheadAttention':
+            if not hasattr(module, 'batch_first'):
+                module.batch_first = False
+        elif type(module).__name__ == 'TransformerEncoderLayer':
+            if not hasattr(module, 'norm_first'):
+                module.norm_first = False
+                
     value_net.load_state_dict(action_net.state_dict())
     return value_net, action_net
 
 
-def parallel_sampling(agent, n_games):
-    trace_simulator = TraceSimulator(agent)
+def parallel_sampling(agent, n_games, global_win_prob_mat):
+    trace_simulator = TraceSimulator(agent, global_win_prob_mat)
     sample_dict = trace_simulator.random_make_games(n_games)
     return sample_dict
 
 
-def parallel_arena_test(agent, n_games):
+def parallel_arena_test(agent, n_games, master_agent):
     arena = koikoilearn.Arena(agent, master_agent)
     arena.multi_game_test(n_games)
     result = arena.test_win_num
@@ -226,18 +280,25 @@ def random_action_prob_scheduler(score):
     return p
 
 
-criterion = torch.nn.SmoothL1Loss(beta=30.0).to(device)
-
-master_discard_net, master_pick_net, master_koikoi_net = get_master_net()
-master_agent = koikoilearn.Agent(master_discard_net, master_pick_net, master_koikoi_net)
-
-
 # Monte-Carlo learning with self-play
 if __name__ == '__main__':
     if not os.path.isdir(rl_folder):
         os.mkdir(rl_folder)
+        
+    exit_thread = threading.Thread(target=wait_for_exit_key, daemon=True)
+    exit_thread.start()
+        
+    # 【メモリ対策】win_prob_mat や master_agent の初期化を __main__ 内部に移動
+    with open('win_prob_mat.pkl','rb') as f:
+        win_prob_mat = pickle.load(f)
+
+    criterion = torch.nn.SmoothL1Loss(beta=30.0).to(device)
+    master_discard_net, master_pick_net, master_koikoi_net = get_master_net()
+    master_agent = koikoilearn.Agent(master_discard_net, master_pick_net, master_koikoi_net)
     
-    cpu_count = 48
+    # 【メモリ対策】同時に立ち上げるプロセス数を「48」から「4」などの安全な値に制限
+    # ※マシンの物理コア数に合わせて 4〜8 程度にしておくのがメモリ・CPU的に最も安全です。
+    cpu_count = 4
     loop_games = 480
     n_core_games = loop_games // cpu_count
     
@@ -267,7 +328,7 @@ if __name__ == '__main__':
         saved_model_path['koikoi'], value_net['koikoi'])    
     
     for key in ['discard', 'pick', 'koikoi']:
-            value_net[key].to(device)
+        value_net[key].to(device)
             
     play_agent = koikoilearn.Agent(action_net['discard'], action_net['pick'], action_net['koikoi'],
                                    random_action_prob=[0.1, 0.1, 0.1, 0.1])    
@@ -275,26 +336,18 @@ if __name__ == '__main__':
     optimizer = {'discard': torch.optim.Adam(value_net['discard'].parameters(), lr=0.0001),
                  'pick': torch.optim.Adam(value_net['pick'].parameters(), lr=0.0001),
                  'koikoi': torch.optim.Adam(value_net['koikoi'].parameters(), lr=0.0001)}
-    
-    '''
-    with open(f'{rl_folder}/optimizer.pickle','rb') as f:
-        optimizer = pickle.load(f)
-    '''
 
     score = [0.0]
-    print_log(f'\n{time_str()} start training', log_path)
+    print_log(f'\n{time_str()} start training on device: {device}', log_path)
     for loop in range(start_loop_num, 100000):
-        #buffer.extend(parallel_sampling(play_agent, n_core_games))
-        #'''
-        # paralell make trace
         pool = multiprocessing.Pool(cpu_count)
         for _ in range(cpu_count):
             pool.apply_async(parallel_sampling, 
-                             args=(play_agent, n_core_games), 
+                             args=(play_agent, n_core_games, win_prob_mat), 
                              callback=buffer.extend)
         pool.close()
         pool.join()
-        #'''
+
         n_sample = [len(buffer.memory[key]) for key in ['discard', 'pick', 'koikoi']]
         print_log(f'{time_str()} {loop} loops, {tuple(n_sample)} samples generated.', log_path)
         
@@ -304,22 +357,20 @@ if __name__ == '__main__':
             train_loss = []
             for step, transitions in enumerate(buffer.get_batch(key, batch_size)):
                 transitions = Transition(*zip(*transitions))
-                # state
+                
                 state_batch = torch.stack(transitions.state).to(device)
-                # reward
                 reward_batch = torch.Tensor(transitions.reward).to(device) 
-                # predict q values 
+                
                 q_values = value_net[key](state_batch).squeeze(1)
-                # train
+                
                 loss = criterion(q_values, reward_batch)
                 optimizer[key].zero_grad()
                 loss.backward()
                 optimizer[key].step()
-                # record
+                
                 train_loss.append(loss.cpu().data.item())
             print_log(f'{time_str()} {key} net, {step+1} steps, loss = {np.mean(train_loss)}', log_path)
         
-        # clear buffer
         del transitions, state_batch, reward_batch, q_values, loss
         buffer.clear()
         
@@ -327,7 +378,9 @@ if __name__ == '__main__':
         if loop % n_loop_action_net_update == 0:
             type_dict = {'discard':'discard', 'discard-pick':'pick', 'draw-pick':'pick', 'koikoi':'koikoi'}
             for model_key, net_key in type_dict.items():
-                action_net[net_key].load_state_dict(value_net[net_key].state_dict())
+                action_net[net_key].load_state_dict(value_net[net_key].to('cpu').state_dict())
+                value_net[net_key].to(device)
+                
             play_agent = koikoilearn.Agent(action_net['discard'], action_net['pick'], action_net['koikoi'],
                                            random_action_prob=random_action_prob_scheduler(score[-1]))
             test_agent = koikoilearn.Agent(action_net['discard'], action_net['pick'], action_net['koikoi'])  
@@ -338,7 +391,7 @@ if __name__ == '__main__':
             pool = multiprocessing.Pool(cpu_count)
             for _ in range(cpu_count):
                 pool.apply_async(parallel_arena_test, 
-                                 args=(test_agent, 400//cpu_count), 
+                                 args=(test_agent, 400//cpu_count, master_agent), 
                                  callback=result.append)
             pool.close()
             pool.join()
@@ -353,4 +406,12 @@ if __name__ == '__main__':
                 print_log(f'{time_str()}  New model saved.', log_path)
             play_agent = koikoilearn.Agent(action_net['discard'], action_net['pick'], action_net['koikoi'],
                                            random_action_prob=random_action_prob_scheduler(score[-1]))
-
+            
+        if stop_event.is_set():
+            print_log(f'\n{time_str()} [安全停止] 最新のモデルを保存します。', log_path)
+            # 終了直前に強制的に最新モデルを確定保存する
+            for key in ['discard', 'pick', 'koikoi']:
+                final_path = f'{rl_folder}/{key}_final_stop.pt'
+                torch.save(action_net[key], final_path)
+            print_log(f'{time_str()} 全てのモデルの安全保存が完了しました。プログラムを終了します。', log_path)
+            break # 学習ループを脱出して終了
