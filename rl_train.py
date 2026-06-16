@@ -18,10 +18,16 @@ import time
 import pickle
 import multiprocessing
 import threading
+from torch.utils.data import TensorDataset, DataLoader
 
 import koikoigame
 import koikoilearn
 from koikoinet2L import DiscardModel, PickModel, KoiKoiModel, TargetQNet
+
+os.environ['OMP_NUM_THREADS'] = '1'
+os.environ['MKL_NUM_THREADS'] = '1'
+os.environ['OPENBLAS_NUM_THREADS'] = '1'
+torch.set_num_threads(1)
 
 # 終了を検知するためのシグナルオブジェクト
 stop_event = threading.Event()
@@ -46,7 +52,7 @@ log_path = f'log_rl_{task_name}.txt'
 rl_folder = f'model_rl_{task_name}'
 
 # continue training with trained models
-start_loop_num = 227
+start_loop_num = 381
 saved_model_path = {'discard':f'{rl_folder}/discard_final_stop.pt', 
                     'pick':f'{rl_folder}/pick_final_stop.pt',
                     'koikoi':f'{rl_folder}/koikoi_final_stop.pt'}
@@ -174,8 +180,10 @@ class TraceSimulator():
                 for rev_step in range(len(trace[player])):
                     key = trace[player][-rev_step-1].key
                     action = trace[player][-rev_step-1].action
+                    # 改善点: Tensorを.numpy()に変換してからプロセス間通信に乗せる
+                    state_tensor = adjust_card_order(trace[player][-rev_step-1].state.clone(), action).half()
                     self.buffer[key].append(Transition(
-                        state = adjust_card_order(trace[player][-rev_step-1].state.clone(), action), 
+                        state = state_tensor.numpy(), 
                         action = action, 
                         reward = reward[player] * (self.discount ** rev_step)))
             # next round
@@ -239,8 +247,12 @@ def parallel_sampling(agent, n_games, global_win_prob_mat):
     sample_dict = trace_simulator.random_make_games(n_games)
     return sample_dict
 
+def init_worker():
+    global master_agent
+    master_discard_net, master_pick_net, master_koikoi_net = get_master_net()
+    master_agent = koikoilearn.Agent(master_discard_net, master_pick_net, master_koikoi_net)
 
-def parallel_arena_test(agent, n_games, master_agent):
+def parallel_arena_test(agent, n_games):
     arena = koikoilearn.Arena(agent, master_agent)
     arena.multi_game_test(n_games)
     result = arena.test_win_num
@@ -297,9 +309,7 @@ if __name__ == '__main__':
     master_discard_net, master_pick_net, master_koikoi_net = get_master_net()
     master_agent = koikoilearn.Agent(master_discard_net, master_pick_net, master_koikoi_net)
     
-    # 【メモリ対策】同時に立ち上げるプロセス数を「48」から「4」などの安全な値に制限
-    # ※マシンの物理コア数に合わせて 4〜8 程度にしておくのがメモリ・CPU的に最も安全です。
-    cpu_count = 4
+    cpu_count = 8
     loop_games = 480
     n_core_games = loop_games // cpu_count
     
@@ -337,31 +347,63 @@ if __name__ == '__main__':
     optimizer = {'discard': torch.optim.Adam(value_net['discard'].parameters(), lr=0.0001),
                  'pick': torch.optim.Adam(value_net['pick'].parameters(), lr=0.0001),
                  'koikoi': torch.optim.Adam(value_net['koikoi'].parameters(), lr=0.0001)}
-    scaler = scaler = torch.amp.GradScaler(device_type='cuda')
+    scaler = torch.amp.GradScaler('cuda')
 
     score = [0.0]
     print_log(f'\n{time_str()} start training on device: {device}', log_path)
+    pool = multiprocessing.Pool(cpu_count, initializer=init_worker)
     for loop in range(start_loop_num, 100000):
-        pool = multiprocessing.Pool(cpu_count)
+        # 改善点: ループ開始時の高精度タイムスタンプを取得
+        loop_start_time = time.perf_counter()
+        
+        async_results = []
         for _ in range(cpu_count):
-            pool.apply_async(parallel_sampling, 
-                             args=(play_agent, n_core_games, win_prob_mat), 
-                             callback=buffer.extend)
-        pool.close()
-        pool.join()
-
+            # argsに win_prob_mat を追加
+            res = pool.apply_async(parallel_sampling, 
+                                   args=(play_agent, n_core_games, win_prob_mat))
+            async_results.append(res)
+        
+        # get()で全ワーカーの終了を待機しつつバッファに追加
+        for res in async_results:
+            buffer.extend(res.get())
+            
         n_sample = [len(buffer.memory[key]) for key in ['discard', 'pick', 'koikoi']]
-        print_log(f'{time_str()} {loop} loops, {tuple(n_sample)} samples generated.', log_path)
+        
+        # 改善点: サンプル生成（並列シミュレーション）完了までの経過時間を計算
+        elapsed_time = time.perf_counter() - loop_start_time
+        
+        # 改善点: ログ出力の末尾に「(かかった時間: 〇秒)」を追加表示
+        print_log(f'{time_str()} {loop} loops, {tuple(n_sample)} samples generated. (Time: {elapsed_time:.2f}s)', log_path)
         
         # optimize value net
         for key in ['discard', 'pick', 'koikoi']:
             value_net[key].train()
             train_loss = []
-            for step, transitions in enumerate(buffer.get_batch(key, batch_size)):
-                transitions = Transition(*zip(*transitions))
+            
+            # バッファにデータがない場合はスキップ（安全対策）
+            if len(buffer.memory[key]) == 0:
+                continue
                 
-                state_batch = torch.stack(transitions.state).to(device, non_blocking=True)
-                reward_batch = torch.Tensor(transitions.reward).to(device, non_blocking=True) 
+            # 1. 蓄積されたリストのデータをまとめて効率的にTensor化
+            # (Zip展開によるPythonのループ処理を排除し、一括でNumPy/Tensor変換を行います)
+            all_states = np.stack([t.state for t in buffer.memory[key]])
+            all_rewards = np.array([t.reward for t in buffer.memory[key]], dtype=np.float32)
+            
+            # 2. TensorDataset と DataLoader の構築
+            # pin_memory=True を指定することで、GPUへのデータ転送（.to）が非同期化され最速になります
+            dataset = TensorDataset(torch.from_numpy(all_states), torch.from_numpy(all_rewards))
+            data_loader = DataLoader(
+                dataset, 
+                batch_size=batch_size, 
+                shuffle=True, 
+                pin_memory=True,
+                num_workers=0 # サンプリングですでにCPUを使用しているため、ここは0（メインスレッド処理）が最速です
+            )
+            
+            for step, (state_batch, reward_batch) in enumerate(data_loader):
+                # non_blocking=True を指定し、pin_memoryされたテンソルをGPUへ最速転送
+                state_batch = state_batch.to(device, non_blocking=True).float()
+                reward_batch = reward_batch.to(device, non_blocking=True)
                 
                 # 勾配の初期化
                 optimizer[key].zero_grad()
@@ -379,7 +421,6 @@ if __name__ == '__main__':
                 train_loss.append(loss.cpu().data.item())
             print_log(f'{time_str()} {key} net, {step+1} steps, loss = {np.mean(train_loss)}', log_path)
         
-        del transitions, state_batch, reward_batch, q_values, loss
         buffer.clear()
         
         # update action net and agent
@@ -399,13 +440,16 @@ if __name__ == '__main__':
         # arena test
         if loop % n_loop_arena_test == 0:
             result = []
-            pool = multiprocessing.Pool(cpu_count)
+            async_results_test = []
+            
             for _ in range(cpu_count):
-                pool.apply_async(parallel_arena_test, 
-                                 args=(test_agent, 400//cpu_count, master_agent), 
-                                 callback=result.append)
-            pool.close()
-            pool.join()
+                res = pool.apply_async(parallel_arena_test, 
+                                       args=(test_agent, 400//cpu_count))
+                async_results_test.append(res)
+                
+            for res in async_results_test:
+                result.append(res.get())
+                
             s = test_result_analysis(result,loop)
             score.append(s)
             if s == max(score[-20:]) or (loop%50==0):
