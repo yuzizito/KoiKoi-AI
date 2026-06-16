@@ -18,7 +18,6 @@ class DefaultVar():
     DEFAULT_ROUND_TOTAL = 8
     DEFAULT_INIT_POINT = 30
 
-
 #def card_to_multi_hot(card_list):
 #    card_multi_hot = [0 for i in range(48)]
 #    for card in card_list:
