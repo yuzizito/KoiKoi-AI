@@ -52,7 +52,7 @@ log_path = f'log_rl_{task_name}.txt'
 rl_folder = f'model_rl_{task_name}'
 
 # continue training with trained models
-start_loop_num = 381
+start_loop_num = 433
 saved_model_path = {'discard':f'{rl_folder}/discard_final_stop.pt', 
                     'pick':f'{rl_folder}/pick_final_stop.pt',
                     'koikoi':f'{rl_folder}/koikoi_final_stop.pt'}
@@ -316,7 +316,7 @@ if __name__ == '__main__':
     batch_size = 256
     
     n_loop_action_net_update = 5
-    n_loop_arena_test = 5
+    n_loop_arena_test = 10
     
     buffer = Buffer()
     
