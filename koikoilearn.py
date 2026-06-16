@@ -8,9 +8,9 @@ Created on Sun Jul  4 21:11:56 2021
 
 import random
 import numpy as np
-
+import time
+import torch
 import koikoigame
-
 
 class Agent():
     def __init__(self, discard_model, pick_model, koikoi_model, random_action_prob=[0.,0.,0.,0.]):
@@ -29,10 +29,29 @@ class Agent():
                                    'draw-pick':random_action_prob[2],
                                    'koikoi':random_action_prob[3]}
 
+        # ★ 精密計測用のタイマー変数を追加
+        self.t_feat_gen = 0.0
+        self.t_forward = 0.0
+        self.t_post_proc = 0.0
+        self.last_feature = {'discard': None, 'discard-pick': None, 'draw-pick': None, 'koikoi': None}
+
     def __predict(self, state, feature, mask):
-        output = self.model[state](feature).squeeze(0).detach().numpy()
-        output = np.exp(output/10.0) * mask
-        action_output = self.action_dict[state][output.argmax()]        
+        t1 = time.perf_counter()
+        output_tensor = self.model[state](feature)
+        self.t_forward += (time.perf_counter() - t1)
+        
+        t2 = time.perf_counter()
+        output = output_tensor.squeeze(0)
+        
+        # テンソルのままマスク処理（マスクが0の場所を極小値で埋める）
+        mask_tensor = torch.tensor(mask, dtype=torch.bool, device=output.device)
+        output = output.masked_fill(~mask_tensor, -1e9)
+        
+        # テンソルのまま最速で argmax を取得
+        best_index = output.argmax().item()
+        action_output = self.action_dict[state][best_index]
+        
+        self.t_post_proc += (time.perf_counter() - t2)
         return action_output
     
     def auto_action(self, game_state, use_mask=True, for_test=False):
@@ -50,7 +69,8 @@ class Agent():
             if end_point >= 60:
                 return False
         if p > self.random_action_prob[game_state.round_state.state]:
-            return self.auto_definitely_action(game_state, use_mask)
+            with torch.inference_mode():
+                return self.auto_definitely_action(game_state, use_mask)
         else:
             return self.auto_random_action(game_state)
     
@@ -58,7 +78,14 @@ class Agent():
         action_output = None
         if game_state.round_state.wait_action==True:
             state = game_state.round_state.state
+            
+            t0 = time.perf_counter()
             feature = game_state.feature_tensor.unsqueeze(0)
+            self.t_feat_gen += (time.perf_counter() - t0)
+            
+            # ★【追加・安全版】ChatGPTの指摘通り、メモリを安全に切り離して保持
+            self.last_feature[state] = feature.squeeze(0).detach()
+            
             mask = game_state.round_state.action_mask
             action_output = self.__predict(state, feature, mask)     
         return action_output
@@ -148,11 +175,30 @@ class AgentForTest():
                                    'draw':0,
                                    'draw-pick':random_action_prob[2],
                                    'koikoi':random_action_prob[3]}
+        
+        # ★ 精密計測用のタイマー変数を追加
+        self.t_feat_gen = 0.0
+        self.t_forward = 0.0
+        self.t_post_proc = 0.0
+        self.last_feature = {'discard': None, 'discard-pick': None, 'draw-pick': None, 'koikoi': None}
 
     def __predict(self, state, feature, mask):
-        output = self.model[state](feature).squeeze(0).detach().numpy()
-        output = np.exp(output/10.0) * mask
-        action_output = self.action_dict[state][output.argmax()]        
+        t1 = time.perf_counter()
+        output_tensor = self.model[state](feature)
+        self.t_forward += (time.perf_counter() - t1)
+        
+        t2 = time.perf_counter()
+        output = output_tensor.squeeze(0)
+        
+        # テンソルのままマスク処理（マスクが0の場所を極小値で埋める）
+        mask_tensor = torch.tensor(mask, dtype=torch.bool, device=output.device)
+        output = output.masked_fill(~mask_tensor, -1e9)
+        
+        # テンソルのまま最速で argmax を取得
+        best_index = output.argmax().item()
+        action_output = self.action_dict[state][best_index]
+        
+        self.t_post_proc += (time.perf_counter() - t2)
         return action_output
     
     def auto_action(self, game_state, use_mask=True, for_test=True):
@@ -178,7 +224,11 @@ class AgentForTest():
         action_output = None
         if game_state.round_state.wait_action==True:
             state = game_state.round_state.state
+            # 1. feature_tensor 生成時間を計測
+            t0 = time.perf_counter()
             feature = game_state.feature_tensor.unsqueeze(0)
+            self.t_feat_gen += (time.perf_counter() - t0)
+            self.last_feature[state] = feature.squeeze(0).detach()
             mask = game_state.round_state.action_mask
             action_output = self.__predict(state, feature, mask)     
         return action_output

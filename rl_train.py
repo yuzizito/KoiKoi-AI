@@ -52,7 +52,7 @@ log_path = f'log_rl_{task_name}.txt'
 rl_folder = f'model_rl_{task_name}'
 
 # continue training with trained models
-start_loop_num = 481
+start_loop_num = 517
 saved_model_path = {'discard':f'{rl_folder}/discard_final_stop.pt', 
                     'pick':f'{rl_folder}/pick_final_stop.pt',
                     'koikoi':f'{rl_folder}/koikoi_final_stop.pt'}
@@ -132,8 +132,28 @@ class TraceSimulator():
     
     def random_make_games(self, n_games):
         self.buffer = {'discard':[], 'pick':[], 'koikoi':[]}
+        
+        self.t_action = 0.0
+        self.t_step = 0.0
+        self.t_clone = 0.0
+        self.t_other = 0.0
+        
+        # エージェント側の内訳タイマーをリセット
+        for p in [1, 2]:
+            self.agent[p].t_feat_gen = 0.0
+            self.agent[p].t_forward = 0.0
+            self.agent[p].t_post_proc = 0.0
+        
         for _ in range(n_games):
             self.make_game_trace()
+            
+        # プレイヤー1のエージェントから内訳タイマーを取得（自己対局で共通のインスタンス）
+        t_feat_gen = self.agent[1].t_feat_gen
+        t_forward = self.agent[1].t_forward
+        t_post_proc = self.agent[1].t_post_proc
+            
+        # 拡張版 time_stats を送信 (従来の4つに加えて、内訳3つを追加)
+        self.buffer['time_stats'] = [(self.t_action, self.t_step, self.t_clone, self.t_other, t_feat_gen, t_forward, t_post_proc)]
         return self.buffer
     
     def make_game_trace(self):
@@ -152,7 +172,9 @@ class TraceSimulator():
         
         type_dict = {'discard':'discard', 'discard-pick':'pick', 'draw-pick':'pick', 'koikoi':'koikoi'}
         
+        t_start = time.perf_counter()
         self.game_state = koikoigame.KoiKoiGameState()
+        self.t_other += (time.perf_counter() - t_start)
         
         while True:
             if self.game_state.game_over == True:
@@ -162,15 +184,44 @@ class TraceSimulator():
             while not self.game_state.round_state.round_over:
                 player = self.game_state.round_state.turn_player
                 state = self.game_state.round_state.state
+                
+                # ① NN推論 (auto_action) の時間を計測
+                t0 = time.perf_counter()
                 action = self.agent[player].auto_action(self.game_state, use_mask=True)            
+                self.t_action += (time.perf_counter() - t0)
+                
                 if player in [1,2] and (state in self.record_state) and (action is not None):
+                    t_feat_start = time.perf_counter()
+                    # 1. まずキャッシュから特徴量を取り出す
+                    raw_feat = self.agent[player].last_feature[state]
+                    t_feat_end = time.perf_counter()
+                    
+                    t_clone_start = time.perf_counter()
+                    
+                    # ★【追加・安全弁】もし自動フェーズなどでキャッシュが空(None)だった場合は、
+                    # 例外的にその場で安全に新規生成させる（フォールバック）
+                    if raw_feat is None:
+                        feat = self.game_state.feature_tensor.clone()
+                    else:
+                        feat = raw_feat.clone() # キャッシュがあればそれを利用
+                        
+                    t_clone_end = time.perf_counter()
+                    
+                    self.t_other += (t_feat_end - t_feat_start)
+                    self.t_clone += (t_clone_end - t_clone_start)
+                    
                     trace[player].append(TraceSlot(
                         key = type_dict[state],
-                        state = self.game_state.feature_tensor.clone(), 
+                        state = feat, 
                         action = action_to_index(action)))
+                
+                # ③ ゲーム状態の更新 (step) の時間を計測
+                t2 = time.perf_counter()
                 self.game_state.round_state.step(action) 
+                self.t_step += (time.perf_counter() - t2)
             
             # record
+            t_rec = time.perf_counter()
             if task_name == 'wp':
                 reward = {1:self.__reward_wp(1), 2:self.__reward_wp(2)}
             elif task_name == 'point':
@@ -180,7 +231,6 @@ class TraceSimulator():
                 for rev_step in range(len(trace[player])):
                     key = trace[player][-rev_step-1].key
                     action = trace[player][-rev_step-1].action
-                    # 改善点: Tensorを.numpy()に変換してからプロセス間通信に乗せる
                     state_tensor = adjust_card_order(trace[player][-rev_step-1].state.clone(), action).half()
                     self.buffer[key].append(Transition(
                         state = state_tensor.numpy(), 
@@ -188,6 +238,7 @@ class TraceSimulator():
                         reward = reward[player] * (self.discount ** rev_step)))
             # next round
             self.game_state.new_round()
+            self.t_other += (time.perf_counter() - t_rec)
         return
 
 
@@ -243,6 +294,24 @@ def get_value_action_net(action_net_path, value_net):
 
 
 def parallel_sampling(agent, n_games, global_win_prob_mat):
+    # 【追加】子プロセス側のメモリ空間上で、安全かつ確実に TorchScript トレース（高速化）をかける
+    example_input = torch.zeros((1, 300, 48), dtype=torch.float32)
+    
+    with torch.inference_mode():
+        # 送信されてきた生のモデルから、最速の JITコンパイル版 を作成して差し替える
+        traced_discard = torch.jit.trace(agent.model['discard'], example_input)
+        traced_pick    = torch.jit.trace(agent.model['discard-pick'], example_input)
+        traced_koikoi  = torch.jit.trace(agent.model['koikoi'], example_input)
+        
+        # エージェントが内部で参照しているモデルマップを高速版に上書き
+        agent.model = {
+            'discard': traced_discard,
+            'discard-pick': traced_pick,
+            'draw-pick': traced_pick,
+            'koikoi': traced_koikoi
+        }
+    
+    # あとは完全に最適化されたランタイムでゲームをシミュレーション
     trace_simulator = TraceSimulator(agent, global_win_prob_mat)
     sample_dict = trace_simulator.random_make_games(n_games)
     return sample_dict
@@ -294,6 +363,7 @@ def random_action_prob_scheduler(score):
 
 
 # Monte-Carlo learning with self-play
+# Monte-Carlo learning with self-play
 if __name__ == '__main__':
     if not os.path.isdir(rl_folder):
         os.mkdir(rl_folder)
@@ -331,12 +401,17 @@ if __name__ == '__main__':
     for key in ['discard', 'pick', 'koikoi']:
         torch.save(action_net[key], f'{rl_folder}/{key}_0_0.pt')
     
-    value_net['discard'], action_net['discard'] = get_value_action_net(
-        saved_model_path['discard'], value_net['discard'])
-    value_net['pick'], action_net['pick'] = get_value_action_net(
-        saved_model_path['pick'], value_net['pick'])
-    value_net['koikoi'], action_net['koikoi'] = get_value_action_net(
-        saved_model_path['koikoi'], value_net['koikoi'])    
+    value_net['discard'], raw_discard = get_value_action_net(saved_model_path['discard'], value_net['discard'])
+    value_net['pick'], raw_pick = get_value_action_net(saved_model_path['pick'], value_net['pick'])
+    value_net['koikoi'], raw_koikoi = get_value_action_net(saved_model_path['koikoi'], value_net['koikoi'])    
+
+    # 【変更】親プロセス側での torch.jit.trace は行わず、生の eval() モデルをセットする
+    # これにより、multiprocessing の引数として正常に送信（シリアライズ）できるようになります
+    action_net = {
+        'discard': raw_discard.eval(),
+        'pick': raw_pick.eval(),
+        'koikoi': raw_koikoi.eval()
+    }
     
     for key in ['discard', 'pick', 'koikoi']:
         value_net[key].to(device)
@@ -352,68 +427,89 @@ if __name__ == '__main__':
     score = [0.0]
     print_log(f'\n{time_str()} start training on device: {device}', log_path)
     pool = multiprocessing.Pool(cpu_count, initializer=init_worker)
+    
     for loop in range(start_loop_num, 100000):
-        # 改善点: ループ開始時の高精度タイムスタンプを取得
+        # ループ開始時の高精度タイムスタンプを取得
         loop_start_time = time.perf_counter()
         
         async_results = []
         for _ in range(cpu_count):
-            # argsに win_prob_mat を追加
             res = pool.apply_async(parallel_sampling, 
                                    args=(play_agent, n_core_games, win_prob_mat))
             async_results.append(res)
         
-        # get()で全ワーカーの終了を待機しつつバッファに追加
+        # 各子プロセスのタイマーを集計するための変数を初期化
+        total_action = 0.0
+        total_step = 0.0
+        total_clone = 0.0
+        total_other = 0.0
+        total_feat_gen = 0.0
+        total_forward = 0.0
+        total_post_proc = 0.0
+        
+        # get()で全ワーカーの終了を待機しつつ、時間統計を回収
         for res in async_results:
-            buffer.extend(res.get())
+            res_dict = res.get()
+            
+            if 'time_stats' in res_dict:
+                stats = res_dict.pop('time_stats')[0]
+                total_action += stats[0]
+                total_step += stats[1]
+                total_clone += stats[2]
+                total_other += stats[3]
+                total_feat_gen += stats[4]
+                total_forward += stats[5]
+                total_post_proc += stats[6]
+            buffer.extend(res_dict)
             
         n_sample = [len(buffer.memory[key]) for key in ['discard', 'pick', 'koikoi']]
-        
-        # 改善点: サンプル生成（並列シミュレーション）完了までの経過時間を計算
         elapsed_time = time.perf_counter() - loop_start_time
         
-        # 改善点: ログ出力の末尾に「(かかった時間: 〇秒)」を追加表示
-        print_log(f'{time_str()} {loop} loops, {tuple(n_sample)} samples generated. (Time: {elapsed_time:.2f}s)', log_path)
+        # ログ出力
+        print_log(f'{time_str()} {loop} loops, {tuple(n_sample)} samples generated. (Total Loop Time: {elapsed_time:.2f}s)', log_path)
+        
+        sum_w_time = total_action + total_step + total_clone + total_other
+        if sum_w_time > 0:
+            print(f"   [Profile] NN 推論 (auto_action) : {total_action:.2f}s ({total_action/sum_w_time*100:.1f}%)")
+            if total_action > 0:
+                print(f"      └─ 特徴量変換 (feat_tensor) : {total_feat_gen:.2f}s ({total_feat_gen/total_action*100:.1f}% of action)")
+                print(f"      └─ 純粋な推論 (model.forward): {total_forward:.2f}s ({total_forward/total_action*100:.1f}% of action)")
+                print(f"      └─ 後処理 (numpy/exp/argmax) : {total_post_proc:.2f}s ({total_post_proc/total_action*100:.1f}% of action)")
+            print(f"   [Profile] ゲーム更新 (step)     : {total_step:.2f}s ({total_step/sum_w_time*100:.1f}%)")
+            print(f"   [Profile] 純粋なメモリ複製 (clone): {total_clone:.2f}s ({total_clone/sum_w_time*100:.1f}%)") # ラベル変更
+            print(f"   [Profile] その他 (特徴量生成含む) : {total_other:.2f}s ({total_other/sum_w_time*100:.1f}%)") # ラベル変更
+            print(f"   [IPC Overhead] 通信・シリアライズ推定 : {max(0.0, elapsed_time - (sum_w_time/cpu_count)):.2f}s")
         
         # optimize value net
         for key in ['discard', 'pick', 'koikoi']:
             value_net[key].train()
             train_loss = []
             
-            # バッファにデータがない場合はスキップ（安全対策）
             if len(buffer.memory[key]) == 0:
                 continue
                 
-            # 1. 蓄積されたリストのデータをまとめて効率的にTensor化
-            # (Zip展開によるPythonのループ処理を排除し、一括でNumPy/Tensor変換を行います)
             all_states = np.stack([t.state for t in buffer.memory[key]])
             all_rewards = np.array([t.reward for t in buffer.memory[key]], dtype=np.float32)
             
-            # 2. TensorDataset と DataLoader の構築
-            # pin_memory=True を指定することで、GPUへのデータ転送（.to）が非同期化され最速になります
             dataset = TensorDataset(torch.from_numpy(all_states), torch.from_numpy(all_rewards))
             data_loader = DataLoader(
                 dataset, 
                 batch_size=batch_size, 
                 shuffle=True, 
                 pin_memory=True,
-                num_workers=0 # サンプリングですでにCPUを使用しているため、ここは0（メインスレッド処理）が最速です
+                num_workers=0
             )
             
             for step, (state_batch, reward_batch) in enumerate(data_loader):
-                # non_blocking=True を指定し、pin_memoryされたテンソルをGPUへ最速転送
                 state_batch = state_batch.to(device, non_blocking=True).float()
                 reward_batch = reward_batch.to(device, non_blocking=True)
                 
-                # 勾配の初期化
                 optimizer[key].zero_grad()
                 
-                # --- 追加：自動混合精度（AMP）コンテキスト ---
                 with torch.amp.autocast(device_type='cuda'):
                     q_values = value_net[key](state_batch).squeeze(1)
                     loss = criterion(q_values, reward_batch)
                 
-                # --- 変更：スケーラーを経由した逆伝播とパラメータ更新 ---
                 scaler.scale(loss).backward()
                 scaler.step(optimizer[key])
                 scaler.update()
@@ -426,16 +522,25 @@ if __name__ == '__main__':
         # update action net and agent
         if loop % n_loop_action_net_update == 0:
             type_dict = {'discard':'discard', 'discard-pick':'pick', 'draw-pick':'pick', 'koikoi':'koikoi'}
+            
+            action_net = {}
             for model_key, net_key in type_dict.items():
-                #action_net[net_key].load_state_dict(value_net[net_key].to('cpu').state_dict())
-                #value_net[net_key].to(device)
                 raw_net = getattr(value_net[net_key], '_orig_mod', value_net[net_key])
-                cpu_state_dict = {k: v.cpu() for k, v in raw_net.state_dict().items()}
-                action_net[net_key].load_state_dict(cpu_state_dict)
+                
+                if net_key == 'discard':
+                    cpu_model = DiscardModel().cpu()
+                elif net_key == 'pick':
+                    cpu_model = PickModel().cpu()
+                elif net_key == 'koikoi':
+                    cpu_model = KoiKoiModel().cpu()
+                
+                cpu_model.load_state_dict({k: v.cpu() for k, v in raw_net.state_dict().items()})
+                # evalモードの生モデルを保持（ここではトレースしない）
+                action_net[net_key] = cpu_model.eval()
                 
             play_agent = koikoilearn.Agent(action_net['discard'], action_net['pick'], action_net['koikoi'],
                                            random_action_prob=random_action_prob_scheduler(score[-1]))
-            test_agent = koikoilearn.Agent(action_net['discard'], action_net['pick'], action_net['koikoi'])  
+            test_agent = koikoilearn.Agent(action_net['discard'], action_net['pick'], action_net['koikoi']) 
         
         # arena test
         if loop % n_loop_arena_test == 0:
@@ -458,15 +563,14 @@ if __name__ == '__main__':
                     torch.save(action_net[key], path)
                 with open(f'{rl_folder}/optimizer.pickle','wb') as f:
                     pickle.dump(optimizer, f)
-                print_log(f'{time_str()}  New model saved.', log_path)
+                print_log(f'{time_str()}   New model saved.', log_path)
             play_agent = koikoilearn.Agent(action_net['discard'], action_net['pick'], action_net['koikoi'],
                                            random_action_prob=random_action_prob_scheduler(score[-1]))
             
         if stop_event.is_set():
             print_log(f'\n{time_str()} [安全停止] 最新のモデルを保存します。', log_path)
-            # 終了直前に強制的に最新モデルを確定保存する
             for key in ['discard', 'pick', 'koikoi']:
                 final_path = f'{rl_folder}/{key}_final_stop.pt'
                 torch.save(action_net[key], final_path)
             print_log(f'{time_str()} 全てのモデルの安全保存が完了しました。プログラムを終了します。', log_path)
-            break # 学習ループを脱出して終了
+            break
