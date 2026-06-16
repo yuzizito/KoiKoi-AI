@@ -8,6 +8,7 @@ Created on Sat Oct 16 23:06:35 2021
 """
 
 import torch
+torch.set_float32_matmul_precision('high')
 import numpy as np
 import random
 from collections import namedtuple
@@ -45,7 +46,7 @@ log_path = f'log_rl_{task_name}.txt'
 rl_folder = f'model_rl_{task_name}'
 
 # continue training with trained models
-start_loop_num = 35
+start_loop_num = 227
 saved_model_path = {'discard':f'{rl_folder}/discard_final_stop.pt', 
                     'pick':f'{rl_folder}/pick_final_stop.pt',
                     'koikoi':f'{rl_folder}/koikoi_final_stop.pt'}
@@ -336,6 +337,7 @@ if __name__ == '__main__':
     optimizer = {'discard': torch.optim.Adam(value_net['discard'].parameters(), lr=0.0001),
                  'pick': torch.optim.Adam(value_net['pick'].parameters(), lr=0.0001),
                  'koikoi': torch.optim.Adam(value_net['koikoi'].parameters(), lr=0.0001)}
+    scaler = scaler = torch.amp.GradScaler(device_type='cuda')
 
     score = [0.0]
     print_log(f'\n{time_str()} start training on device: {device}', log_path)
@@ -358,15 +360,21 @@ if __name__ == '__main__':
             for step, transitions in enumerate(buffer.get_batch(key, batch_size)):
                 transitions = Transition(*zip(*transitions))
                 
-                state_batch = torch.stack(transitions.state).to(device)
-                reward_batch = torch.Tensor(transitions.reward).to(device) 
+                state_batch = torch.stack(transitions.state).to(device, non_blocking=True)
+                reward_batch = torch.Tensor(transitions.reward).to(device, non_blocking=True) 
                 
-                q_values = value_net[key](state_batch).squeeze(1)
-                
-                loss = criterion(q_values, reward_batch)
+                # 勾配の初期化
                 optimizer[key].zero_grad()
-                loss.backward()
-                optimizer[key].step()
+                
+                # --- 追加：自動混合精度（AMP）コンテキスト ---
+                with torch.amp.autocast(device_type='cuda'):
+                    q_values = value_net[key](state_batch).squeeze(1)
+                    loss = criterion(q_values, reward_batch)
+                
+                # --- 変更：スケーラーを経由した逆伝播とパラメータ更新 ---
+                scaler.scale(loss).backward()
+                scaler.step(optimizer[key])
+                scaler.update()
                 
                 train_loss.append(loss.cpu().data.item())
             print_log(f'{time_str()} {key} net, {step+1} steps, loss = {np.mean(train_loss)}', log_path)
@@ -378,8 +386,11 @@ if __name__ == '__main__':
         if loop % n_loop_action_net_update == 0:
             type_dict = {'discard':'discard', 'discard-pick':'pick', 'draw-pick':'pick', 'koikoi':'koikoi'}
             for model_key, net_key in type_dict.items():
-                action_net[net_key].load_state_dict(value_net[net_key].to('cpu').state_dict())
-                value_net[net_key].to(device)
+                #action_net[net_key].load_state_dict(value_net[net_key].to('cpu').state_dict())
+                #value_net[net_key].to(device)
+                raw_net = getattr(value_net[net_key], '_orig_mod', value_net[net_key])
+                cpu_state_dict = {k: v.cpu() for k, v in raw_net.state_dict().items()}
+                action_net[net_key].load_state_dict(cpu_state_dict)
                 
             play_agent = koikoilearn.Agent(action_net['discard'], action_net['pick'], action_net['koikoi'],
                                            random_action_prob=random_action_prob_scheduler(score[-1]))
