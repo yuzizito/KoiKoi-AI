@@ -9,7 +9,7 @@ ext_modules = [
         include_dirs=[pybind11.get_include()],
         language='c++',
         # WindowsのMSVCコンパイラ向け最適化フラグ
-        extra_compile_args=['/O2'] if sys.platform == 'win32' else ['-O3']
+        extra_compile_args = ['/O2', '/utf-8', '/std:c++17']
     ),
 ]
 

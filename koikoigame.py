@@ -45,7 +45,14 @@ class KoiKoiCard():
     red_ribbon = {(1,2),(2,2),(3,2)}
     blue_ribbon = {(6,2),(9,2),(10,2)}
     red_blue_ribbon = {(1,2),(2,2),(3,2),(6,2),(9,2),(10,2)}
-    
+
+YAKU_ID_TO_NAME = {
+    1: 'Five Lights', 2: 'Four Lights', 3: 'Rainy Four Lights', 4: 'Three Lights',
+    5: 'Boar-Deer-Butterfly', 6: 'Flower Viewing Sake', 7: 'Flower Viewing Sake',
+    8: 'Moon Viewing Sake', 9: 'Moon Viewing Sake', 10: 'Tane',
+    11: 'Red & Blue Ribbons', 12: 'Red Ribbons', 13: 'Blue Ribbons', 14: 'Tan',
+    15: 'Kasu', 16: 'Koi-Koi'
+}
 
 class KoiKoiRoundStateBase():
     def __init__(self, dealer=None):
@@ -307,8 +314,10 @@ class KoiKoiRoundStateBase():
 #        return yaku_point
 
     def yaku(self, player):
-        # Pythonの重いset演算を廃止し、C++のBitboardに丸投げ
-        return koikoicore.evaluate_yaku(self.pile[player], self.koikoi_num[player])
+        # 互換性維持のためのラップ（内部で高速版を呼び出し、表示用に文字列を復元する）
+        pile_bb = koikoicore.cards_to_bitboard(self.pile[player])
+        yaku_ids = koikoicore.evaluate_yaku_id_by_bitboard(pile_bb, self.koikoi_num[player])
+        return [(y_id, YAKU_ID_TO_NAME.get(y_id, 'Unknown'), pt) for y_id, pt in yaku_ids]
     
     def yaku_point(self, player):
         # ポイント計算もC++に丸投げ
@@ -615,9 +624,10 @@ class KoiKoiRoundState(KoiKoiRoundStateBase):
     
     @property
     def card_log_array(self):
-        turn_list = [x for x in range(self.turn_16,0,-1)] + [x for x in range(self.turn_16+1,17)]
-        f_array = np.vstack([f for turn in turn_list for _,f in self.card_log_dict[turn].items()])   
-        return f_array
+        turn_list = [x for x in range(self.turn_16, 0, -1)] + [x for x in range(self.turn_16 + 1, 17)]
+        # NumPy配列のリストにしてから vstack（マルチプロセス内で最軽量）
+        arrays = [f for turn in turn_list for _, f in self.card_log_dict[turn].items()]
+        return np.vstack(arrays)
     
     @property
     def card_suit_array(self):
@@ -628,35 +638,22 @@ class KoiKoiRoundState(KoiKoiRoundStateBase):
     
     @property
     def card_init_position_array(self):
-        # There was a bug caused by the shallow copy of initHand and initPile in self.log
-        # As the result, this fuction in fact got the current hand and unseen card
-        # Although the bug has been fixed, for supporting the trained models, keep it as is
+        # C++から戻るリストを np.array() で確実にNumPy配列化
         f_dict = {}
-        '''
-        f_dict['CardInMyHand'] = card_to_multi_hot(
-            self.log['basic'][f'initHand{self.turn_player}'])
-        f_dict['CardInBoard'] = card_to_multi_hot(self.log['basic']['initBoard'])
-        f_dict['CardUnseen'] = card_to_multi_hot(
-            self.log['basic'][f'initHand{self.idle_player}'] + self.log['basic']['initPile'])
-        '''
-        f_dict['CardInMyHand'] = card_to_multi_hot(self.hand[self.turn_player])
-        f_dict['CardInBoard'] = card_to_multi_hot(self.log['basic']['initBoard'])
-        f_dict['CardUnseen'] = card_to_multi_hot(self.unseen_card[self.turn_player])
-        f_array = np.vstack([value for key,value in f_dict.items()])
-        return f_array    
+        f_dict['CardInMyHand'] = np.array(card_to_multi_hot(self.hand[self.turn_player]))
+        f_dict['CardInBoard'] = np.array(card_to_multi_hot(self.log['basic']['initBoard']))
+        f_dict['CardUnseen'] = np.array(card_to_multi_hot(self.unseen_card[self.turn_player]))
+        return np.vstack([value for key, value in f_dict.items()])
     
     @property
     def card_current_position_array(self):
         f_dict = {}
-        f_dict['CardInMyHand'] = card_to_multi_hot(self.hand[self.turn_player])
-        f_dict['CardInMyCollect'] = card_to_multi_hot(self.pile[self.turn_player])
-        f_dict['CardInBoard'] = card_to_multi_hot(self.field)
-        # Bug Confirmed, for supporting the trained models, keep it as is
-        # f_dict['CardInOpCollect'] = card_to_multi_hot(self.pile[self.idle_player])
-        f_dict['CardInOpCollect'] = card_to_multi_hot(self.pile[self.turn_player])
-        f_dict['CardUnseen'] = card_to_multi_hot(self.unseen_card[self.turn_player])
-        f_array = np.vstack([value for key,value in f_dict.items()])
-        return f_array
+        f_dict['CardInMyHand'] = np.array(card_to_multi_hot(self.hand[self.turn_player]))
+        f_dict['CardInMyCollect'] = np.array(card_to_multi_hot(self.pile[self.turn_player]))
+        f_dict['CardInBoard'] = np.array(card_to_multi_hot(self.field))
+        f_dict['CardInOpCollect'] = np.array(card_to_multi_hot(self.pile[self.turn_player]))
+        f_dict['CardUnseen'] = np.array(card_to_multi_hot(self.unseen_card[self.turn_player]))
+        return np.vstack([value for key, value in f_dict.items()])
     
     @property
     def card_pairing_state_array(self):
@@ -711,18 +708,19 @@ class KoiKoiRoundState(KoiKoiRoundStateBase):
 
     @property
     def yaku_status_array(self):
-        # 1. 状態カウントをC++のBitboardで一括取得（爆速）
-        features = koikoicore.get_yaku_status_features(
-            self.hand[self.turn_player], 
-            self.field, 
-            self.pile[self.turn_player], 
-            self.pile[self.idle_player], 
-            self.hand[self.idle_player] + self.stock
+        my_hand_bb    = koikoicore.cards_to_bitboard(self.hand[self.turn_player])
+        board_bb      = koikoicore.cards_to_bitboard(self.field)
+        my_collect_bb = koikoicore.cards_to_bitboard(self.pile[self.turn_player])
+        op_collect_bb = koikoicore.cards_to_bitboard(self.pile[self.idle_player])
+        unseen_bb     = koikoicore.cards_to_bitboard(self.hand[self.idle_player] + self.stock)
+
+        # C++側から整数リストを受け取る
+        features = koikoicore.get_yaku_status_features_by_bitboard(
+            my_hand_bb, board_bb, my_collect_bb, op_collect_bb, unseen_bb
         )
         f_array_card_state = np.concatenate(features)
         f_array_card_state = np.tile(f_array_card_state, (48, 1)).T
         
-        # 2. 静的なキー配列は1度だけ計算してキャッシュする（再計算の無駄を省く）
         if not hasattr(KoiKoiRoundState, "_cached_card_key"):
             card_dict = {
                 'Crane':KoiKoiCard.crane, 'Curtain':KoiKoiCard.curtain, 'Moon':KoiKoiCard.moon,
@@ -735,8 +733,7 @@ class KoiKoiRoundState(KoiKoiRoundStateBase):
                 koikoicore.card_to_multi_hot([list(c) for c in card_set]) for _, card_set in card_dict.items()
             ])
             
-        f_array = np.vstack([f_array_card_state, KoiKoiRoundState._cached_card_key])
-        return f_array
+        return np.vstack([f_array_card_state, KoiKoiRoundState._cached_card_key])
 
     
 class KoiKoiGameState(KoiKoiGameStateBase):
@@ -778,7 +775,7 @@ class KoiKoiGameState(KoiKoiGameStateBase):
         f_dict['OpKoiKoi'] = np.array(self.round_state.koikoi[idle_player])
         
         f_array = np.concatenate([value for key,value in f_dict.items()])
-        f_array = np.tile(f_array,(48,1)).T
+        f_array = f_array[:, np.newaxis] * np.ones((1, 48))
         return f_array
     
     @property
@@ -788,6 +785,7 @@ class KoiKoiGameState(KoiKoiGameStateBase):
         
     @property
     def feature_tensor(self):
+        # すべてが純粋な NumPy 配列になったため、一括して np.vstack で結合します
         f = np.vstack([
             self.reserve_array,
             self.game_status_array,
@@ -796,14 +794,15 @@ class KoiKoiGameState(KoiKoiGameStateBase):
             self.round_state.card_init_position_array,
             self.round_state.card_current_position_array,
             self.round_state.card_pairing_state_array,
-            self.round_state.card_log_array])
-        if self.round_state.state == 'koikoi':
-            f_token = np.zeros([f.shape[0],2])
-            f_token[0:137,:] = f[0:137,0:2]
-            f_token[0,0] = 1
-            f_token[1,1] = 1
-            f = np.hstack([f_token,f])
-        f = torch.Tensor(f)
-        return f
+            self.round_state.card_log_array
+        ])
 
-    
+        if self.round_state.state == 'koikoi':
+            f_token = np.zeros([f.shape[0], 2])
+            f_token[0:137, :] = f[0:137, 0:2]
+            f_token[0, 0] = 1
+            f_token[1, 1] = 1
+            f = np.hstack([f_token, f])
+            
+        # 結合が完全に終わった最後のこの瞬間だけ、torch.Tensor に変換する
+        return torch.Tensor(f)
