@@ -35,16 +35,13 @@ class KoiKoiEncoderBlock(nn.Module):
         
     def forward(self, x): 
         x = self.f2(F.relu(self.f1(x)))
-        x = F.layer_norm(x, [x.size(-1)])  # 元のLayerNormの挙動（L次元の正規化）を維持
-        
-        # 【変更点】(BATCH_SIZE, nEmb, length) -> (BATCH_SIZE, length, nEmb)
-        # バッチ次元（0番目）を固定したまま転置するため、メモリ効率が大幅に向上します
+
+        # 修正: 次元を (BATCH, length, nEmb) に入れ替えてから特徴量次元で正規化
         x = x.permute(0, 2, 1)
-        
+        x = F.layer_norm(x, [x.size(-1)]) 
+
         x = self.attn_encoder(x)
-        
-        # 【変更点】Conv1dの入力形式 (BATCH_SIZE, nEmb, length) に戻す
-        x = x.permute(0, 2, 1)  
+        x = x.permute(0, 2, 1)  # 元の (BATCH, nEmb, length) に戻す
         return x
 
 

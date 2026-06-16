@@ -2765,3 +2765,412 @@ Record,510,0.91125,54.61
 
 2026-06-16 21:35:27 [安全停止] 最新のモデルを保存します。
 2026-06-16 21:35:27 全てのモデルの安全保存が完了しました。プログラムを終了します。
+
+2026-06-16 21:55:19 start training on device: cuda:0
+
+2026-06-16 21:56:03 start training on device: cuda:0
+2026-06-16 21:56:30 517 loops, (48104, 4552, 5350) samples generated. (Total Loop Time: 26.51s)
+2026-06-16 21:56:34 discard net, 188 steps, loss = 0.49174266831671937
+2026-06-16 21:56:34 pick net, 18 steps, loss = 0.5679780592521032
+2026-06-16 21:56:34 koikoi net, 21 steps, loss = 0.4456176899728321
+
+2026-06-16 21:56:34 [安全停止] 最新のモデルを保存します。
+2026-06-16 21:56:34 全てのモデルの安全保存が完了しました。プログラムを終了します。
+
+2026-06-16 22:02:43 start training on device: cuda:0
+
+2026-06-16 22:28:31 start training on device: cuda:0
+
+2026-06-16 22:33:23 start training on device: cuda:0
+2026-06-16 22:33:55 517 loops, (47540, 4512, 5241) samples generated. (Total Loop Time: 32.71s)
+2026-06-16 22:33:59 discard net, 186 steps, loss = 0.5315514477670834
+2026-06-16 22:34:00 pick net, 18 steps, loss = 0.6015526453653971
+2026-06-16 22:34:00 koikoi net, 21 steps, loss = 0.5938741366068522
+
+2026-06-16 22:34:00 [安全停止] 最新のモデルを保存します。
+2026-06-16 22:34:00 全てのモデルの安全保存が完了しました。プログラムを終了します。
+
+2026-06-16 22:46:28 start training on device: cuda:0
+
+2026-06-16 22:52:22 start training on device: cuda:0
+
+2026-06-16 22:59:06 start training on device: cuda:0
+
+2026-06-16 23:01:40 start training on device: cuda:0
+
+2026-06-16 23:07:05 start training on device: cuda:0
+
+2026-06-16 23:09:17 start training on device: cuda:0
+
+2026-06-16 23:12:05 start training on device: cuda:0
+
+2026-06-16 23:14:29 start training on device: cuda:0
+
+2026-06-16 23:15:39 start training on device: cuda:0
+2026-06-16 23:15:57 517 loops, (32244, 3248, 3556) samples generated. (Total Loop Time: 18.09s)
+2026-06-16 23:15:59 discard net, 126 steps, loss = 0.8271834164384811
+2026-06-16 23:16:00 pick net, 13 steps, loss = 0.9076126309541556
+2026-06-16 23:16:00 koikoi net, 14 steps, loss = 0.9899531773158482
+2026-06-16 23:16:17 518 loops, (32660, 3147, 3639) samples generated. (Total Loop Time: 17.29s)
+2026-06-16 23:16:19 discard net, 128 steps, loss = 0.8896911828778684
+2026-06-16 23:16:20 pick net, 13 steps, loss = 1.0247062903184156
+2026-06-16 23:16:20 koikoi net, 15 steps, loss = 1.0588205655415852
+2026-06-16 23:16:39 519 loops, (33468, 3387, 3958) samples generated. (Total Loop Time: 19.01s)
+2026-06-16 23:16:41 discard net, 131 steps, loss = 0.706736816249731
+2026-06-16 23:16:42 pick net, 14 steps, loss = 0.6918763816356659
+2026-06-16 23:16:42 koikoi net, 16 steps, loss = 0.7526813931763172
+2026-06-16 23:17:00 520 loops, (32393, 3023, 3602) samples generated. (Total Loop Time: 17.74s)
+2026-06-16 23:17:02 discard net, 127 steps, loss = 0.8047069597431994
+2026-06-16 23:17:02 pick net, 12 steps, loss = 0.8024531155824661
+2026-06-16 23:17:02 koikoi net, 15 steps, loss = 0.884418519337972
+
+2026-06-16 23:19:59 start training on device: cuda:0
+2026-06-16 23:20:17 517 loops, (32319, 3258, 3489) samples generated. (Total Loop Time: 18.22s)
+2026-06-16 23:20:20 discard net, 127 steps, loss = 0.7694256021751193
+2026-06-16 23:20:20 pick net, 13 steps, loss = 0.8205215289042547
+2026-06-16 23:20:20 koikoi net, 14 steps, loss = 0.9425137213298252
+2026-06-16 23:20:38 518 loops, (34356, 3310, 3814) samples generated. (Total Loop Time: 18.10s)
+2026-06-16 23:20:40 discard net, 135 steps, loss = 0.6052474072685948
+2026-06-16 23:20:41 pick net, 13 steps, loss = 0.6038094117091253
+2026-06-16 23:20:41 koikoi net, 15 steps, loss = 0.6182408412297566
+2026-06-16 23:21:01 519 loops, (35568, 3327, 3978) samples generated. (Total Loop Time: 19.87s)
+2026-06-16 23:21:03 discard net, 139 steps, loss = 0.6394390515286288
+2026-06-16 23:21:04 pick net, 13 steps, loss = 0.6667388860995953
+2026-06-16 23:21:04 koikoi net, 16 steps, loss = 0.6743435338139534
+2026-06-16 23:21:23 520 loops, (33742, 3268, 3844) samples generated. (Total Loop Time: 18.81s)
+2026-06-16 23:21:25 discard net, 132 steps, loss = 0.912606643004851
+2026-06-16 23:21:25 pick net, 13 steps, loss = 0.96596065392861
+2026-06-16 23:21:25 koikoi net, 16 steps, loss = 1.003732081502676
+
+2026-06-16 23:22:32 start training on device: cuda:0
+2026-06-16 23:22:55 517 loops, (66956, 6693, 7491) samples generated. (Total Loop Time: 22.85s)
+2026-06-16 23:23:00 discard net, 262 steps, loss = 0.6663053083510799
+2026-06-16 23:23:00 pick net, 27 steps, loss = 0.6894531382454766
+2026-06-16 23:23:01 koikoi net, 30 steps, loss = 0.7627637883027395
+2026-06-16 23:23:26 518 loops, (67927, 6448, 7665) samples generated. (Total Loop Time: 25.07s)
+2026-06-16 23:23:30 discard net, 266 steps, loss = 0.7097571876488233
+2026-06-16 23:23:31 pick net, 26 steps, loss = 0.6994464512054737
+2026-06-16 23:23:31 koikoi net, 30 steps, loss = 0.7646523515383402
+2026-06-16 23:23:59 519 loops, (68003, 6558, 7643) samples generated. (Total Loop Time: 28.43s)
+2026-06-16 23:24:04 discard net, 266 steps, loss = 0.7169525315214816
+2026-06-16 23:24:04 pick net, 26 steps, loss = 0.6965307765282117
+2026-06-16 23:24:05 koikoi net, 30 steps, loss = 0.7663572609424592
+2026-06-16 23:24:34 520 loops, (67847, 6614, 7655) samples generated. (Total Loop Time: 28.78s)
+2026-06-16 23:24:38 discard net, 266 steps, loss = 0.826175419795782
+2026-06-16 23:24:38 pick net, 26 steps, loss = 0.8558589976567489
+2026-06-16 23:24:39 koikoi net, 30 steps, loss = 0.9518616100152334
+2026-06-16 23:25:35 400.0 games tested, 369.0 wins, 24.0 loses, 7.0 draws (0.92, 0.06, 0.02), 54.7 points
+Record,520,0.93125,54.712500000000006
+2026-06-16 23:25:36   New model saved.
+2026-06-16 23:26:03 521 loops, (64619, 6462, 7059) samples generated. (Total Loop Time: 27.45s)
+2026-06-16 23:26:07 discard net, 253 steps, loss = 0.780448879884637
+2026-06-16 23:26:08 pick net, 26 steps, loss = 0.7365413892727631
+2026-06-16 23:26:08 koikoi net, 28 steps, loss = 0.9545787274837494
+2026-06-16 23:26:32 522 loops, (67015, 6453, 7073) samples generated. (Total Loop Time: 24.00s)
+2026-06-16 23:26:37 discard net, 262 steps, loss = 0.8603702740359852
+2026-06-16 23:26:38 pick net, 26 steps, loss = 0.8457073649534812
+2026-06-16 23:26:38 koikoi net, 28 steps, loss = 1.011199020913669
+
+2026-06-16 23:26:38 [安全停止] 最新のモデルを保存します。
+2026-06-16 23:26:38 全てのモデルの安全保存が完了しました。プログラムを終了します。
+
+2026-06-16 23:27:22 start training on device: cuda:0
+2026-06-16 23:27:51 522 loops, (97121, 9448, 10515) samples generated. (Total Loop Time: 28.38s)
+2026-06-16 23:27:58 discard net, 380 steps, loss = 0.8731203170199143
+2026-06-16 23:27:59 pick net, 37 steps, loss = 0.8158901954019392
+2026-06-16 23:27:59 koikoi net, 42 steps, loss = 1.0267029738142377
+2026-06-16 23:28:26 523 loops, (96040, 9832, 10550) samples generated. (Total Loop Time: 26.23s)
+2026-06-16 23:28:32 discard net, 376 steps, loss = 0.7339033290268259
+2026-06-16 23:28:32 pick net, 39 steps, loss = 0.7303373737212939
+2026-06-16 23:28:33 koikoi net, 42 steps, loss = 0.8097434512206486
+2026-06-16 23:29:03 524 loops, (98670, 9670, 10812) samples generated. (Total Loop Time: 30.31s)
+2026-06-16 23:29:09 discard net, 386 steps, loss = 0.930812437608452
+2026-06-16 23:29:10 pick net, 38 steps, loss = 0.94322301682673
+2026-06-16 23:29:11 koikoi net, 43 steps, loss = 1.0655671635339425
+2026-06-16 23:29:40 525 loops, (96188, 9172, 10518) samples generated. (Total Loop Time: 29.37s)
+2026-06-16 23:29:46 discard net, 376 steps, loss = 0.7406739829544057
+2026-06-16 23:29:47 pick net, 36 steps, loss = 0.7531802886062198
+2026-06-16 23:29:48 koikoi net, 42 steps, loss = 0.8305615541480836
+2026-06-16 23:30:15 526 loops, (96897, 9492, 10521) samples generated. (Total Loop Time: 26.78s)
+2026-06-16 23:30:21 discard net, 379 steps, loss = 0.8329648719142169
+2026-06-16 23:30:22 pick net, 38 steps, loss = 0.8480288135377985
+2026-06-16 23:30:22 koikoi net, 42 steps, loss = 0.9604745308558146
+2026-06-16 23:30:48 527 loops, (97746, 9383, 10712) samples generated. (Total Loop Time: 26.15s)
+2026-06-16 23:30:55 discard net, 382 steps, loss = 0.6564017099703794
+2026-06-16 23:30:55 pick net, 37 steps, loss = 0.631570993243037
+2026-06-16 23:30:56 koikoi net, 42 steps, loss = 0.7133608666204271
+2026-06-16 23:31:27 528 loops, (97362, 9642, 10680) samples generated. (Total Loop Time: 30.79s)
+2026-06-16 23:31:33 discard net, 381 steps, loss = 0.8809427055786914
+2026-06-16 23:31:34 pick net, 38 steps, loss = 0.8834524029179623
+2026-06-16 23:31:35 koikoi net, 42 steps, loss = 0.9350440402825674
+2026-06-16 23:32:04 529 loops, (94481, 9366, 10795) samples generated. (Total Loop Time: 29.65s)
+2026-06-16 23:32:10 discard net, 370 steps, loss = 0.7351330694314596
+2026-06-16 23:32:11 pick net, 37 steps, loss = 0.7273174314885527
+2026-06-16 23:32:12 koikoi net, 43 steps, loss = 0.812710783509321
+2026-06-16 23:32:42 530 loops, (98299, 9571, 10802) samples generated. (Total Loop Time: 30.16s)
+2026-06-16 23:32:48 discard net, 384 steps, loss = 0.7983794899191707
+2026-06-16 23:32:49 pick net, 38 steps, loss = 0.8842438428025496
+2026-06-16 23:32:50 koikoi net, 43 steps, loss = 0.9235074284464814
+2026-06-16 23:33:30 399.0 games tested, 376.0 wins, 21.0 loses, 2.0 draws (0.94, 0.05, 0.01), 53.2 points
+Record,530,0.9448621553884711,53.230576441102755
+2026-06-16 23:33:30   New model saved.
+2026-06-16 23:33:59 531 loops, (91936, 9527, 9724) samples generated. (Total Loop Time: 28.68s)
+2026-06-16 23:34:05 discard net, 360 steps, loss = 0.5437516161137157
+2026-06-16 23:34:05 pick net, 38 steps, loss = 0.5389781178612458
+2026-06-16 23:34:06 koikoi net, 38 steps, loss = 0.5686341124145609
+2026-06-16 23:34:35 532 loops, (95871, 9734, 10023) samples generated. (Total Loop Time: 28.59s)
+2026-06-16 23:34:41 discard net, 375 steps, loss = 0.6556274959246318
+2026-06-16 23:34:41 pick net, 39 steps, loss = 0.6406622154590411
+2026-06-16 23:34:42 koikoi net, 40 steps, loss = 0.7234242722392082
+2026-06-16 23:35:10 533 loops, (92859, 9586, 9626) samples generated. (Total Loop Time: 28.05s)
+2026-06-16 23:35:16 discard net, 363 steps, loss = 0.6328765661263269
+2026-06-16 23:35:17 pick net, 38 steps, loss = 0.6377935087994525
+2026-06-16 23:35:18 koikoi net, 38 steps, loss = 0.6890174605344471
+
+2026-06-16 23:35:18 [安全停止] 最新のモデルを保存します。
+2026-06-16 23:35:18 全てのモデルの安全保存が完了しました。プログラムを終了します。
+
+2026-06-16 23:37:47 start training on device: cuda:0
+2026-06-16 23:38:10 522 loops, (95305, 9332, 9921) samples generated. (Total Loop Time: 22.43s)
+2026-06-16 23:38:16 discard net, 373 steps, loss = 0.5959883313875736
+2026-06-16 23:38:17 pick net, 37 steps, loss = 0.5888252628816141
+2026-06-16 23:38:17 koikoi net, 39 steps, loss = 0.6407238695866022
+2026-06-16 23:38:42 523 loops, (94645, 9563, 10313) samples generated. (Total Loop Time: 24.78s)
+2026-06-16 23:38:48 discard net, 370 steps, loss = 0.5693980153347995
+2026-06-16 23:38:49 pick net, 38 steps, loss = 0.5703804367466977
+2026-06-16 23:38:49 koikoi net, 41 steps, loss = 0.6072334356424285
+2026-06-16 23:39:16 524 loops, (98235, 9867, 10179) samples generated. (Total Loop Time: 26.78s)
+2026-06-16 23:39:23 discard net, 384 steps, loss = 0.5395771666274717
+2026-06-16 23:39:23 pick net, 39 steps, loss = 0.5374363026557825
+2026-06-16 23:39:24 koikoi net, 40 steps, loss = 0.5790134131908417
+2026-06-16 23:39:50 525 loops, (96214, 9242, 10178) samples generated. (Total Loop Time: 25.75s)
+2026-06-16 23:39:56 discard net, 376 steps, loss = 0.5493628006983311
+2026-06-16 23:39:57 pick net, 37 steps, loss = 0.5513750475806158
+2026-06-16 23:39:57 koikoi net, 40 steps, loss = 0.5902015969157219
+2026-06-16 23:40:25 526 loops, (102643, 9325, 11197) samples generated. (Total Loop Time: 27.53s)
+2026-06-16 23:40:31 discard net, 401 steps, loss = 0.6537217084606389
+2026-06-16 23:40:32 pick net, 37 steps, loss = 0.6610508738337336
+2026-06-16 23:40:33 koikoi net, 44 steps, loss = 0.6644501401619478
+2026-06-16 23:41:00 527 loops, (102023, 9512, 11363) samples generated. (Total Loop Time: 27.49s)
+2026-06-16 23:41:07 discard net, 399 steps, loss = 0.6806312760613616
+2026-06-16 23:41:07 pick net, 38 steps, loss = 0.7255913176034626
+2026-06-16 23:41:08 koikoi net, 45 steps, loss = 0.7160517560111151
+2026-06-16 23:41:36 528 loops, (102924, 9537, 11884) samples generated. (Total Loop Time: 27.83s)
+2026-06-16 23:41:42 discard net, 403 steps, loss = 0.6417324822534698
+2026-06-16 23:41:43 pick net, 38 steps, loss = 0.6518293446616122
+2026-06-16 23:41:44 koikoi net, 47 steps, loss = 0.6548487696241825
+2026-06-16 23:42:12 529 loops, (105118, 9509, 11309) samples generated. (Total Loop Time: 28.21s)
+2026-06-16 23:42:19 discard net, 411 steps, loss = 0.7714007566445065
+2026-06-16 23:42:19 pick net, 38 steps, loss = 0.7949084592492957
+2026-06-16 23:42:20 koikoi net, 45 steps, loss = 0.8383726596832275
+2026-06-16 23:42:48 530 loops, (105224, 9928, 11757) samples generated. (Total Loop Time: 28.23s)
+2026-06-16 23:42:55 discard net, 412 steps, loss = 0.6922648843486332
+2026-06-16 23:42:56 pick net, 39 steps, loss = 0.7258856357672275
+2026-06-16 23:42:57 koikoi net, 46 steps, loss = 0.7176718478617461
+2026-06-16 23:43:32 399.0 games tested, 370.0 wins, 26.0 loses, 3.0 draws (0.93, 0.07, 0.01), 54.1 points
+Record,530,0.931077694235589,54.095238095238095
+2026-06-16 23:43:32   New model saved.
+2026-06-16 23:44:00 531 loops, (102042, 9913, 10837) samples generated. (Total Loop Time: 27.58s)
+2026-06-16 23:44:06 discard net, 399 steps, loss = 0.6950284218728393
+2026-06-16 23:44:07 pick net, 39 steps, loss = 0.6983508207859137
+2026-06-16 23:44:08 koikoi net, 43 steps, loss = 0.7284291400465854
+
+2026-06-16 23:44:08 [安全停止] 最新のモデルを保存します。
+2026-06-16 23:44:08 全てのモデルの安全保存が完了しました。プログラムを終了します。
+
+2026-06-16 23:54:23 start training on device: cuda:0
+2026-06-16 23:54:48 522 loops, (103809, 9876, 11592) samples generated. (Total Loop Time: 24.92s)
+2026-06-16 23:54:55 discard net, 406 steps, loss = 0.7264901458336215
+2026-06-16 23:54:56 pick net, 39 steps, loss = 0.735462581500029
+2026-06-16 23:54:56 koikoi net, 46 steps, loss = 0.7462751217510389
+2026-06-16 23:55:23 523 loops, (102983, 9831, 11156) samples generated. (Total Loop Time: 26.20s)
+2026-06-16 23:55:29 discard net, 403 steps, loss = 0.7106954085619811
+2026-06-16 23:55:30 pick net, 39 steps, loss = 0.7016336673345321
+2026-06-16 23:55:30 koikoi net, 44 steps, loss = 0.7569322409954938
+2026-06-16 23:55:57 524 loops, (99985, 9571, 11168) samples generated. (Total Loop Time: 26.73s)
+2026-06-16 23:56:03 discard net, 391 steps, loss = 0.6454987038126991
+2026-06-16 23:56:04 pick net, 38 steps, loss = 0.6684119622958334
+2026-06-16 23:56:05 koikoi net, 44 steps, loss = 0.669375242157416
+2026-06-16 23:56:37 525 loops, (102048, 9432, 11309) samples generated. (Total Loop Time: 31.62s)
+2026-06-16 23:56:43 discard net, 399 steps, loss = 0.692169072409919
+2026-06-16 23:56:44 pick net, 37 steps, loss = 0.6927123907450083
+2026-06-16 23:56:45 koikoi net, 45 steps, loss = 0.7653738591406081
+2026-06-16 23:57:15 526 loops, (92759, 8818, 10134) samples generated. (Total Loop Time: 30.24s)
+2026-06-16 23:57:21 discard net, 363 steps, loss = 0.9023068665472929
+2026-06-16 23:57:21 pick net, 35 steps, loss = 0.8815835833549499
+2026-06-16 23:57:22 koikoi net, 40 steps, loss = 1.0217813730239869
+2026-06-16 23:57:49 527 loops, (96909, 9330, 10424) samples generated. (Total Loop Time: 26.78s)
+2026-06-16 23:57:55 discard net, 379 steps, loss = 0.6847411594636208
+2026-06-16 23:57:56 pick net, 37 steps, loss = 0.6913799031360729
+2026-06-16 23:57:56 koikoi net, 41 steps, loss = 0.7553268045913882
+
+2026-06-16 23:57:56 [安全停止] 最新のモデルを保存します。
+2026-06-16 23:57:56 全てのモデルの安全保存が完了しました。プログラムを終了します。
+
+2026-06-17 00:05:50 start training on device: cuda:0
+2026-06-17 00:07:03 522 loops, (270412, 26389, 29731) samples generated. (Total Loop Time: 72.98s)
+2026-06-17 00:07:22 discard net, 1057 steps, loss = 0.8819135596646153
+2026-06-17 00:07:24 pick net, 104 steps, loss = 0.8688697115733073
+2026-06-17 00:07:26 koikoi net, 117 steps, loss = 0.9919264634959718
+
+2026-06-17 00:07:26 [安全停止] 最新のモデルを保存します。
+2026-06-17 00:07:26 全てのモデルの安全保存が完了しました。プログラムを終了します。
+
+2026-06-17 00:15:10 start training on device: cuda:0
+
+2026-06-17 00:19:28 start training on device: cuda:0
+
+2026-06-17 07:18:56 start training on device: cuda:0
+2026-06-17 07:20:29 522 loops, (220665, 22328, 19911) samples generated. (Total Loop Time: 92.90s)
+2026-06-17 07:20:43 discard net, 862 steps, loss = 0.2857764703318857
+2026-06-17 07:20:45 pick net, 88 steps, loss = 0.24962521852417427
+2026-06-17 07:20:46 koikoi net, 78 steps, loss = 0.28041840115418804
+2026-06-17 07:22:55 523 loops, (221611, 22388, 19702) samples generated. (Total Loop Time: 129.30s)
+2026-06-17 07:23:09 discard net, 866 steps, loss = 0.22855748638820428
+2026-06-17 07:23:10 pick net, 88 steps, loss = 0.22731302526186814
+2026-06-17 07:23:12 koikoi net, 77 steps, loss = 0.24452120162449875
+2026-06-17 07:25:18 524 loops, (221349, 22240, 19525) samples generated. (Total Loop Time: 126.60s)
+2026-06-17 07:25:32 discard net, 865 steps, loss = 0.22909417562402054
+2026-06-17 07:25:33 pick net, 87 steps, loss = 0.22794265068810562
+2026-06-17 07:25:35 koikoi net, 77 steps, loss = 0.2515520724383267
+2026-06-17 07:27:50 525 loops, (221307, 22190, 19792) samples generated. (Total Loop Time: 134.89s)
+2026-06-17 07:28:04 discard net, 865 steps, loss = 0.2887270097443134
+2026-06-17 07:28:06 pick net, 87 steps, loss = 0.2921389951103035
+2026-06-17 07:28:07 koikoi net, 78 steps, loss = 0.31162416743926513
+
+2026-06-17 07:28:07 [安全停止] 最新のモデルを保存します。
+2026-06-17 07:28:07 全てのモデルの安全保存が完了しました。プログラムを終了します。
+
+2026-06-17 07:28:44 start training on device: cuda:0
+
+2026-06-17 07:35:56 start training on device: cuda:0
+2026-06-17 07:37:08 501 loops, (275161, 26290, 21238) samples generated. (Total Loop Time: 72.63s)
+2026-06-17 07:37:26 discard net, 1075 steps, loss = 0.29996883314709333
+2026-06-17 07:37:28 pick net, 103 steps, loss = 0.29378480616125086
+2026-06-17 07:37:30 koikoi net, 83 steps, loss = 0.3160971081759556
+2026-06-17 07:39:02 502 loops, (272757, 25397, 21593) samples generated. (Total Loop Time: 92.63s)
+2026-06-17 07:39:20 discard net, 1066 steps, loss = 0.26201257789000787
+2026-06-17 07:39:22 pick net, 100 steps, loss = 0.26302107378840445
+2026-06-17 07:39:23 koikoi net, 85 steps, loss = 0.2777541803963044
+2026-06-17 07:40:59 503 loops, (272761, 25582, 21287) samples generated. (Total Loop Time: 95.31s)
+2026-06-17 07:41:16 discard net, 1066 steps, loss = 0.27530829853065464
+2026-06-17 07:41:18 pick net, 100 steps, loss = 0.27862375557422636
+2026-06-17 07:41:20 koikoi net, 84 steps, loss = 0.29926852598076775
+2026-06-17 07:42:56 504 loops, (273020, 25840, 21113) samples generated. (Total Loop Time: 96.62s)
+2026-06-17 07:43:14 discard net, 1067 steps, loss = 0.2758175388690793
+2026-06-17 07:43:15 pick net, 101 steps, loss = 0.28000700459031774
+2026-06-17 07:43:17 koikoi net, 83 steps, loss = 0.28740851132266493
+2026-06-17 07:44:52 505 loops, (273307, 25153, 21285) samples generated. (Total Loop Time: 94.99s)
+2026-06-17 07:45:10 discard net, 1068 steps, loss = 0.27428576351607337
+2026-06-17 07:45:12 pick net, 99 steps, loss = 0.27751298218664494
+2026-06-17 07:45:13 koikoi net, 84 steps, loss = 0.29322712566880954
+2026-06-17 07:47:05 506 loops, (300491, 25703, 30777) samples generated. (Total Loop Time: 111.53s)
+2026-06-17 07:47:23 discard net, 1174 steps, loss = 0.9984503224415917
+2026-06-17 07:47:25 pick net, 101 steps, loss = 0.9889683646730857
+2026-06-17 07:47:28 koikoi net, 121 steps, loss = 1.064320406637901
+2026-06-17 07:49:44 507 loops, (297151, 25287, 29578) samples generated. (Total Loop Time: 136.72s)
+2026-06-17 07:50:04 discard net, 1161 steps, loss = 0.9117388477313119
+2026-06-17 07:50:05 pick net, 99 steps, loss = 0.9236554425172131
+2026-06-17 07:50:07 koikoi net, 116 steps, loss = 0.9966304949645338
+2026-06-17 07:52:17 508 loops, (292354, 25352, 29367) samples generated. (Total Loop Time: 129.66s)
+2026-06-17 07:52:35 discard net, 1143 steps, loss = 0.977199199422868
+2026-06-17 07:52:37 pick net, 100 steps, loss = 0.9809401416778565
+2026-06-17 07:52:39 koikoi net, 115 steps, loss = 1.0613538653954215
+
+2026-06-17 07:52:39 [安全停止] 最新のモデルを保存します。
+2026-06-17 07:52:39 全てのモデルの安全保存が完了しました。プログラムを終了します。
+
+2026-06-17 07:57:16 start training on device: cuda:0
+2026-06-17 07:57:46 501 loops, (58918, 5239, 5967) samples generated. (Total Loop Time: 29.10s)
+2026-06-17 07:57:50 discard net, 231 steps, loss = 0.6618965495200384
+2026-06-17 07:57:50 pick net, 21 steps, loss = 0.782243671871367
+2026-06-17 07:57:51 koikoi net, 24 steps, loss = 0.7730726450681686
+2026-06-17 07:58:19 502 loops, (58157, 5018, 5920) samples generated. (Total Loop Time: 28.22s)
+2026-06-17 07:58:22 discard net, 228 steps, loss = 0.7102228384791759
+2026-06-17 07:58:23 pick net, 20 steps, loss = 0.7957207292318345
+2026-06-17 07:58:23 koikoi net, 24 steps, loss = 0.7230832700928053
+2026-06-17 07:58:49 503 loops, (58571, 4906, 6005) samples generated. (Total Loop Time: 25.72s)
+2026-06-17 07:58:53 discard net, 229 steps, loss = 0.6593368381391966
+2026-06-17 07:58:53 pick net, 20 steps, loss = 0.7173487454652786
+2026-06-17 07:58:53 koikoi net, 24 steps, loss = 0.6872402702768644
+2026-06-17 07:59:17 504 loops, (58056, 5002, 6129) samples generated. (Total Loop Time: 24.05s)
+2026-06-17 07:59:21 discard net, 227 steps, loss = 0.7074039567934785
+2026-06-17 07:59:22 pick net, 20 steps, loss = 0.7828010112047196
+2026-06-17 07:59:22 koikoi net, 24 steps, loss = 0.718216377000014
+2026-06-17 07:59:46 505 loops, (57956, 4970, 6003) samples generated. (Total Loop Time: 24.04s)
+2026-06-17 07:59:50 discard net, 227 steps, loss = 0.6940769474411851
+2026-06-17 07:59:50 pick net, 20 steps, loss = 0.7172166168689728
+2026-06-17 07:59:51 koikoi net, 24 steps, loss = 0.7498201554020246
+2026-06-17 08:00:10 506 loops, (44884, 4507, 3824) samples generated. (Total Loop Time: 18.90s)
+2026-06-17 08:00:13 discard net, 176 steps, loss = 0.17572691951963035
+2026-06-17 08:00:13 pick net, 18 steps, loss = 0.17752046138048172
+2026-06-17 08:00:13 koikoi net, 15 steps, loss = 0.07857244039575259
+2026-06-17 08:00:32 507 loops, (45327, 4412, 3930) samples generated. (Total Loop Time: 18.86s)
+2026-06-17 08:00:35 discard net, 178 steps, loss = 0.1766604379321752
+2026-06-17 08:00:35 pick net, 18 steps, loss = 0.18225027786360848
+2026-06-17 08:00:36 koikoi net, 16 steps, loss = 0.034661748562939465
+2026-06-17 08:00:54 508 loops, (45000, 4443, 3895) samples generated. (Total Loop Time: 18.68s)
+2026-06-17 08:00:57 discard net, 176 steps, loss = 0.1718160624361851
+2026-06-17 08:00:58 pick net, 18 steps, loss = 0.17965325050883824
+2026-06-17 08:00:58 koikoi net, 16 steps, loss = 0.03284124648780562
+2026-06-17 08:01:16 509 loops, (45160, 4420, 3845) samples generated. (Total Loop Time: 18.50s)
+2026-06-17 08:01:19 discard net, 177 steps, loss = 0.18040558881005325
+2026-06-17 08:01:19 pick net, 18 steps, loss = 0.17142135898272196
+2026-06-17 08:01:20 koikoi net, 16 steps, loss = 0.06749149192182813
+2026-06-17 08:01:38 510 loops, (45102, 4493, 3888) samples generated. (Total Loop Time: 18.19s)
+2026-06-17 08:01:41 discard net, 177 steps, loss = 0.17122543540041327
+2026-06-17 08:01:41 pick net, 18 steps, loss = 0.18191193872027928
+2026-06-17 08:01:41 koikoi net, 16 steps, loss = 0.028505282069090754
+2026-06-17 08:02:13 400.0 games tested, 176.0 wins, 218.0 loses, 6.0 draws (0.44, 0.55, 0.01), 31.0 points
+Record,510,0.4475,30.96
+2026-06-17 08:02:14   New model saved.
+2026-06-17 08:02:36 511 loops, (57595, 5023, 5893) samples generated. (Total Loop Time: 22.38s)
+2026-06-17 08:02:39 discard net, 225 steps, loss = 0.5404996478557587
+2026-06-17 08:02:40 pick net, 20 steps, loss = 0.5859809726476669
+2026-06-17 08:02:40 koikoi net, 24 steps, loss = 0.41616087406873703
+2026-06-17 08:03:04 512 loops, (57428, 4970, 5954) samples generated. (Total Loop Time: 23.90s)
+2026-06-17 08:03:08 discard net, 225 steps, loss = 0.547286506096522
+2026-06-17 08:03:08 pick net, 20 steps, loss = 0.6016696274280549
+2026-06-17 08:03:09 koikoi net, 24 steps, loss = 0.44278888776898384
+2026-06-17 08:03:32 513 loops, (57778, 5118, 5978) samples generated. (Total Loop Time: 23.91s)
+2026-06-17 08:03:36 discard net, 226 steps, loss = 0.5557617185126363
+2026-06-17 08:03:37 pick net, 20 steps, loss = 0.5999382078647614
+2026-06-17 08:03:37 koikoi net, 24 steps, loss = 0.467657466729482
+2026-06-17 08:04:00 514 loops, (57769, 5011, 5930) samples generated. (Total Loop Time: 22.71s)
+2026-06-17 08:04:04 discard net, 226 steps, loss = 0.53841901774955
+2026-06-17 08:04:04 pick net, 20 steps, loss = 0.6180047169327736
+2026-06-17 08:04:04 koikoi net, 24 steps, loss = 0.42948610211412114
+2026-06-17 08:04:28 515 loops, (57233, 4982, 5937) samples generated. (Total Loop Time: 23.64s)
+2026-06-17 08:04:32 discard net, 224 steps, loss = 0.5223248321563005
+2026-06-17 08:04:32 pick net, 20 steps, loss = 0.5897132694721222
+2026-06-17 08:04:33 koikoi net, 24 steps, loss = 0.4252135617037614
+2026-06-17 08:04:53 516 loops, (52637, 4906, 5098) samples generated. (Total Loop Time: 20.79s)
+2026-06-17 08:04:57 discard net, 206 steps, loss = 0.4171362993786636
+2026-06-17 08:04:57 pick net, 20 steps, loss = 0.45573381185531614
+2026-06-17 08:04:57 koikoi net, 20 steps, loss = 0.3057045638561249
+2026-06-17 08:05:19 517 loops, (52538, 4890, 5133) samples generated. (Total Loop Time: 21.71s)
+2026-06-17 08:05:23 discard net, 206 steps, loss = 0.40417634804271957
+2026-06-17 08:05:23 pick net, 20 steps, loss = 0.4240556851029396
+2026-06-17 08:05:23 koikoi net, 21 steps, loss = 0.2868800390334356
+2026-06-17 08:05:44 518 loops, (52373, 4872, 5090) samples generated. (Total Loop Time: 21.08s)
+2026-06-17 08:05:48 discard net, 205 steps, loss = 0.4282875661442919
+2026-06-17 08:05:48 pick net, 20 steps, loss = 0.46373875588178637
+2026-06-17 08:05:48 koikoi net, 20 steps, loss = 0.3480233110487461
+2026-06-17 08:06:10 519 loops, (52788, 4845, 5090) samples generated. (Total Loop Time: 21.04s)
+2026-06-17 08:06:13 discard net, 207 steps, loss = 0.4076682676151755
+2026-06-17 08:06:13 pick net, 19 steps, loss = 0.42617856828789963
+2026-06-17 08:06:14 koikoi net, 20 steps, loss = 0.28559615910053254
+2026-06-17 08:06:35 520 loops, (52063, 4822, 5148) samples generated. (Total Loop Time: 21.71s)
+2026-06-17 08:06:39 discard net, 204 steps, loss = 0.448894606793628
+2026-06-17 08:06:39 pick net, 19 steps, loss = 0.5032687485218048
+2026-06-17 08:06:39 koikoi net, 21 steps, loss = 0.3836218782124065
+2026-06-17 08:07:11 400.0 games tested, 221.0 wins, 171.0 loses, 8.0 draws (0.55, 0.43, 0.02), 34.7 points
+Record,520,0.5625,34.7375
+2026-06-17 08:07:11   New model saved.
+2026-06-17 08:07:33 521 loops, (53008, 4872, 5332) samples generated. (Total Loop Time: 21.53s)
+2026-06-17 08:07:36 discard net, 208 steps, loss = 0.4610188544656222
+2026-06-17 08:07:36 pick net, 20 steps, loss = 0.4596552520990372
+2026-06-17 08:07:37 koikoi net, 21 steps, loss = 0.37162810422125314
+
+2026-06-17 08:07:37 [安全停止] 最新のモデルを保存します。
+2026-06-17 08:07:37 全てのモデルの安全保存が完了しました。プログラムを終了します。

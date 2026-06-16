@@ -29,30 +29,75 @@ class Agent():
                                    'draw-pick':random_action_prob[2],
                                    'koikoi':random_action_prob[3]}
 
-        # ★ 精密計測用のタイマー変数を追加
-        self.t_feat_gen = 0.0
-        self.t_forward = 0.0
-        self.t_post_proc = 0.0
-        self.last_feature = {'discard': None, 'discard-pick': None, 'draw-pick': None, 'koikoi': None}
+        # 計測タイマー
+        self.t_feat_gen = 0.0     # CPU上での特徴量組み立て時間
+        self.t_cpu_to_gpu = 0.0   # CPUからGPUへのテンソル転送時間
+        self.t_forward = 0.0      # GPU上での純粋なモデル順伝播時間
+        self.t_post_proc = 0.0    # GPU上でのマスク処理・argmax・.item()引き戻し時間
 
-    def __predict(self, state, feature, mask):
+    def _move_to_gpu(self, feature_cpu):
+        t_start = time.perf_counter()
+        feature_gpu = feature_cpu.to('cuda:0', non_blocking=True)
+        self.t_cpu_to_gpu += (time.perf_counter() - t_start)
+        return feature_gpu
+
+    def __predict(self, state, feature_gpu, mask):
+        """【GPU完結型】GPUテンソルを受け取り、GPU上でマスク・argmaxを完結させる"""
+        device = feature_gpu.device # 'cuda:0'
+        
+        # 1. GPU上での純粋な forward 時間を計測
         t1 = time.perf_counter()
-        output_tensor = self.model[state](feature)
+        with torch.inference_mode():
+            output_tensor = self.model[state](feature_gpu)
         self.t_forward += (time.perf_counter() - t1)
         
+        # 2. 後処理時間を計測 (マスク、argmax、.item() 以外はCPUに戻さない)
         t2 = time.perf_counter()
         output = output_tensor.squeeze(0)
         
-        # テンソルのままマスク処理（マスクが0の場所を極小値で埋める）
-        mask_tensor = torch.tensor(mask, dtype=torch.bool, device=output.device)
+        # マスクを最初からGPU上にbool型で作成
+        mask_tensor = torch.tensor(mask, dtype=torch.bool, device=device)
         output = output.masked_fill(~mask_tensor, -1e9)
         
-        # テンソルのまま最速で argmax を取得
+        # GPU上で最速で最大値インデックスを取得し、最後の1個だけを.item()でPython整数へ引き戻す
         best_index = output.argmax().item()
         action_output = self.action_dict[state][best_index]
         
         self.t_post_proc += (time.perf_counter() - t2)
         return action_output
+    
+    def predict_batch(self, state, features_cpu, masks):
+        """
+        【新設】子プロセス内のミニバッチ（例: 8環境分）を一括処理する専用メソッド。
+        引数として「CPU Tensorの結合体」と「マスクのリスト」を受け取る。
+        """
+        if features_cpu is None or features_cpu.size(0) == 0:
+            return []
+            
+        # 1. 結合されたバッチを 1回 でGPUへ転送
+        feature_gpu = self._move_to_gpu(features_cpu)
+        device = feature_gpu.device
+        
+        # 2. GPU上での純粋な一括 forward（JITモデルが呼ばれます）
+        t1 = time.perf_counter()
+        with torch.inference_mode():
+            output_tensor = self.model[state](feature_gpu)
+        self.t_forward += (time.perf_counter() - t1)
+        
+        # 3. GPU完結型のバッチ後処理
+        t2 = time.perf_counter()
+        actions = []
+        for b_idx, mask in enumerate(masks):
+            single_output = output_tensor[b_idx]
+            mask_tensor = torch.tensor(mask, dtype=torch.bool, device=device)
+            single_output = single_output.masked_fill(~mask_tensor, -1e9)
+            
+            # 各環境の行動インデックスを抽出してホストに戻す
+            best_index = single_output.argmax().item()
+            actions.append(self.action_dict[state][best_index])
+            
+        self.t_post_proc += (time.perf_counter() - t2)
+        return actions
     
     def auto_action(self, game_state, use_mask=True, for_test=False):
         p = random.random()
@@ -76,18 +121,20 @@ class Agent():
     
     def auto_definitely_action(self, game_state, use_mask=True):
         action_output = None
-        if game_state.round_state.wait_action==True:
+        if game_state.round_state.wait_action == True:
             state = game_state.round_state.state
             
+            # 【責務1】特徴量の作成（完全にCPU上の処理）
             t0 = time.perf_counter()
-            feature = game_state.feature_tensor.unsqueeze(0)
+            feature_cpu = game_state.feature_tensor.unsqueeze(0) # [1, 300, 48] の CPU Tensor
             self.t_feat_gen += (time.perf_counter() - t0)
             
-            # ★【追加・安全版】ChatGPTの指摘通り、メモリを安全に切り離して保持
-            self.last_feature[state] = feature.squeeze(0).detach()
+            # 【責務2】GPUへの転送
+            feature_gpu = self._move_to_gpu(feature_cpu)
             
+            # 【責務3】推論の実行
             mask = game_state.round_state.action_mask
-            action_output = self.__predict(state, feature, mask)     
+            action_output = self.__predict(state, feature_gpu, mask)     
         return action_output
     
     def auto_random_action(self, game_state):

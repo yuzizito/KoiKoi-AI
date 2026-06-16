@@ -651,7 +651,7 @@ class KoiKoiRoundState(KoiKoiRoundStateBase):
         f_dict['CardInMyHand'] = np.array(card_to_multi_hot(self.hand[self.turn_player]))
         f_dict['CardInMyCollect'] = np.array(card_to_multi_hot(self.pile[self.turn_player]))
         f_dict['CardInBoard'] = np.array(card_to_multi_hot(self.field))
-        f_dict['CardInOpCollect'] = np.array(card_to_multi_hot(self.pile[self.turn_player]))
+        f_dict['CardInOpCollect'] = np.array(card_to_multi_hot(self.pile[self.idle_player]))
         f_dict['CardUnseen'] = np.array(card_to_multi_hot(self.unseen_card[self.turn_player]))
         return np.vstack([value for key, value in f_dict.items()])
     

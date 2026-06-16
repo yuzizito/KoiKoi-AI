@@ -52,7 +52,7 @@ log_path = f'log_rl_{task_name}.txt'
 rl_folder = f'model_rl_{task_name}'
 
 # continue training with trained models
-start_loop_num = 517
+start_loop_num = 501
 saved_model_path = {'discard':f'{rl_folder}/discard_final_stop.pt', 
                     'pick':f'{rl_folder}/pick_final_stop.pt',
                     'koikoi':f'{rl_folder}/koikoi_final_stop.pt'}
@@ -131,30 +131,216 @@ class TraceSimulator():
         return float(round_point)
     
     def random_make_games(self, n_games):
-        self.buffer = {'discard':[], 'pick':[], 'koikoi':[]}
-        
+        """
+        子プロセス内で割り当てられた対局数を、最大8並行のミニベクター環境として実行します。
+        AIの思考ステップをバッチ化しつつ、自動進行ステップも確実に進めて無限ループを回避します。
+        """
+        # タイマーの初期化
         self.t_action = 0.0
         self.t_step = 0.0
         self.t_clone = 0.0
         self.t_other = 0.0
         
-        # エージェント側の内訳タイマーをリセット
-        for p in [1, 2]:
-            self.agent[p].t_feat_gen = 0.0
-            self.agent[p].t_forward = 0.0
-            self.agent[p].t_post_proc = 0.0
+        # ★【最重要・累積バグの特効薬】
+        # 子プロセスが永続的に再利用されることで、過去のデータが蓄積するのを物理的に防ぐため、
+        # サンプリングを開始するこの瞬間に、内部バッファを完全に『空』にリセットします。
+        self.buffer = {'discard': [], 'pick': [], 'koikoi': []}
         
-        for _ in range(n_games):
-            self.make_game_trace()
+        # エージェント側の内部タイマーをクリア
+        self.agent[1].t_feat_gen = 0.0
+        self.agent[1].t_cpu_to_gpu = 0.0
+        self.agent[1].t_forward = 0.0
+        self.agent[1].t_post_proc = 0.0
+
+        local_envs_count = min(32, n_games)
+        
+        envs = [koikoigame.KoiKoiGameState() for _ in range(local_envs_count)]
+        env_traces = [{1: [], 2: []} for _ in range(local_envs_count)]
+        
+        # 環境固有の特徴量キャッシュ領域（分離管理）
+        env_last_features = [{
+            'discard': None, 
+            'discard-pick': None, 
+            'draw-pick': None, 
+            'koikoi': None
+        } for _ in range(local_envs_count)]
+        
+        finished_games = 0
+        type_dict = {'discard': 'discard', 'discard-pick': 'pick', 'draw-pick': 'pick', 'koikoi': 'koikoi'}
+        
+        def action_to_index(action):
+            if action in [False, True]: 
+                return int(action)
+            elif action is not None: 
+                return 4 * (action[0] - 1) + (action[1] - 1)
+            return None
+
+        # インラインでのカード順序調整関数
+        def adjust_card_order(feature, index):
+            ind_list = [index] + [ii for ii in range(feature.size(1)) if ii != index]
+            return feature[:, ind_list]
+
+        while finished_games < n_games:
+            # 各フェーズごとに環境を仕分ける辞書
+            requests = {'discard': [], 'discard-pick': [], 'draw-pick': [], 'koikoi': []}
             
-        # プレイヤー1のエージェントから内訳タイマーを取得（自己対局で共通のインスタンス）
+            # 1. 全環境を走査
+            t_scan = time.perf_counter()
+            for i, game_state in enumerate(envs):
+                if game_state.game_over:
+                    continue
+                    
+                # 自動進行ステップ（wait_action == False）は、その場で step(None) を実行して動かす
+                if not game_state.round_state.wait_action:
+                    t_s = time.perf_counter()
+                    game_state.round_state.step(None)
+                    self.t_step += (time.perf_counter() - t_s)
+                    continue
+                
+                # AIの思考待ち（wait_action == True）であれば、特徴量を生成して仕分ける
+                state = game_state.round_state.state
+                player = game_state.round_state.turn_player
+                mask = game_state.round_state.action_mask
+                
+                feat_cpu = game_state.feature_tensor.unsqueeze(0)
+                env_last_features[i][state] = feat_cpu.squeeze(0).detach().cpu()
+                
+                requests[state].append((i, player, feat_cpu, mask))
+            self.t_other += (time.perf_counter() - t_scan)
+
+            # 2. 仕分けた思考要求フェーズごとに一括バッチ推論
+            for state_name, req_list in requests.items():
+                if len(req_list) == 0:
+                    continue
+                
+                t_stack = time.perf_counter()
+                batched_features_cpu = torch.cat([r[2] for r in req_list], dim=0)
+                masks = [r[3] for r in req_list]
+                self.t_other += (time.perf_counter() - t_stack)
+                
+                # バッチ一括推論をキック
+                t_action_start = time.perf_counter()
+                actions = self.agent[1].predict_batch(state_name, batched_features_cpu, masks)
+                self.t_action += (time.perf_counter() - t_action_start)
+                
+                # アクションの適用
+                for idx, (env_idx, player, _, _) in enumerate(req_list):
+                    action = actions[idx]
+                    
+                    if player in [1, 2] and (state_name in self.record_state) and (action is not None):
+                        t_c = time.perf_counter()
+                        feat = env_last_features[env_idx][state_name].clone()
+                        self.t_clone += (time.perf_counter() - t_c)
+                        
+                        env_traces[env_idx][player].append(TraceSlot(
+                            key = type_dict[state_name], 
+                            state = feat, 
+                            action = action_to_index(action)
+                        ))
+                    
+                    t_s = time.perf_counter()
+                    envs[env_idx].round_state.step(action)
+                    self.t_step += (time.perf_counter() - t_s)
+
+            # 3. 各環境の終了精算判定チェック
+            for i in range(len(envs)):
+                # ─── 【インライン移植】ラウンド終了時の報酬精算 ───
+                if envs[i].round_state.round_over and not envs[i].game_over:
+                    t_reward = time.perf_counter()
+                    if task_name == 'wp':
+                        # wp報酬計算ロジック
+                        reward = {}
+                        for p in [1, 2]:
+                            round_num = envs[i].round + 1
+                            point = envs[i].point[p] + envs[i].round_state.round_point[p]
+                            is_dealer = int(envs[i].round_state.winner == p)
+                            if round_num <= 8 and (0 < point < 60):
+                                win_prob = self.win_prob_mat[is_dealer, round_num, point]  
+                            else:
+                                win_prob = 0.5 if point == 30 else float(point > 30)        
+                            reward[p] = win_prob * 10.0
+                    elif task_name == 'point':
+                        # point報酬計算ロジック
+                        reward = {1: float(envs[i].round_state.round_point[1]), 2: float(envs[i].round_state.round_point[2])}
+                    
+                    # 各プレイヤーのトレーススロットへ割引報酬をのせて仮格納
+                    for player in [1, 2]:
+                        for rev_step in range(len(env_traces[i][player])):
+                            slot = env_traces[i][player][-rev_step-1]
+                            state_tensor = adjust_card_order(slot.state.clone(), slot.action).half()
+                            self.buffer[slot.key].append(Transition(
+                                state = state_tensor.numpy(), 
+                                action = slot.action, 
+                                reward = reward[player] * (self.discount ** rev_step)
+                            ))
+                    self.t_other += (time.perf_counter() - t_reward)
+                    envs[i].new_round()
+                    
+                    # ラウンドごとに履歴を空にする
+                    env_traces[i] = {1: [], 2: []}
+                    env_last_features[i] = {'discard': None, 'discard-pick': None, 'draw-pick': None, 'koikoi': None}
+                    
+                # ─── 【インライン移植】ゲーム終了時の報酬精算 ───
+                if envs[i].game_over:
+                    t_reward = time.perf_counter()
+                    if task_name == 'wp':
+                        reward = {}
+                        for p in [1, 2]:
+                            round_num = envs[i].round + 1
+                            point = envs[i].point[p] + envs[i].round_state.round_point[p]
+                            is_dealer = int(envs[i].round_state.winner == p)
+                            if round_num <= 8 and (0 < point < 60):
+                                win_prob = self.win_prob_mat[is_dealer, round_num, point]  
+                            else:
+                                win_prob = 0.5 if point == 30 else float(point > 30)        
+                            reward[p] = win_prob * 10.0
+                    elif task_name == 'point':
+                        reward = {1: float(envs[i].round_state.round_point[1]), 2: float(envs[i].round_state.round_point[2])}
+                    
+                    for player in [1, 2]:
+                        for rev_step in range(len(env_traces[i][player])):
+                            slot = env_traces[i][player][-rev_step-1]
+                            state_tensor = adjust_card_order(slot.state.clone(), slot.action).half()
+                            self.buffer[slot.key].append(Transition(
+                                state = state_tensor.numpy(), 
+                                action = slot.action, 
+                                reward = reward[player] * (self.discount ** rev_step)
+                            ))
+                    self.t_other += (time.perf_counter() - t_reward)
+                    finished_games += 1
+                    
+                    if finished_games < n_games:
+                        envs[i] = koikoigame.KoiKoiGameState()
+                        env_traces[i] = {1: [], 2: []}
+                        env_last_features[i] = {'discard': None, 'discard-pick': None, 'draw-pick': None, 'koikoi': None}
+
+        # タイマー変数の回収
         t_feat_gen = self.agent[1].t_feat_gen
         t_forward = self.agent[1].t_forward
         t_post_proc = self.agent[1].t_post_proc
-            
-        # 拡張版 time_stats を送信 (従来の4つに加えて、内訳3つを追加)
-        self.buffer['time_stats'] = [(self.t_action, self.t_step, self.t_clone, self.t_other, t_feat_gen, t_forward, t_post_proc)]
-        return self.buffer
+        t_cpu_to_gpu = self.agent[1].t_cpu_to_gpu
+        
+        self.buffer['time_stats'] = [(
+            self.t_action, 
+            self.t_step, 
+            self.t_clone, 
+            self.t_other, 
+            t_feat_gen, 
+            t_forward, 
+            t_post_proc, 
+            t_cpu_to_gpu
+        )]
+        
+        # 安全なNumPyバッファの再構築（デッドロック完全回避）
+        clean_buffer = {'discard': [], 'pick': [], 'koikoi': [], 'time_stats': self.buffer['time_stats']}
+        for key in ['discard', 'pick', 'koikoi']:
+            for item in self.buffer[key]:
+                clean_buffer[key].append(Transition(
+                    state = np.array(item.state, copy=True), 
+                    action = item.action, 
+                    reward = item.reward
+                ))
+        return clean_buffer
     
     def make_game_trace(self):
         def action_to_index(action):
@@ -294,34 +480,66 @@ def get_value_action_net(action_net_path, value_net):
 
 
 def parallel_sampling(agent, n_games, global_win_prob_mat):
-    # 【追加】子プロセス側のメモリ空間上で、安全かつ確実に TorchScript トレース（高速化）をかける
-    example_input = torch.zeros((1, 300, 48), dtype=torch.float32)
-    
-    with torch.inference_mode():
-        # 送信されてきた生のモデルから、最速の JITコンパイル版 を作成して差し替える
-        traced_discard = torch.jit.trace(agent.model['discard'], example_input)
-        traced_pick    = torch.jit.trace(agent.model['discard-pick'], example_input)
-        traced_koikoi  = torch.jit.trace(agent.model['koikoi'], example_input)
+    try:
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         
-        # エージェントが内部で参照しているモデルマップを高速版に上書き
-        agent.model = {
-            'discard': traced_discard,
-            'discard-pick': traced_pick,
-            'draw-pick': traced_pick,
-            'koikoi': traced_koikoi
-        }
-    
-    # あとは完全に最適化されたランタイムでゲームをシミュレーション
-    trace_simulator = TraceSimulator(agent, global_win_prob_mat)
-    sample_dict = trace_simulator.random_make_games(n_games)
-    return sample_dict
+        for key in agent.model.keys():
+            agent.model[key] = agent.model[key].to(device)
+            agent.model[key].eval()
+        
+        trace_simulator = TraceSimulator(agent, global_win_prob_mat)
+        trace_simulator.agent[1].model = agent.model
+        trace_simulator.agent[2].model = agent.model
+        
+        sample_dict = trace_simulator.random_make_games(n_games)
+        return sample_dict
+
+    except Exception as e:
+        raise e
+
+# rl_train.py のワーカー初期化部分
+
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 def init_worker():
+    
+    # 乱数シードの再設定
+    seed = (os.getpid() * int(time.time() * 1000)) % 123456789
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    
     global master_agent
+    # 親プロセスからコピーされたモデルをロード（あるいは get_master_net() 等から取得）
     master_discard_net, master_pick_net, master_koikoi_net = get_master_net()
+    
+    # 1. まず単純に .to() でGPU（CUDA）へ転送
+    master_discard_net = master_discard_net.to(device)
+    master_pick_net = master_pick_net.to(device)
+    master_koikoi_net = master_koikoi_net.to(device)
+    
+    # 2. eval() モードのみを設定（optimize_for_inference は一旦使わない）
+    master_discard_net.eval()
+    master_pick_net.eval()
+    master_koikoi_net.eval()
+    
     master_agent = koikoilearn.Agent(master_discard_net, master_pick_net, master_koikoi_net)
 
 def parallel_arena_test(agent, n_games):
+    """
+    子プロセス（ワーカー）側で呼び出されるアリーナテスト関数。
+    親プロセスから送られてきたテスト用エージェントのモデル群を
+    安全にGPU（CUDA）へ転送して評価を実行します。
+    """
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    
+    # 【フリーズ・デバイス不一致対策】テスト用エージェントのモデルを確実にGPUへ転送
+    for key in agent.model.keys():
+        agent.model[key] = agent.model[key].to(device)
+        agent.model[key].eval()
+        
+    # 対戦相手となる master_agent（init_workerで生成されたグローバル変数）は
+    # すでにGPU化されているため、そのままで問題ありません。
     arena = koikoilearn.Arena(agent, master_agent)
     arena.multi_game_test(n_games)
     result = arena.test_win_num
@@ -379,7 +597,7 @@ if __name__ == '__main__':
     master_discard_net, master_pick_net, master_koikoi_net = get_master_net()
     master_agent = koikoilearn.Agent(master_discard_net, master_pick_net, master_koikoi_net)
     
-    cpu_count = 8
+    cpu_count = 4
     loop_games = 480
     n_core_games = loop_games // cpu_count
     
@@ -405,17 +623,28 @@ if __name__ == '__main__':
     value_net['pick'], raw_pick = get_value_action_net(saved_model_path['pick'], value_net['pick'])
     value_net['koikoi'], raw_koikoi = get_value_action_net(saved_model_path['koikoi'], value_net['koikoi'])    
 
+    # --- 親プロセス側であらかじめ TorchScript (JITコンパイル) を安全に完了させる ---
+    example_input_normal = torch.zeros((1, 300, 48), dtype=torch.float32)
+    example_input_koikoi = torch.zeros((1, 300, 50), dtype=torch.float32)
+    
+    with torch.inference_mode():
+        traced_discard = torch.jit.trace(raw_discard.eval(), example_input_normal)
+        traced_pick    = torch.jit.trace(raw_pick.eval(), example_input_normal)
+        traced_koikoi  = torch.jit.trace(raw_koikoi.eval(), example_input_koikoi)
+
     # 【変更】親プロセス側での torch.jit.trace は行わず、生の eval() モデルをセットする
     # これにより、multiprocessing の引数として正常に送信（シリアライズ）できるようになります
     action_net = {
         'discard': raw_discard.eval(),
         'pick': raw_pick.eval(),
+        'draw-pick': traced_pick,
         'koikoi': raw_koikoi.eval()
     }
     
     for key in ['discard', 'pick', 'koikoi']:
         value_net[key].to(device)
             
+    # JITコンパイル済みのモデル群をエージェントに持たせる
     play_agent = koikoilearn.Agent(action_net['discard'], action_net['pick'], action_net['koikoi'],
                                    random_action_prob=[0.1, 0.1, 0.1, 0.1])    
     
@@ -426,6 +655,7 @@ if __name__ == '__main__':
 
     score = [0.0]
     print_log(f'\n{time_str()} start training on device: {device}', log_path)
+    
     pool = multiprocessing.Pool(cpu_count, initializer=init_worker)
     
     for loop in range(start_loop_num, 100000):
@@ -446,11 +676,13 @@ if __name__ == '__main__':
         total_feat_gen = 0.0
         total_forward = 0.0
         total_post_proc = 0.0
+        total_cpu_to_gpu = 0.0 # ★集計用変数を追加
         
-        # get()で全ワーカーの終了を待機しつつ、時間統計を回収
+        # 毎ループ、親側のバッファオブジェクトを完全に「新品」として初期化する
+        buffer = Buffer() 
+        
         for res in async_results:
             res_dict = res.get()
-            
             if 'time_stats' in res_dict:
                 stats = res_dict.pop('time_stats')[0]
                 total_action += stats[0]
@@ -460,6 +692,9 @@ if __name__ == '__main__':
                 total_feat_gen += stats[4]
                 total_forward += stats[5]
                 total_post_proc += stats[6]
+                total_cpu_to_gpu += stats[7]
+            
+            # クリーンな新品のバッファに、今回の最新データだけを格納する
             buffer.extend(res_dict)
             
         n_sample = [len(buffer.memory[key]) for key in ['discard', 'pick', 'koikoi']]
@@ -473,6 +708,7 @@ if __name__ == '__main__':
             print(f"   [Profile] NN 推論 (auto_action) : {total_action:.2f}s ({total_action/sum_w_time*100:.1f}%)")
             if total_action > 0:
                 print(f"      └─ 特徴量変換 (feat_tensor) : {total_feat_gen:.2f}s ({total_feat_gen/total_action*100:.1f}% of action)")
+                print(f"      └─ ★CPU->GPU転送 (CUDA.to)  : {total_cpu_to_gpu:.2f}s ({total_cpu_to_gpu/total_action*100:.1f}% of action)") # 新設
                 print(f"      └─ 純粋な推論 (model.forward): {total_forward:.2f}s ({total_forward/total_action*100:.1f}% of action)")
                 print(f"      └─ 後処理 (numpy/exp/argmax) : {total_post_proc:.2f}s ({total_post_proc/total_action*100:.1f}% of action)")
             print(f"   [Profile] ゲーム更新 (step)     : {total_step:.2f}s ({total_step/sum_w_time*100:.1f}%)")
@@ -517,30 +753,27 @@ if __name__ == '__main__':
                 train_loss.append(loss.cpu().data.item())
             print_log(f'{time_str()} {key} net, {step+1} steps, loss = {np.mean(train_loss)}', log_path)
         
-        buffer.clear()
+        buffer = Buffer()
         
         # update action net and agent
         if loop % n_loop_action_net_update == 0:
             type_dict = {'discard':'discard', 'discard-pick':'pick', 'draw-pick':'pick', 'koikoi':'koikoi'}
             
-            action_net = {}
+            # 親プロセスが保持している既存の action_net の重みを、
+            # 学習が進んだ value_net から安全にコピー（同期）します
             for model_key, net_key in type_dict.items():
+                # GPU側にある value_net の重みを取り出す
                 raw_net = getattr(value_net[net_key], '_orig_mod', value_net[net_key])
                 
-                if net_key == 'discard':
-                    cpu_model = DiscardModel().cpu()
-                elif net_key == 'pick':
-                    cpu_model = PickModel().cpu()
-                elif net_key == 'koikoi':
-                    cpu_model = KoiKoiModel().cpu()
+                # 新設（新規インスタンス化）を完全に廃止し、
+                # 既存の action_net オブジェクトの state_dict を直接上書き更新します
+                action_net[net_key].load_state_dict({k: v.cpu() for k, v in raw_net.state_dict().items()})
+                action_net[net_key].eval()
                 
-                cpu_model.load_state_dict({k: v.cpu() for k, v in raw_net.state_dict().items()})
-                # evalモードの生モデルを保持（ここではトレースしない）
-                action_net[net_key] = cpu_model.eval()
-                
+            # 同期されたクリーンなモデルを使って、次ループ用のエージェント群を再バインド
             play_agent = koikoilearn.Agent(action_net['discard'], action_net['pick'], action_net['koikoi'],
                                            random_action_prob=random_action_prob_scheduler(score[-1]))
-            test_agent = koikoilearn.Agent(action_net['discard'], action_net['pick'], action_net['koikoi']) 
+            test_agent = koikoilearn.Agent(action_net['discard'], action_net['pick'], action_net['koikoi'])
         
         # arena test
         if loop % n_loop_arena_test == 0:
