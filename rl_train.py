@@ -256,7 +256,10 @@ class TraceSimulator():
                     for player in [1, 2]:
                         for rev_step in range(len(env_traces[i][player])):
                             slot = env_traces[i][player][-rev_step-1]
-                            state_np = adjust_card_order_np(slot.state, slot.action).astype(np.float16)
+                            
+                            # ★修正：astype(np.float16) を削除
+                            state_np = adjust_card_order_np(slot.state, slot.action)
+                            
                             self.buffer[slot.key]['states'].append(state_np)
                             self.buffer[slot.key]['actions'].append(slot.action)
                             self.buffer[slot.key]['rewards'].append(reward[player] * (self.discount ** rev_step))
@@ -564,7 +567,7 @@ if __name__ == '__main__':
     with open('win_prob_mat.pkl','rb') as f:
         win_prob_mat = pickle.load(f)
 
-    criterion = torch.nn.SmoothL1Loss(beta=30.0).to(device)
+    criterion = torch.nn.SmoothL1Loss(beta=1.0).to(device)
     master_discard_net, master_pick_net, master_koikoi_net = get_master_net()
     master_agent = koikoilearn.Agent(master_discard_net, master_pick_net, master_koikoi_net)
     
@@ -786,13 +789,13 @@ if __name__ == '__main__':
                 res = pool.apply_async(parallel_arena_test, 
                                        args=(test_agent, 400//cpu_count))
                 async_results_test.append(res)
-                
+            
             for res in async_results_test:
                 result.append(res.get())
-                
+            
             s = test_result_analysis(result,loop)
             score.append(s)
-            if s == max(score[-20:]) or (loop%50==0):
+            if s == max(score[-20:]):
                 for key in ['discard', 'pick', 'koikoi']:
                     path = f'{rl_folder}/{key}_{loop}_{round(s*100)}.pt'
                     torch.save(action_net[key], path)

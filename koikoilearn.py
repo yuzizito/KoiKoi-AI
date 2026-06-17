@@ -83,8 +83,7 @@ class Agent():
         # 3. GPU完結型のバッチ後処理
         t2 = time.perf_counter()
         
-        masks_bool = masks_np.astype(np.bool_)
-        masks_tensor = torch.from_numpy(masks_bool).to(device, non_blocking=True)
+        masks_tensor = torch.from_numpy(masks_np).to(device, non_blocking=True)
         
         min_val = torch.finfo(output_tensor.dtype).min
         output_tensor = output_tensor.masked_fill(~masks_tensor, min_val)

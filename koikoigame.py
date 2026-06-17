@@ -463,13 +463,17 @@ class KoiKoiRoundState(KoiKoiRoundStateBase):
 
     @property
     def action_mask(self):
+        # 最初から bool 型のマスクを作成
+        mask = np.zeros(48, dtype=np.bool_)
         if self.state == 'discard':
-            return koikoicore.cards_to_multi_hot_np(self.hand[self.turn_player])
+            if self.hand[self.turn_player]:
+                mask[[KoiKoiGameState._idx_map[(c[0],c[1])] for c in self.hand[self.turn_player]]] = True
         elif self.state in ['discard-pick', 'draw-pick']:
-            return koikoicore.cards_to_multi_hot_np(self.pairing_card)
+            if self.pairing_card:
+                mask[[KoiKoiGameState._idx_map[(c[0],c[1])] for c in self.pairing_card]] = True
         elif self.state == 'koikoi':
-            return np.array([1, 1])
-        return np.array([])
+            return np.array([True, True], dtype=np.bool_)
+        return mask
     
 #    def __write_card_log_array(self,state):
 #        def card_log_turn_dict():
@@ -594,6 +598,8 @@ class KoiKoiGameState(KoiKoiGameStateBase):
         for i in range(1, 17)
     }
     
+    _idx_map = {(s, r): (s-1)*4 + (r-1) for s in range(1, 13) for r in range(1, 5)}
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._temp_55 = np.zeros(55, dtype=np.float16)
@@ -647,6 +653,11 @@ class KoiKoiGameState(KoiKoiGameStateBase):
         self._temp_55[47:55] = rs.koikoi[idle_p]
         out_view[17:72, :] = self._temp_55[:, None]
         
+        def to_bb(cards):
+            bb = 0
+            for c in cards: bb |= (1 << self._idx_map[(c[0], c[1])])
+            return bb
+        
         mh = koikoicore.cards_to_bitboard(rs.hand[turn_p])
         b  = koikoicore.cards_to_bitboard(rs.field)
         mc = koikoicore.cards_to_bitboard(rs.pile[turn_p])
@@ -654,21 +665,21 @@ class KoiKoiGameState(KoiKoiGameStateBase):
         u  = koikoicore.cards_to_bitboard(rs.hand[idle_p] + rs.stock)
         out_view[72:137, :] = koikoicore.get_yaku_status_features_np(mh, b, mc, oc, u)[:, None]
         
-        out_view[162, :] = koikoicore.cards_to_multi_hot_np(rs.hand[turn_p])
-        out_view[163, :] = koikoicore.cards_to_multi_hot_np(rs.log['basic']['initBoard'])
-        out_view[164, :] = koikoicore.cards_to_multi_hot_np(rs.unseen_card[turn_p])
+        out_view[162:172, :] = 0  # 一括クリア
+        
+        if rs.hand[turn_p]: out_view[162, [self._idx_map[(c[0],c[1])] for c in rs.hand[turn_p]]] = 1.0
+        if rs.log['basic']['initBoard']: out_view[163, [self._idx_map[(c[0],c[1])] for c in rs.log['basic']['initBoard']]] = 1.0
+        if rs.unseen_card[turn_p]: out_view[164, [self._idx_map[(c[0],c[1])] for c in rs.unseen_card[turn_p]]] = 1.0
         
         out_view[165, :] = out_view[162, :]
-        out_view[166, :] = koikoicore.cards_to_multi_hot_np(rs.pile[turn_p])
-        out_view[167, :] = koikoicore.cards_to_multi_hot_np(rs.field)
-        out_view[168, :] = koikoicore.cards_to_multi_hot_np(rs.pile[idle_p])
+        if rs.pile[turn_p]: out_view[166, [self._idx_map[(c[0],c[1])] for c in rs.pile[turn_p]]] = 1.0
+        if rs.field: out_view[167, [self._idx_map[(c[0],c[1])] for c in rs.field]] = 1.0
+        if rs.pile[idle_p]: out_view[168, [self._idx_map[(c[0],c[1])] for c in rs.pile[idle_p]]] = 1.0
         out_view[169, :] = out_view[164, :]
         
         if rs.state in ['discard-pick', 'draw-pick']:
-            out_view[170, :] = koikoicore.cards_to_multi_hot_np(rs.show)
-            out_view[171, :] = koikoicore.cards_to_multi_hot_np(rs.pairing_card)
-        else:
-            out_view[170:172, :] = 0
+            if rs.show: out_view[170, [self._idx_map[(c[0],c[1])] for c in rs.show]] = 1.0
+            if rs.pairing_card: out_view[171, [self._idx_map[(c[0],c[1])] for c in rs.pairing_card]] = 1.0
             
         order = KoiKoiGameState._order_cache[rs.turn_16]
         out_view[172:300, :] = rs._card_log_buf[order].reshape(128, 48)
@@ -768,7 +779,6 @@ class KoiKoiGameState(KoiKoiGameStateBase):
     
     @property
     def feature_tensor(self):
-        # アリーナテスト等の既存処理との互換性のためだけに残す
         return torch.from_numpy(self.feature_np)
     
     #    f = np.vstack([
