@@ -18,11 +18,6 @@ class DefaultVar():
     DEFAULT_ROUND_TOTAL = 8
     DEFAULT_INIT_POINT = 30
 
-#def card_to_multi_hot(card_list):
-#    card_multi_hot = [0 for i in range(48)]
-#    for card in card_list:
-#        card_multi_hot[(card[0]-1)*4+(card[1]-1)] = 1
-#    return card_multi_hot
 card_to_multi_hot = koikoicore.card_to_multi_hot
 
 class KoiKoiCard():
@@ -125,20 +120,16 @@ class KoiKoiRoundStateBase():
     
     @property
     def round_point(self):
-        # round not over
         if self.winner == None:
             return {1:None, 2:None}
-        # round over (turn exhausted)
         elif self.exhausted:
             return {1:1, 2:-1} if self.dealer==1 else {1:-1, 2:1}
-        # round over (get yaku and stop)
         elif self.winner == 1:
             return {1:self.yaku_point(1), 2:-self.yaku_point(1)}
         else:
             return {1:-self.yaku_point(2), 2:self.yaku_point(2)}
     
     def __deal_card(self):
-        # action
         while True:
             card = [[ii+1,jj+1] for ii in range(12) for jj in range (4)]
             random.shuffle(card)
@@ -146,7 +137,6 @@ class KoiKoiRoundStateBase():
             self.hand[2] = sorted(card[8:16])
             self.field_slot = sorted(card[16:24])+[[0,0] for _ in range(10)]
             self.stock = card[24:]
-            # check hand-4 and board-4          
             flag = True
             for suit in range(1,13):
                 if 4 in [[card[0] for card in self.hand[1]].count(suit),
@@ -155,7 +145,6 @@ class KoiKoiRoundStateBase():
                     flag = False        
             if flag:
                 break
-        # next state
         self.__write_log()   
         self.state = 'discard'
         self.wait_action = True
@@ -179,73 +168,57 @@ class KoiKoiRoundStateBase():
     def discard(self, card=None):        
         assert self.state == 'discard'
         assert card in self.hand[self.turn_player]
-        # action
         self.turn_point = self.yaku_point(self.turn_player)
         ind = self.hand[self.turn_player].index(card)
         self.show = [self.hand[self.turn_player].pop(ind)]
-        # next state
         self.__write_log()
         self.state = 'discard-pick'
         self.wait_action = len(self.pairing_card) == 2
-        
         return self.state if self.silence else self.__call__()
         
     def discard_pick(self, card=None):
         assert self.state == 'discard-pick'
         assert (card in self.pairing_card) if self.wait_action else (card == None)
-        # action
         self.__collect_card(card)
-        # next state
         self.__write_log()
         self.state = 'draw'
         self.wait_action = False
-        
         return self.state if self.silence else self.__call__()
         
     def draw(self, card=None):
         assert self.state == 'draw'
-        # action
         self.show = [self.stock.pop()]
-        # next state
         self.__write_log()
         self.state = 'draw-pick'
         self.wait_action = len(self.pairing_card) == 2
-        
         return self.state if self.silence else self.__call__()
         
     def draw_pick(self, card=None):
         assert self.state == 'draw-pick'
         assert (card in self.pairing_card) if self.wait_action else (card == None)
-        # action
         self.__collect_card(card)
-        # next state
         self.__write_log()
         self.state = 'koikoi'
         self.wait_action = (self.yaku_point(self.turn_player) > self.turn_point) and (self.turn_8 < 8)
-        
         return self.state if self.silence else self.__call__()
     
     def claim_koikoi(self, is_koikoi=None):
         assert self.state == 'koikoi'
         assert (type(is_koikoi) == bool) if self.wait_action else (is_koikoi == None)
-        # action
         if (self.yaku_point(self.turn_player) > self.turn_point) and (self.turn_8 == 8):
             is_koikoi = False
         self.koikoi[self.turn_player][self.turn_8-1] = int(is_koikoi==True)
         self.__write_log(is_koikoi)
         
-        # next state
         if is_koikoi == False:
             self.state = 'round-over'
             self.wait_action = False
-            # result
             self.winner = self.turn_player
             self.__write_log()
         elif self.turn_16 == 16:
             self.state = 'round-over'
             self.wait_action = False
             self.exhausted = True
-            # result
             self.winner = self.dealer
             self.__write_log()
         else:
@@ -255,72 +228,12 @@ class KoiKoiRoundStateBase():
             
         return self.state if self.silence else self.__call__()
 
-#    def yaku(self,player):
-#        yaku = []
-#        pile = set([tuple(card) for card in self.pile[player]])
-#        koikoi_num = self.koikoi_num[player]
-#        
-#        num_light = len(pile & KoiKoiCard.light)
-#        if num_light == 5:
-#            yaku.append((1,'Five Lights', 10))            
-#        elif num_light == 4 and (11,1) not in pile:
-#            yaku.append((2,'Four Lights', 8))            
-#        elif num_light == 4:
-#            yaku.append((3,'Rainy Four Lights', 7))            
-#        elif num_light == 3 and (11,1) not in pile:
-#            yaku.append((4,'Three Lights', 5))
-#        
-#        num_seed = len(pile & KoiKoiCard.seed)
-#        if KoiKoiCard.boar_deer_butterfly.issubset(pile):
-#            yaku.append((5,'Boar-Deer-Butterfly', 5))            
-#        if KoiKoiCard.flower_sake.issubset(pile) and koikoi_num == 0:
-#            yaku.append((6,'Flower Viewing Sake', 1))            
-#        elif KoiKoiCard.flower_sake.issubset(pile) and koikoi_num > 0:
-#            yaku.append((7,'Flower Viewing Sake', 3))
-#        if KoiKoiCard.moon_sake.issubset(pile) and koikoi_num == 0:
-#            yaku.append((8,'Moon Viewing Sake', 1))
-#        elif KoiKoiCard.moon_sake.issubset(pile) and koikoi_num > 0:
-#            yaku.append((9,'Moon Viewing Sake', 3))
-#        if num_seed >= 5:
-#            yaku.append((10,'Tane', num_seed-4))
-#            
-#        num_ribbon = len(pile & KoiKoiCard.ribbon)
-#        if (KoiKoiCard.red_ribbon|KoiKoiCard.blue_ribbon).issubset(pile):
-#            yaku.append((11,'Red & Blue Ribbons', 10))
-#        if KoiKoiCard.red_ribbon.issubset(pile):
-#            yaku.append((12,'Red Ribbons', 5))
-#        if KoiKoiCard.blue_ribbon.issubset(pile):
-#            yaku.append((13,'Blue Ribbons', 5))
-#        if num_ribbon >= 5:
-#            yaku.append((14,'Tan', num_ribbon-4))
-#            
-#        num_dross = len(pile & KoiKoiCard.dross)
-#        if num_dross >= 10:
-#            yaku.append((15,'Kasu', num_dross-9))
-#            
-#        if koikoi_num > 0:
-#            yaku.append((16,'Koi-Koi', koikoi_num))
-#        
-#        return yaku
-#    
-#    def yaku_point(self, player):
-#        yaku_point = sum([yaku[2] for yaku in self.yaku(player) if yaku[1]!='Koi-Koi'])
-#        koikoi_num = self.koikoi_num[player]
-#        if koikoi_num <= 3:
-#            yaku_point += koikoi_num
-#        else:
-#            yaku_point *= koikoi_num - 2
-#        
-#        return yaku_point
-
     def yaku(self, player):
-        # 互換性維持のためのラップ（内部で高速版を呼び出し、表示用に文字列を復元する）
         pile_bb = koikoicore.cards_to_bitboard(self.pile[player])
         yaku_ids = koikoicore.evaluate_yaku_id_by_bitboard(pile_bb, self.koikoi_num[player])
         return [(y_id, YAKU_ID_TO_NAME.get(y_id, 'Unknown'), pt) for y_id, pt in yaku_ids]
     
     def yaku_point(self, player):
-        # ポイント計算もC++に丸投げ
         return koikoicore.get_yaku_point(self.pile[player], self.koikoi_num[player])
     
     def __write_log(self, content=None):
@@ -423,7 +336,6 @@ class KoiKoiRoundStateBase():
                   ', Opponent '+str(self.round_point[op_view]))
         return
         
-    
 class KoiKoiGameStateBase():
     def __init__(self, round_num=1, round_total=DefaultVar.DEFAULT_ROUND_TOTAL,
                  init_point=[DefaultVar.DEFAULT_INIT_POINT,DefaultVar.DEFAULT_INIT_POINT],
@@ -508,12 +420,32 @@ class KoiKoiGameStateBase():
             print('Game Over')
         print('-----------------------------------------------')
         return
-
-
-# class KoiKoiKoiRoundState(KoiKoiRoundStateBase):
-#     pass
        
 class KoiKoiRoundState(KoiKoiRoundStateBase):
+    
+    # 【追加】クラス変数としてキャッシュを定義
+    _cached_card_key = None
+    _card_suit_array = None
+    
+    @classmethod
+    def _init_caches(cls):
+        if cls._cached_card_key is None:
+            card_dict = {
+                'Crane':KoiKoiCard.crane, 'Curtain':KoiKoiCard.curtain, 'Moon':KoiKoiCard.moon,
+                'Rainman':KoiKoiCard.rainman, 'Phoenix':KoiKoiCard.phoenix, 'Sake':KoiKoiCard.sake,
+                'BoarDeerButterfly':KoiKoiCard.boar_deer_butterfly, 'Seed':KoiKoiCard.seed,
+                'RedRibbon':KoiKoiCard.red_ribbon, 'BlueRibbon':KoiKoiCard.blue_ribbon,
+                'RedAndBlue':KoiKoiCard.red_blue_ribbon, 'Ribbon':KoiKoiCard.ribbon, 'Dross':KoiKoiCard.dross
+            }
+            cls._cached_card_key = np.array([
+                koikoicore.card_to_multi_hot([list(c) for c in card_set]) for _, card_set in card_dict.items()
+            ], dtype=np.float32)
+            
+        if cls._card_suit_array is None:
+            arr = np.zeros([12, 48], dtype=np.float32)
+            for ii in range(12):
+                arr[ii, 4*ii:4*ii+4] = 1.0
+            cls._card_suit_array = arr
     
     def __init__(self, dealer=None):
         super().__init__(dealer)
@@ -555,9 +487,7 @@ class KoiKoiRoundState(KoiKoiRoundStateBase):
         return
     
     def __write_card_log_array(self,state):
-        
         def card_log_turn_dict():
-            ## Card Dynamic Feature by Turn
             cardLogTurn = {}
             cardLogTurn['CardDiscardedAndPaired'] = np.zeros(48)
             cardLogTurn['CardDiscardedAndUnpaired'] = np.zeros(48)
@@ -570,7 +500,6 @@ class KoiKoiRoundState(KoiKoiRoundStateBase):
             return cardLogTurn
     
         turn = self.turn_16
-        
         if state == 'init':
             for ii in range(1,17):
                 self.card_log_dict[ii] = card_log_turn_dict()
@@ -622,187 +551,295 @@ class KoiKoiRoundState(KoiKoiRoundStateBase):
             mask = []
         return np.array(mask)
     
-    @property
-    def card_log_array(self):
-        turn_list = [x for x in range(self.turn_16, 0, -1)] + [x for x in range(self.turn_16 + 1, 17)]
-        # NumPy配列のリストにしてから vstack（マルチプロセス内で最軽量）
-        arrays = [f for turn in turn_list for _, f in self.card_log_dict[turn].items()]
-        return np.vstack(arrays)
-    
-    @property
-    def card_suit_array(self):
-        f_array = np.zeros([12,48])
-        for ii in range(12):
-            f_array[ii,4*ii:4*ii+4] = 1
-        return f_array
-    
-    @property
-    def card_init_position_array(self):
-        # C++から戻るリストを np.array() で確実にNumPy配列化
-        f_dict = {}
-        f_dict['CardInMyHand'] = np.array(card_to_multi_hot(self.hand[self.turn_player]))
-        f_dict['CardInBoard'] = np.array(card_to_multi_hot(self.log['basic']['initBoard']))
-        f_dict['CardUnseen'] = np.array(card_to_multi_hot(self.unseen_card[self.turn_player]))
-        return np.vstack([value for key, value in f_dict.items()])
-    
-    @property
-    def card_current_position_array(self):
-        f_dict = {}
-        f_dict['CardInMyHand'] = np.array(card_to_multi_hot(self.hand[self.turn_player]))
-        f_dict['CardInMyCollect'] = np.array(card_to_multi_hot(self.pile[self.turn_player]))
-        f_dict['CardInBoard'] = np.array(card_to_multi_hot(self.field))
-        f_dict['CardInOpCollect'] = np.array(card_to_multi_hot(self.pile[self.idle_player]))
-        f_dict['CardUnseen'] = np.array(card_to_multi_hot(self.unseen_card[self.turn_player]))
-        return np.vstack([value for key, value in f_dict.items()])
-    
-    @property
-    def card_pairing_state_array(self):
-        f_dict = {}
-        if self.state in ['discard-pick','draw-pick']:
-            f_dict['CardShowed'] = card_to_multi_hot(self.show)
-            f_dict['CardPaired'] = card_to_multi_hot(self.pairing_card)
-        else:
-            f_dict['CardShowed'] = card_to_multi_hot([])
-            f_dict['CardPaired'] = card_to_multi_hot([])
-        f_array = np.vstack([value for key,value in f_dict.items()])
-        return f_array
-    
-#    @property
-#    def yaku_status_array(self):
-#        
-#        def card_list_to_set(card_list):
-#            return set([tuple(card) for card in card_list])
-#           
-#        card_dict = {
-#            'Crane':KoiKoiCard.crane,
-#            'Curtain':KoiKoiCard.curtain,
-#            'Moon':KoiKoiCard.moon,
-#            'Rainman':KoiKoiCard.rainman,
-#            'Phoenix':KoiKoiCard.phoenix,
-#            'Sake':KoiKoiCard.sake,
-#            'BoarDeerButterfly':KoiKoiCard.boar_deer_butterfly,
-#            'Seed':KoiKoiCard.seed,
-#            'RedRibbon':KoiKoiCard.red_ribbon,
-#            'BlueRibbon':KoiKoiCard.blue_ribbon,
-#            'RedAndBlue':KoiKoiCard.red_blue_ribbon,
-#            'Ribbon':KoiKoiCard.ribbon,
-#            'Dross':KoiKoiCard.dross}
-#        
-#        my_hand_card = card_list_to_set(self.hand[self.turn_player])
-#        board_card = card_list_to_set(self.field)
-#        my_collect_card = card_list_to_set(self.pile[self.turn_player])
-#        op_collect_card = card_list_to_set(self.pile[self.idle_player])
-#        unseen_card = card_list_to_set(self.hand[self.idle_player]+self.stock)
-#        
-#        f_dict = {}
-#        f_dict['NumMyHand'] = [len(card_set & my_hand_card) for _,card_set in card_dict.items()]
-#        f_dict['NumBoard'] = [len(card_set & board_card) for _,card_set in card_dict.items()]
-#        f_dict['NumMyCollect'] = [len(card_set & my_collect_card) for _,card_set in card_dict.items()]
-#        f_dict['NumOpCollect'] = [len(card_set & op_collect_card) for _,card_set in card_dict.items()]
-#        f_dict['NumUnseen'] = [len(card_set & unseen_card) for _,card_set in card_dict.items()]
-#        f_array_card_state = np.concatenate([value for key,value in f_dict.items()])
-#        f_array_card_state = np.tile(f_array_card_state,(48,1)).T
-#        f_array_card_key = np.array([card_to_multi_hot(card_set) for _,card_set in card_dict.items()])
-#        f_array = np.vstack([f_array_card_state,f_array_card_key])
-#        return f_array
-
-    @property
-    def yaku_status_array(self):
+    # ─── 【重要】アロケーションゼロのためのバッファ埋め込みメソッド群 ───
+    def _fill_yaku_status(self, buf_1d):
         my_hand_bb    = koikoicore.cards_to_bitboard(self.hand[self.turn_player])
         board_bb      = koikoicore.cards_to_bitboard(self.field)
         my_collect_bb = koikoicore.cards_to_bitboard(self.pile[self.turn_player])
         op_collect_bb = koikoicore.cards_to_bitboard(self.pile[self.idle_player])
         unseen_bb     = koikoicore.cards_to_bitboard(self.hand[self.idle_player] + self.stock)
 
-        # C++側から整数リストを受け取る
         features = koikoicore.get_yaku_status_features_by_bitboard(
             my_hand_bb, board_bb, my_collect_bb, op_collect_bb, unseen_bb
         )
-        f_array_card_state = np.concatenate(features)
-        f_array_card_state = np.tile(f_array_card_state, (48, 1)).T
-        
-        if not hasattr(KoiKoiRoundState, "_cached_card_key"):
-            card_dict = {
-                'Crane':KoiKoiCard.crane, 'Curtain':KoiKoiCard.curtain, 'Moon':KoiKoiCard.moon,
-                'Rainman':KoiKoiCard.rainman, 'Phoenix':KoiKoiCard.phoenix, 'Sake':KoiKoiCard.sake,
-                'BoarDeerButterfly':KoiKoiCard.boar_deer_butterfly, 'Seed':KoiKoiCard.seed,
-                'RedRibbon':KoiKoiCard.red_ribbon, 'BlueRibbon':KoiKoiCard.blue_ribbon,
-                'RedAndBlue':KoiKoiCard.red_blue_ribbon, 'Ribbon':KoiKoiCard.ribbon, 'Dross':KoiKoiCard.dross
-            }
-            KoiKoiRoundState._cached_card_key = np.array([
-                koikoicore.card_to_multi_hot([list(c) for c in card_set]) for _, card_set in card_dict.items()
-            ])
-            
-        return np.vstack([f_array_card_state, KoiKoiRoundState._cached_card_key])
+        idx = 0
+        for f_list in features:
+            for val in f_list:
+                buf_1d[idx] = val
+                idx += 1
+
+    def _fill_card_init_position(self, view_2d):
+        view_2d[0, :] = koikoicore.card_to_multi_hot(self.hand[self.turn_player])
+        view_2d[1, :] = koikoicore.card_to_multi_hot(self.log['basic']['initBoard'])
+        view_2d[2, :] = koikoicore.card_to_multi_hot(self.unseen_card[self.turn_player])
+
+    def _fill_card_current_position(self, view_2d):
+        view_2d[0, :] = koikoicore.card_to_multi_hot(self.hand[self.turn_player])
+        view_2d[1, :] = koikoicore.card_to_multi_hot(self.pile[self.turn_player])
+        view_2d[2, :] = koikoicore.card_to_multi_hot(self.field)
+        view_2d[3, :] = koikoicore.card_to_multi_hot(self.pile[self.idle_player])
+        view_2d[4, :] = koikoicore.card_to_multi_hot(self.unseen_card[self.turn_player])
+
+    def _fill_card_pairing_state(self, view_2d):
+        if self.state in ['discard-pick', 'draw-pick']:
+            view_2d[0, :] = koikoicore.card_to_multi_hot(self.show)
+            view_2d[1, :] = koikoicore.card_to_multi_hot(self.pairing_card)
+        else:
+            view_2d[0, :] = 0
+            view_2d[1, :] = 0
+
+    def _fill_card_log(self, view_2d):
+        turn_list = [x for x in range(self.turn_16, 0, -1)] + [x for x in range(self.turn_16 + 1, 17)]
+        idx = 0
+        for turn in turn_list:
+            d = self.card_log_dict[turn]
+            view_2d[idx, :]   = d['CardDiscardedAndPaired']
+            view_2d[idx+1, :] = d['CardDiscardedAndUnpaired']
+            view_2d[idx+2, :] = d['CardPairedByDiscardCollect']
+            view_2d[idx+3, :] = d['CardPairedByDiscardUncollect']
+            view_2d[idx+4, :] = d['CardDrawnAndPaired']
+            view_2d[idx+5, :] = d['CardDrawnAndUnpaired']
+            view_2d[idx+6, :] = d['CardPairedByDrawnCollect']
+            view_2d[idx+7, :] = d['CardPairedByDrawnUncollect']
+            idx += 8
+    
+    #@property
+    #def card_log_array(self):
+    #    turn_list = [x for x in range(self.turn_16, 0, -1)] + [x for x in range(self.turn_16 + 1, 17)]
+    #    # NumPy配列のリストにしてから vstack（マルチプロセス内で最軽量）
+    #    arrays = [f for turn in turn_list for _, f in self.card_log_dict[turn].items()]
+    #    return np.vstack(arrays)
+    
+    #@property
+    #def card_suit_array(self):
+    #    f_array = np.zeros([12,48])
+    #    for ii in range(12):
+    #        f_array[ii,4*ii:4*ii+4] = 1
+    #    return f_array
+    
+    #@property
+    #def card_init_position_array(self):
+    #    # C++から戻るリストを np.array() で確実にNumPy配列化
+    #    f_dict = {}
+    #    f_dict['CardInMyHand'] = np.array(card_to_multi_hot(self.hand[self.turn_player]))
+    #    f_dict['CardInBoard'] = np.array(card_to_multi_hot(self.log['basic']['initBoard']))
+    #    f_dict['CardUnseen'] = np.array(card_to_multi_hot(self.unseen_card[self.turn_player]))
+    #    return np.vstack([value for key, value in f_dict.items()])
+    
+    #@property
+    #def card_current_position_array(self):
+    #    f_dict = {}
+    #    f_dict['CardInMyHand'] = np.array(card_to_multi_hot(self.hand[self.turn_player]))
+    #    f_dict['CardInMyCollect'] = np.array(card_to_multi_hot(self.pile[self.turn_player]))
+    #    f_dict['CardInBoard'] = np.array(card_to_multi_hot(self.field))
+    #    f_dict['CardInOpCollect'] = np.array(card_to_multi_hot(self.pile[self.idle_player]))
+    #    f_dict['CardUnseen'] = np.array(card_to_multi_hot(self.unseen_card[self.turn_player]))
+    #    return np.vstack([value for key, value in f_dict.items()])
+    
+    #@property
+    #def card_pairing_state_array(self):
+    #    f_dict = {}
+    #    if self.state in ['discard-pick','draw-pick']:
+    #        f_dict['CardShowed'] = card_to_multi_hot(self.show)
+    #        f_dict['CardPaired'] = card_to_multi_hot(self.pairing_card)
+    #    else:
+    #        f_dict['CardShowed'] = card_to_multi_hot([])
+    #        f_dict['CardPaired'] = card_to_multi_hot([])
+    #    f_array = np.vstack([value for key,value in f_dict.items()])
+    #    return f_array
+
+    #@property
+    #def yaku_status_array(self):
+    #    my_hand_bb    = koikoicore.cards_to_bitboard(self.hand[self.turn_player])
+    #    board_bb      = koikoicore.cards_to_bitboard(self.field)
+    #    my_collect_bb = koikoicore.cards_to_bitboard(self.pile[self.turn_player])
+    #    op_collect_bb = koikoicore.cards_to_bitboard(self.pile[self.idle_player])
+    #    unseen_bb     = koikoicore.cards_to_bitboard(self.hand[self.idle_player] + self.stock)
+
+    #    # C++側から整数リストを受け取る
+    #    features = koikoicore.get_yaku_status_features_by_bitboard(
+    #        my_hand_bb, board_bb, my_collect_bb, op_collect_bb, unseen_bb
+    #    )
+    #    f_array_card_state = np.concatenate(features)
+    #    f_array_card_state = np.tile(f_array_card_state, (48, 1)).T
+    #    
+    #    if not hasattr(KoiKoiRoundState, "_cached_card_key"):
+    #        card_dict = {
+    #            'Crane':KoiKoiCard.crane, 'Curtain':KoiKoiCard.curtain, 'Moon':KoiKoiCard.moon,
+    #            'Rainman':KoiKoiCard.rainman, 'Phoenix':KoiKoiCard.phoenix, 'Sake':KoiKoiCard.sake,
+    #            'BoarDeerButterfly':KoiKoiCard.boar_deer_butterfly, 'Seed':KoiKoiCard.seed,
+    #            'RedRibbon':KoiKoiCard.red_ribbon, 'BlueRibbon':KoiKoiCard.blue_ribbon,
+    #            'RedAndBlue':KoiKoiCard.red_blue_ribbon, 'Ribbon':KoiKoiCard.ribbon, 'Dross':KoiKoiCard.dross
+    #        }
+    #        KoiKoiRoundState._cached_card_key = np.array([
+    #            koikoicore.card_to_multi_hot([list(c) for c in card_set]) for _, card_set in card_dict.items()
+    #        ])
+    #        
+    #    return np.vstack([f_array_card_state, KoiKoiRoundState._cached_card_key])
 
     
 class KoiKoiGameState(KoiKoiGameStateBase):
-    
-    @property
-    def game_status_array(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         
-        def feature_tuple(x, power=[0.5,1,2], weight=[1,1,1]):
-            return np.abs(float(x)) ** np.array(power) * np.sign(x) * np.array(weight)
+        # ★ 特徴量ゼロアロケーションのための固定バッファ群
+        self._temp_55 = np.zeros(55, dtype=np.float32)
+        self._temp_65 = np.zeros(65, dtype=np.float32)
+        self._feat_buf_48 = np.zeros((300, 48), dtype=np.float32)
+        self._feat_buf_50 = np.zeros((300, 50), dtype=np.float32)
         
-        def feature_one_hot(pos, feature_length):
-            x = np.zeros(feature_length)
-            x[pos] = 1
-            return x
-        
-        f_dict = {}
-        
+        # 普遍的な定数配列の事前キャッシュ＆事前埋め込み
+        KoiKoiRoundState._init_caches()
+        self._feat_buf_48[150:162, :] = KoiKoiRoundState._card_suit_array
+        self._feat_buf_50[150:162, 2:] = KoiKoiRoundState._card_suit_array
+        self._feat_buf_48[137:150, :] = KoiKoiRoundState._cached_card_key
+        self._feat_buf_50[137:150, 2:] = KoiKoiRoundState._cached_card_key
+
+    def _fill_game_status(self, buf):
         turn_player = self.round_state.turn_player
         idle_player = self.round_state.idle_player
         
         point_diff = self.point[turn_player] - self.point[idle_player]
-        f_dict['GamePoint'] = feature_tuple(float(point_diff)/2, [0.5,1,1.5], [1,0.5,0.1])
+        
+        def fill_tuple(idx, x, power=[0.5, 1, 1.5], weight=[1, 0.5, 0.1]):
+            x = float(x)
+            sgn = 1.0 if x > 0 else (-1.0 if x < 0 else 0.0)
+            abs_x = abs(x)
+            buf[idx]   = (abs_x ** power[0]) * sgn * weight[0]
+            buf[idx+1] = (abs_x ** power[1]) * sgn * weight[1]
+            buf[idx+2] = (abs_x ** power[2]) * sgn * weight[2]
 
-        f_dict['MyYakuPoint'] = feature_tuple(
-            self.round_state.yaku_point(turn_player), [0.5,1,1.5], [1,0.5,0.1])
-        f_dict['OpYakuPoint'] = feature_tuple(
-            self.round_state.yaku_point(idle_player), [0.5,1,1.5], [1,0.5,0.1])
+        fill_tuple(0, float(point_diff)/2.0, [0.5,1,1.5], [1,0.5,0.1])
+        fill_tuple(3, self.round_state.yaku_point(turn_player), [0.5,1,1.5], [1,0.5,0.1])
+        fill_tuple(6, self.round_state.yaku_point(idle_player), [0.5,1,1.5], [1,0.5,0.1])
         
-        f_dict['Round'] = feature_one_hot(self.round-1, 8)
-        f_dict['Turn'] = feature_one_hot(self.round_state.turn_16-1, 16)
-        f_dict['Dealer'] = feature_one_hot(self.round_state.dealer-1, 2)
+        buf[9:17] = 0
+        buf[9 + self.round - 1] = 1
         
-        f_dict['MyKoiKoiNum'] = feature_tuple(
-            self.round_state.koikoi_num[turn_player], [1,2], [1,1])
-        f_dict['OpKoiKoiNum'] = feature_tuple(
-            self.round_state.koikoi_num[idle_player], [1,2], [1,1])
+        buf[17:33] = 0
+        buf[17 + self.round_state.turn_16 - 1] = 1
         
-        f_dict['MyKoiKoi'] = np.array(self.round_state.koikoi[turn_player])
-        f_dict['OpKoiKoi'] = np.array(self.round_state.koikoi[idle_player])
+        buf[33:35] = 0
+        buf[33 + self.round_state.dealer - 1] = 1
         
-        f_array = np.concatenate([value for key,value in f_dict.items()])
-        f_array = f_array[:, np.newaxis] * np.ones((1, 48))
-        return f_array
+        def fill_tuple_2(idx, x, power=[1,2], weight=[1,1]):
+            x = float(x)
+            sgn = 1.0 if x > 0 else (-1.0 if x < 0 else 0.0)
+            abs_x = abs(x)
+            buf[idx]   = (abs_x ** power[0]) * sgn * weight[0]
+            buf[idx+1] = (abs_x ** power[1]) * sgn * weight[1]
+
+        fill_tuple_2(35, self.round_state.koikoi_num[turn_player])
+        fill_tuple_2(37, self.round_state.koikoi_num[idle_player])
+        
+        buf[39:47] = self.round_state.koikoi[turn_player]
+        buf[47:55] = self.round_state.koikoi[idle_player]
+        
+    #@property
+    #def game_status_array(self):
+    #    
+    #    def feature_tuple(x, power=[0.5,1,2], weight=[1,1,1]):
+    #        return np.abs(float(x)) ** np.array(power) * np.sign(x) * np.array(weight)
+    #    
+    #    def feature_one_hot(pos, feature_length):
+    #        x = np.zeros(feature_length)
+    #        x[pos] = 1
+    #        return x
+    #    
+    #    f_dict = {}
+    #    
+    #    turn_player = self.round_state.turn_player
+    #    idle_player = self.round_state.idle_player
+    #    
+    #    point_diff = self.point[turn_player] - self.point[idle_player]
+    #    f_dict['GamePoint'] = feature_tuple(float(point_diff)/2, [0.5,1,1.5], [1,0.5,0.1])
+
+    #    f_dict['MyYakuPoint'] = feature_tuple(
+    #        self.round_state.yaku_point(turn_player), [0.5,1,1.5], [1,0.5,0.1])
+    #    f_dict['OpYakuPoint'] = feature_tuple(
+    #        self.round_state.yaku_point(idle_player), [0.5,1,1.5], [1,0.5,0.1])
+    #    
+    #    f_dict['Round'] = feature_one_hot(self.round-1, 8)
+    #    f_dict['Turn'] = feature_one_hot(self.round_state.turn_16-1, 16)
+    #    f_dict['Dealer'] = feature_one_hot(self.round_state.dealer-1, 2)
+    #    
+    #    f_dict['MyKoiKoiNum'] = feature_tuple(
+    #        self.round_state.koikoi_num[turn_player], [1,2], [1,1])
+    #    f_dict['OpKoiKoiNum'] = feature_tuple(
+    #        self.round_state.koikoi_num[idle_player], [1,2], [1,1])
+    #    
+    #    f_dict['MyKoiKoi'] = np.array(self.round_state.koikoi[turn_player])
+    #    f_dict['OpKoiKoi'] = np.array(self.round_state.koikoi[idle_player])
+    #    
+    #    f_array = np.concatenate([value for key,value in f_dict.items()])
+    #    f_array = f_array[:, np.newaxis] * np.ones((1, 48))
+    #    return f_array
     
-    @property
-    def reserve_array(self):
-        f_array = np.zeros([17,48])
-        return f_array
+    #@property
+    #def reserve_array(self):
+    #    f_array = np.zeros([17,48])
+    #    return f_array
         
     @property
     def feature_tensor(self):
-        # すべてが純粋な NumPy 配列になったため、一括して np.vstack で結合します
-        f = np.vstack([
-            self.reserve_array,
-            self.game_status_array,
-            self.round_state.yaku_status_array,
-            self.round_state.card_suit_array,
-            self.round_state.card_init_position_array,
-            self.round_state.card_current_position_array,
-            self.round_state.card_pairing_state_array,
-            self.round_state.card_log_array
-        ])
-
-        if self.round_state.state == 'koikoi':
-            f_token = np.zeros([f.shape[0], 2])
-            f_token[0:137, :] = f[0:137, 0:2]
-            f_token[0, 0] = 1
-            f_token[1, 1] = 1
-            f = np.hstack([f_token, f])
+        # 毎ステップの配列新規作成 (np.vstack等) を完全に廃止し、
+        # 確保済みの巨大バッファに必要な箇所だけを「上書き」します。
+        
+        is_koikoi = (self.round_state.state == 'koikoi')
+        buf = self._feat_buf_50 if is_koikoi else self._feat_buf_48
+        out_view = buf[:, 2:] if is_koikoi else buf[:, :]
+        
+        # 1. reserve (0:17) はゼロのまま
+        
+        # 2. game_status (17:72)
+        self._fill_game_status(self._temp_55)
+        out_view[17:72, :] = self._temp_55[:, None] # ブロードキャスト代入 (超高速)
+        
+        # 3. yaku_status_array (72:137)
+        self.round_state._fill_yaku_status(self._temp_65)
+        out_view[72:137, :] = self._temp_65[:, None]
+        
+        # 4. _cached_card_key (137:150) と suit (150:162) は __init__ で書き込み済み
+        
+        # 5. init_pos (162:165)
+        self.round_state._fill_card_init_position(out_view[162:165, :])
+        
+        # 6. current_pos (165:170)
+        self.round_state._fill_card_current_position(out_view[165:170, :])
+        
+        # 7. pairing (170:172)
+        self.round_state._fill_card_pairing_state(out_view[170:172, :])
+        
+        # 8. log (172:300)
+        self.round_state._fill_card_log(out_view[172:300, :])
+        
+        if is_koikoi:
+            # koikoi専用処理 (左2列の f_token の設定)
+            buf[:, 0:2] = 0
+            buf[0:137, 0:2] = out_view[0:137, 0:2]
+            buf[0, 0] = 1
+            buf[1, 1] = 1
             
-        # 結合が完全に終わった最後のこの瞬間だけ、torch.Tensor に変換する
-        return torch.Tensor(f)
+        # 最後にバッファのメモリを共有したまま PyTorch Tensor 化 (コピーなし)
+        return torch.from_numpy(buf)
+    
+    #    f = np.vstack([
+    #        self.reserve_array,
+    #        self.game_status_array,
+    #        self.round_state.yaku_status_array,
+    #        self.round_state.card_suit_array,
+    #        self.round_state.card_init_position_array,
+    #        self.round_state.card_current_position_array,
+    #        self.round_state.card_pairing_state_array,
+    #        self.round_state.card_log_array
+    #    ])
+
+    #    if self.round_state.state == 'koikoi':
+    #        f_token = np.zeros([f.shape[0], 2])
+    #        f_token[0:137, :] = f[0:137, 0:2]
+    #        f_token[0, 0] = 1
+    #        f_token[1, 1] = 1
+    #        f = np.hstack([f_token, f])
+    #        
+    #    # 結合が完全に終わった最後のこの瞬間だけ、torch.Tensor に変換する
+    #    return torch.Tensor(f)

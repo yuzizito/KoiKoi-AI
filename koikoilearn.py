@@ -42,8 +42,8 @@ class Agent():
         return feature_gpu
 
     def __predict(self, state, feature_gpu, mask):
-        """【GPU完結型】GPUテンソルを受け取り、GPU上でマスク・argmaxを完結させる"""
-        device = feature_gpu.device # 'cuda:0'
+        """【単発推論用】"""
+        device = feature_gpu.device
         
         # 1. GPU上での純粋な forward 時間を計測
         t1 = time.perf_counter()
@@ -56,7 +56,11 @@ class Agent():
         output = output_tensor.squeeze(0)
         
         # マスクを最初からGPU上にbool型で作成
-        mask_tensor = torch.tensor(mask, dtype=torch.bool, device=device)
+        #mask_tensor = torch.tensor(mask, dtype=torch.bool, device=device)
+        
+        # NumPy配列化してからTensor化することで余計なオーバーヘッドを防ぐ
+        mask_np = np.array(mask, dtype=np.bool_)
+        mask_tensor = torch.from_numpy(mask_np).to(device, non_blocking=True)
         output = output.masked_fill(~mask_tensor, -1e9)
         
         # GPU上で最速で最大値インデックスを取得し、最後の1個だけを.item()でPython整数へ引き戻す
@@ -67,10 +71,7 @@ class Agent():
         return action_output
     
     def predict_batch(self, state, features_cpu, masks):
-        """
-        【新設】子プロセス内のミニバッチ（例: 8環境分）を一括処理する専用メソッド。
-        引数として「CPU Tensorの結合体」と「マスクのリスト」を受け取る。
-        """
+        """【バッチ推論用】完全な一括処理（forループ廃止）"""
         if features_cpu is None or features_cpu.size(0) == 0:
             return []
             
@@ -86,16 +87,33 @@ class Agent():
         
         # 3. GPU完結型のバッチ後処理
         t2 = time.perf_counter()
-        actions = []
-        for b_idx, mask in enumerate(masks):
-            single_output = output_tensor[b_idx]
-            mask_tensor = torch.tensor(mask, dtype=torch.bool, device=device)
-            single_output = single_output.masked_fill(~mask_tensor, -1e9)
+        
+        #actions = []
+        #for b_idx, mask in enumerate(masks):
+        #    single_output = output_tensor[b_idx]
+        #    mask_tensor = torch.tensor(mask, dtype=torch.bool, device=device)
+        #    single_output = single_output.masked_fill(~mask_tensor, -1e9)
             
-            # 各環境の行動インデックスを抽出してホストに戻す
-            best_index = single_output.argmax().item()
-            actions.append(self.action_dict[state][best_index])
-            
+        #    # 各環境の行動インデックスを抽出してホストに戻す
+        #    best_index = single_output.argmax().item()
+        #    actions.append(self.action_dict[state][best_index])
+        
+        # masks(リストのリスト)を一括で2DのNumPy配列にし、一気にGPUへ転送
+        masks_np = np.array(masks, dtype=np.bool_)
+        masks_tensor = torch.from_numpy(masks_np).to(device, non_blocking=True)
+        
+        # バッチ一括でマスク処理
+        output_tensor = output_tensor.masked_fill(~masks_tensor, -1e9)
+        
+        # バッチ一括でargmax (dim=1)
+        best_indices = output_tensor.argmax(dim=1)
+        
+        # GPU -> CPU への同期転送を1回で済ませる
+        best_indices_cpu = best_indices.cpu().tolist()
+        
+        # 決定したインデックス群をPythonのアクションに変換
+        actions = [self.action_dict[state][idx] for idx in best_indices_cpu]
+        
         self.t_post_proc += (time.perf_counter() - t2)
         return actions
     
@@ -126,7 +144,7 @@ class Agent():
             
             # 【責務1】特徴量の作成（完全にCPU上の処理）
             t0 = time.perf_counter()
-            feature_cpu = game_state.feature_tensor.unsqueeze(0) # [1, 300, 48] の CPU Tensor
+            feature_cpu = game_state.feature_tensor.unsqueeze(0)
             self.t_feat_gen += (time.perf_counter() - t0)
             
             # 【責務2】GPUへの転送
@@ -148,7 +166,7 @@ class Agent():
                 action_output = random.choice(game_state.round_state.pairing_card)
             elif state == 'koikoi':
                 action_output = random.choice([True, False])
-        return action_output     
+        return action_output
         
         
 class Arena():
@@ -238,7 +256,10 @@ class AgentForTest():
         output = output_tensor.squeeze(0)
         
         # テンソルのままマスク処理（マスクが0の場所を極小値で埋める）
-        mask_tensor = torch.tensor(mask, dtype=torch.bool, device=output.device)
+        #mask_tensor = torch.tensor(mask, dtype=torch.bool, device=output.device)
+        
+        mask_np = np.array(mask, dtype=np.bool_)
+        mask_tensor = torch.from_numpy(mask_np).to(output.device, non_blocking=True)
         output = output.masked_fill(~mask_tensor, -1e9)
         
         # テンソルのまま最速で argmax を取得
