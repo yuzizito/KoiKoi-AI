@@ -16,7 +16,7 @@ from collections import namedtuple
 import os
 import time
 import pickle
-import multiprocessing
+import torch.multiprocessing as mp
 import threading
 from torch.utils.data import TensorDataset, DataLoader
 
@@ -136,7 +136,12 @@ class TraceSimulator():
         self.t_action = 0.0
         self.t_step = 0.0
         self.t_clone = 0.0
-        self.t_other = 0.0
+        self.t_scan_check = 0.0
+        self.t_feat_get = 0.0
+        self.t_batch_prep = 0.0
+        self.t_reward_calc = 0.0
+        self.t_history = 0.0
+        self.t_env_reset = 0.0
         
         # バッファを最初からSoA（リスト）形式で保持
         self.buffer = {
@@ -151,41 +156,37 @@ class TraceSimulator():
         self.agent[1].t_post_proc = 0.0
 
         local_envs_count = min(128, n_games)
-        
         envs = [koikoigame.KoiKoiGameState() for _ in range(local_envs_count)]
         env_traces = [{1: [], 2: []} for _ in range(local_envs_count)]
-        
-        env_last_features = [{
-            'discard': None, 
-            'discard-pick': None, 
-            'draw-pick': None, 
-            'koikoi': None
-        } for _ in range(local_envs_count)]
+        env_last_features = [{'discard': None, 'discard-pick': None, 'draw-pick': None, 'koikoi': None} for _ in range(local_envs_count)]
         
         finished_games = 0
         type_dict = {'discard': 'discard', 'discard-pick': 'pick', 'draw-pick': 'pick', 'koikoi': 'koikoi'}
         
         def action_to_index(action):
-            if action in [False, True]: 
-                return int(action)
-            elif action is not None: 
-                return 4 * (action[0] - 1) + (action[1] - 1)
+            if action in [False, True]: return int(action)
+            elif action is not None: return 4 * (action[0] - 1) + (action[1] - 1)
             return None
+        
+        swap_indices = [np.array([i] + [j for j in range(48) if j != i], dtype=np.intp) for i in range(48)]
 
-        # ★ PyTorchを排除し、NumPyネイティブの配列スライスに変更
         def adjust_card_order_np(feature, index):
-            ind_list = [index] + [ii for ii in range(feature.shape[1]) if ii != index]
-            return feature[:, ind_list]
-
+            if index is None or index >= 48:
+                return feature
+            # 1回の配列アクセスだけでインデックスを入れ替える（超高速）
+            return feature[:, swap_indices[index]]
+        
         while finished_games < n_games:
             requests = {'discard': [], 'discard-pick': [], 'draw-pick': [], 'koikoi': []}
             
-            t_scan = time.perf_counter()
             for i, game_state in enumerate(envs):
+                t_chk_1 = time.perf_counter()
                 if game_state.game_over:
+                    self.t_scan_check += (time.perf_counter() - t_chk_1)
                     continue
                     
                 if not game_state.round_state.wait_action:
+                    self.t_scan_check += (time.perf_counter() - t_chk_1)
                     t_s = time.perf_counter()
                     game_state.round_state.step(None)
                     self.t_step += (time.perf_counter() - t_s)
@@ -194,42 +195,42 @@ class TraceSimulator():
                 state = game_state.round_state.state
                 player = game_state.round_state.turn_player
                 mask = game_state.round_state.action_mask
+                self.t_scan_check += (time.perf_counter() - t_chk_1)
                 
-                # ★ PyTorchを介さず、NumPy配列をそのままコピーしてキャッシュする
-                feat_np = game_state.feature_tensor.numpy()
-                env_last_features[i][state] = feat_np.copy()
+                t_feat_start = time.perf_counter()
+                #feat_np = game_state.feature_tensor.numpy()
+                #env_last_features[i][state] = feat_np.copy()
+                t_feat_start = time.perf_counter()
+                feat_np = game_state.feature_np
+                env_last_features[i][state] = feat_np
+                self.t_feat_get += (time.perf_counter() - t_feat_start)
                 
-                # PyTorchへの変換はバッチ推論の入り口だけで行う
+                t_chk_2 = time.perf_counter()
                 requests[state].append((i, player, feat_np, mask))
-            self.t_other += (time.perf_counter() - t_scan)
+                self.t_scan_check += (time.perf_counter() - t_chk_2)
 
             for state_name, req_list in requests.items():
-                if len(req_list) == 0:
-                    continue
+                if len(req_list) == 0: continue
                 
-                t_stack = time.perf_counter()
-                # バッチ推論のためにここで初めてTensor化
+                t_prep_start = time.perf_counter()
                 batched_features_cpu = torch.from_numpy(np.stack([r[2] for r in req_list]))
-                masks = [r[3] for r in req_list]
-                self.t_other += (time.perf_counter() - t_stack)
+                # リストではなく、ここで一気にNumPy配列化する
+                masks_np = np.stack([r[3] for r in req_list]) 
+                self.t_batch_prep += (time.perf_counter() - t_prep_start)
                 
                 t_action_start = time.perf_counter()
-                actions = self.agent[1].predict_batch(state_name, batched_features_cpu, masks)
+                actions = self.agent[1].predict_batch(state_name, batched_features_cpu, masks_np)
                 self.t_action += (time.perf_counter() - t_action_start)
                 
                 for idx, (env_idx, player, _, _) in enumerate(req_list):
                     action = actions[idx]
-                    
                     if player in [1, 2] and (state_name in self.record_state) and (action is not None):
                         t_c = time.perf_counter()
-                        # NumPy配列のまま履歴に保存
                         feat = env_last_features[env_idx][state_name]
                         self.t_clone += (time.perf_counter() - t_c)
                         
                         env_traces[env_idx][player].append(TraceSlot(
-                            key = type_dict[state_name], 
-                            state = feat, 
-                            action = action_to_index(action)
+                            key = type_dict[state_name], state = feat, action = action_to_index(action)
                         ))
                     
                     t_s = time.perf_counter()
@@ -238,68 +239,68 @@ class TraceSimulator():
 
             for i in range(len(envs)):
                 if envs[i].round_state.round_over and not envs[i].game_over:
-                    t_reward = time.perf_counter()
+                    t_rew_start = time.perf_counter()
                     if task_name == 'wp':
                         reward = {}
                         for p in [1, 2]:
                             round_num = envs[i].round + 1
                             point = envs[i].point[p] + envs[i].round_state.round_point[p]
                             is_dealer = int(envs[i].round_state.winner == p)
-                            if round_num <= 8 and (0 < point < 60):
-                                win_prob = self.win_prob_mat[is_dealer, round_num, point]  
-                            else:
-                                win_prob = 0.5 if point == 30 else float(point > 30)        
+                            win_prob = self.win_prob_mat[is_dealer, round_num, point] if (round_num <= 8 and 0 < point < 60) else (0.5 if point == 30 else float(point > 30))
                             reward[p] = win_prob * 10.0
-                    elif task_name == 'point':
+                    else:
                         reward = {1: float(envs[i].round_state.round_point[1]), 2: float(envs[i].round_state.round_point[2])}
+                    self.t_reward_calc += (time.perf_counter() - t_rew_start)
                     
+                    t_hist_start = time.perf_counter()
                     for player in [1, 2]:
                         for rev_step in range(len(env_traces[i][player])):
                             slot = env_traces[i][player][-rev_step-1]
-                            # ★ PyTorch変換を排除し、NumPyのまま処理（Transition生成も廃止）
                             state_np = adjust_card_order_np(slot.state, slot.action).astype(np.float16)
                             self.buffer[slot.key]['states'].append(state_np)
                             self.buffer[slot.key]['actions'].append(slot.action)
                             self.buffer[slot.key]['rewards'].append(reward[player] * (self.discount ** rev_step))
-                            
-                    self.t_other += (time.perf_counter() - t_reward)
-                    envs[i].new_round()
+                    self.t_history += (time.perf_counter() - t_hist_start)
                     
+                    t_reset_start = time.perf_counter()
+                    envs[i].new_round()
                     env_traces[i] = {1: [], 2: []}
                     env_last_features[i] = {'discard': None, 'discard-pick': None, 'draw-pick': None, 'koikoi': None}
+                    self.t_env_reset += (time.perf_counter() - t_reset_start)
                     
                 if envs[i].game_over:
-                    t_reward = time.perf_counter()
+                    t_rew_start = time.perf_counter()
                     if task_name == 'wp':
                         reward = {}
                         for p in [1, 2]:
                             round_num = envs[i].round + 1
                             point = envs[i].point[p] + envs[i].round_state.round_point[p]
                             is_dealer = int(envs[i].round_state.winner == p)
-                            if round_num <= 8 and (0 < point < 60):
-                                win_prob = self.win_prob_mat[is_dealer, round_num, point]  
-                            else:
-                                win_prob = 0.5 if point == 30 else float(point > 30)        
+                            win_prob = self.win_prob_mat[is_dealer, round_num, point] if (round_num <= 8 and 0 < point < 60) else (0.5 if point == 30 else float(point > 30))
                             reward[p] = win_prob * 10.0
-                    elif task_name == 'point':
+                    else:
                         reward = {1: float(envs[i].round_state.round_point[1]), 2: float(envs[i].round_state.round_point[2])}
+                    self.t_reward_calc += (time.perf_counter() - t_rew_start)
                     
+                    t_hist_start = time.perf_counter()
                     for player in [1, 2]:
                         for rev_step in range(len(env_traces[i][player])):
                             slot = env_traces[i][player][-rev_step-1]
-                            # ★ PyTorch変換を排除し、NumPyのまま処理
                             state_np = adjust_card_order_np(slot.state, slot.action).astype(np.float16)
                             self.buffer[slot.key]['states'].append(state_np)
                             self.buffer[slot.key]['actions'].append(slot.action)
                             self.buffer[slot.key]['rewards'].append(reward[player] * (self.discount ** rev_step))
-                            
-                    self.t_other += (time.perf_counter() - t_reward)
-                    finished_games += 1
+                    self.t_history += (time.perf_counter() - t_hist_start)
                     
+                    t_reset_start = time.perf_counter()
+                    finished_games += 1
                     if finished_games < n_games:
                         envs[i] = koikoigame.KoiKoiGameState()
                         env_traces[i] = {1: [], 2: []}
                         env_last_features[i] = {'discard': None, 'discard-pick': None, 'draw-pick': None, 'koikoi': None}
+                    self.t_env_reset += (time.perf_counter() - t_reset_start)
+
+        self.t_other = self.t_scan_check + self.t_feat_get + self.t_batch_prep + self.t_reward_calc + self.t_history + self.t_env_reset
 
         t_feat_gen = self.agent[1].t_feat_gen
         t_forward = self.agent[1].t_forward
@@ -307,25 +308,28 @@ class TraceSimulator():
         t_cpu_to_gpu = self.agent[1].t_cpu_to_gpu
         
         self.buffer['time_stats'] = [(
-            self.t_action, 
-            self.t_step, 
-            self.t_clone, 
-            self.t_other, 
-            t_feat_gen, 
-            t_forward, 
-            t_post_proc, 
-            t_cpu_to_gpu
+            self.t_action, self.t_step, self.t_clone, self.t_other, 
+            t_feat_gen, t_forward, t_post_proc, t_cpu_to_gpu,
+            self.t_scan_check, self.t_feat_get, self.t_batch_prep, self.t_reward_calc, self.t_history, self.t_env_reset
         )]
         
-        # ★ AoSからSoAへ変換（巨大なNumPy配列化してシリアライズを超高速化）
         clean_buffer = {'discard': None, 'pick': None, 'koikoi': None, 'time_stats': self.buffer['time_stats']}
         for key in ['discard', 'pick', 'koikoi']:
             if len(self.buffer[key]['rewards']) > 0:
-                # 既にリスト形式になっているので、最後に一発で配列化
-                states = np.array(self.buffer[key]['states'])
-                actions = np.array(self.buffer[key]['actions'], dtype=np.int32)
-                rewards = np.array(self.buffer[key]['rewards'], dtype=np.float32)
+                # 【重要】PyTorchテンソルに変換し、共有メモリ (share_memory_) に乗せる
+                # これによりIPCプロセス間通信のコピー（7.25s）がほぼ 0秒 になります
+                states = torch.from_numpy(np.stack(self.buffer[key]['states'], axis=0)).share_memory_()
+                self.buffer[key]['states'].clear()
+                
+                actions = torch.from_numpy(np.array(self.buffer[key]['actions'], dtype=np.int32)).share_memory_()
+                self.buffer[key]['actions'].clear()
+                
+                rewards = torch.from_numpy(np.array(self.buffer[key]['rewards'], dtype=np.float32)).share_memory_()
+                self.buffer[key]['rewards'].clear()
+                
                 clean_buffer[key] = {'states': states, 'actions': actions, 'rewards': rewards}
+        
+        del self.buffer
         return clean_buffer
     
     def make_game_trace(self):
@@ -479,8 +483,6 @@ def parallel_sampling(agent, n_games, global_win_prob_mat):
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 def init_worker():
-    
-    # 乱数シードの再設定
     seed = (os.getpid() * int(time.time() * 1000)) % 123456789
     random.seed(seed)
     np.random.seed(seed)
@@ -489,14 +491,20 @@ def init_worker():
     global master_agent
     master_discard_net, master_pick_net, master_koikoi_net = get_master_net()
     
-    master_discard_net = master_discard_net.to(device)
-    master_pick_net = master_pick_net.to(device)
-    master_koikoi_net = master_koikoi_net.to(device)
+    master_discard_net = master_discard_net.to(device).eval()
+    master_pick_net = master_pick_net.to(device).eval()
+    master_koikoi_net = master_koikoi_net.to(device).eval()
     
-    master_discard_net.eval()
-    master_pick_net.eval()
-    master_koikoi_net.eval()
-    
+    with torch.inference_mode(), torch.amp.autocast('cuda', dtype=torch.bfloat16):
+        # BF16型のダミーテンソルを作成
+        example_input_normal = torch.zeros((1, 300, 48), dtype=torch.bfloat16, device=device)
+        example_input_koikoi = torch.zeros((1, 300, 50), dtype=torch.bfloat16, device=device)
+        
+        # モデルをJITコンパイル（C++レベルの最適化グラフに変換）
+        master_discard_net = torch.jit.trace(master_discard_net, example_input_normal)
+        master_pick_net    = torch.jit.trace(master_pick_net, example_input_normal)
+        master_koikoi_net  = torch.jit.trace(master_koikoi_net, example_input_koikoi)
+            
     master_agent = koikoilearn.Agent(master_discard_net, master_pick_net, master_koikoi_net)
 
 def parallel_arena_test(agent, n_games):
@@ -561,7 +569,7 @@ if __name__ == '__main__':
     master_agent = koikoilearn.Agent(master_discard_net, master_pick_net, master_koikoi_net)
     
     cpu_count = 8
-    loop_games = 480
+    loop_games = 640
     n_core_games = loop_games // cpu_count
     
     batch_size = 256
@@ -586,19 +594,23 @@ if __name__ == '__main__':
     value_net['pick'], raw_pick = get_value_action_net(saved_model_path['pick'], value_net['pick'])
     value_net['koikoi'], raw_koikoi = get_value_action_net(saved_model_path['koikoi'], value_net['koikoi'])    
 
-    example_input_normal = torch.zeros((1, 300, 48), dtype=torch.float32)
-    example_input_koikoi = torch.zeros((1, 300, 50), dtype=torch.float32)
+    example_input_normal = torch.zeros((1, 300, 48), dtype=torch.bfloat16, device=device)
+    example_input_koikoi = torch.zeros((1, 300, 50), dtype=torch.bfloat16, device=device)
     
-    with torch.inference_mode():
+    raw_discard = raw_discard.to(device)
+    raw_pick = raw_pick.to(device)
+    raw_koikoi = raw_koikoi.to(device)
+    
+    with torch.inference_mode(), torch.amp.autocast('cuda', dtype=torch.bfloat16):
         traced_discard = torch.jit.trace(raw_discard.eval(), example_input_normal)
         traced_pick    = torch.jit.trace(raw_pick.eval(), example_input_normal)
         traced_koikoi  = torch.jit.trace(raw_koikoi.eval(), example_input_koikoi)
 
     action_net = {
-        'discard': raw_discard.eval(),
-        'pick': raw_pick.eval(),
-        'draw-pick': traced_pick,
-        'koikoi': raw_koikoi.eval()
+        'discard': raw_discard.eval().cpu(),
+        'pick': raw_pick.eval().cpu(),
+        'draw-pick': traced_pick.cpu(),
+        'koikoi': raw_koikoi.eval().cpu()
     }
     
     for key in ['discard', 'pick', 'koikoi']:
@@ -615,7 +627,7 @@ if __name__ == '__main__':
     score = [0.0]
     print_log(f'\n{time_str()} start training on device: {device}', log_path)
     
-    pool = multiprocessing.Pool(cpu_count, initializer=init_worker)
+    pool = mp.Pool(cpu_count, initializer=init_worker)
     
     for loop in range(start_loop_num, 100000):
         loop_start_time = time.perf_counter()
@@ -634,8 +646,18 @@ if __name__ == '__main__':
         total_forward = 0.0
         total_post_proc = 0.0
         total_cpu_to_gpu = 0.0
+        total_scan_check = 0.0
+        total_feat_get = 0.0
+        total_batch_prep = 0.0
+        total_reward_calc = 0.0
+        total_history = 0.0
+        total_env_reset = 0.0
         
-        buffer = Buffer() 
+        # ★変更：Bufferクラスを廃止し、GPU(VRAM)テンソルを直接格納する辞書を用意
+        gpu_memory = {'discard': {'states': [], 'rewards': []}, 
+                      'pick': {'states': [], 'rewards': []}, 
+                      'koikoi': {'states': [], 'rewards': []}}
+        n_sample = [0, 0, 0] # ログ表示用のカウント
         
         for res in async_results:
             res_dict = res.get()
@@ -649,12 +671,27 @@ if __name__ == '__main__':
                 total_forward += stats[5]
                 total_post_proc += stats[6]
                 total_cpu_to_gpu += stats[7]
+                total_scan_check += stats[8]
+                total_feat_get += stats[9]
+                total_batch_prep += stats[10]
+                total_reward_calc += stats[11]
+                total_history += stats[12]
+                total_env_reset += stats[13]
             
-            buffer.extend(res_dict)
+            for i, key in enumerate(['discard', 'pick', 'koikoi']):
+                if res_dict.get(key) is not None:
+                    # from_numpy を削除し、直接 .to(device) でVRAMへ転送する
+                    states_gpu = res_dict[key]['states'].to(device, non_blocking=True)
+                    rewards_gpu = res_dict[key]['rewards'].to(device, non_blocking=True)
+                    
+                    gpu_memory[key]['states'].append(states_gpu)
+                    gpu_memory[key]['rewards'].append(rewards_gpu)
+                    n_sample[i] += len(res_dict[key]['rewards'])
             
-        n_sample = [buffer.sizes[key] for key in ['discard', 'pick', 'koikoi']]
+            # ★追加：展開が終わったワーカーの辞書を即座に破棄し、メインメモリ(RAM)を空ける
+            del res_dict
+            
         elapsed_time = time.perf_counter() - loop_start_time
-        
         print_log(f'{time_str()} {loop} loops, {tuple(n_sample)} samples generated. (Total Loop Time: {elapsed_time:.2f}s)', log_path)
         
         sum_w_time = total_action + total_step + total_clone + total_other
@@ -662,43 +699,53 @@ if __name__ == '__main__':
             print(f"   [Profile] NN 推論 (auto_action) : {total_action:.2f}s ({total_action/sum_w_time*100:.1f}%)")
             if total_action > 0:
                 print(f"      └─ 特徴量変換 (feat_tensor) : {total_feat_gen:.2f}s ({total_feat_gen/total_action*100:.1f}% of action)")
-                print(f"      └─ ★CPU->GPU転送 (CUDA.to)  : {total_cpu_to_gpu:.2f}s ({total_cpu_to_gpu/total_action*100:.1f}% of action)") # 新設
+                print(f"      └─ ★CPU->GPU転送 (CUDA.to)  : {total_cpu_to_gpu:.2f}s ({total_cpu_to_gpu/total_action*100:.1f}% of action)")
                 print(f"      └─ 純粋な推論 (model.forward): {total_forward:.2f}s ({total_forward/total_action*100:.1f}% of action)")
                 print(f"      └─ 後処理 (numpy/exp/argmax) : {total_post_proc:.2f}s ({total_post_proc/total_action*100:.1f}% of action)")
             print(f"   [Profile] ゲーム更新 (step)     : {total_step:.2f}s ({total_step/sum_w_time*100:.1f}%)")
-            print(f"   [Profile] 純粋なメモリ複製 (clone): {total_clone:.2f}s ({total_clone/sum_w_time*100:.1f}%)") # ラベル変更
-            print(f"   [Profile] その他 (特徴量生成含む) : {total_other:.2f}s ({total_other/sum_w_time*100:.1f}%)") # ラベル変更
+            print(f"   [Profile] 純粋なメモリ複製 (clone): {total_clone:.2f}s ({total_clone/sum_w_time*100:.1f}%)")
+            print(f"   [Profile] その他 (特徴量生成含む) : {total_other:.2f}s ({total_other/sum_w_time*100:.1f}%)")
+            if total_other > 0:
+                print(f"      ├─ 環境スキャン＆状態確認 : {total_scan_check:.2f}s")
+                print(f"      ├─ 特徴量テンソル取得(copy) : {total_feat_get:.2f}s")
+                print(f"      ├─ バッチ化 (np.stack)      : {total_batch_prep:.2f}s")
+                print(f"      ├─ 報酬計算                : {total_reward_calc:.2f}s")
+                print(f"      ├─ 履歴保存 (adjust_card)   : {total_history:.2f}s")
+                print(f"      └─ 環境リセット (new_game)  : {total_env_reset:.2f}s")
             print(f"   [IPC Overhead] 通信・シリアライズ推定 : {max(0.0, elapsed_time - (sum_w_time/cpu_count)):.2f}s")
         
         for key in ['discard', 'pick', 'koikoi']:
             value_net[key].train()
             train_loss = []
             
-            if len(buffer.memory[key]) == 0:
+            if len(gpu_memory[key]['rewards']) == 0:
                 continue
-                
-            #all_states = np.stack([t.state for t in buffer.memory[key]])
-            #all_rewards = np.array([t.reward for t in buffer.memory[key]], dtype=np.float32)
             
-            all_states = np.concatenate(buffer.memory[key]['states'], axis=0)
-            all_rewards = np.concatenate(buffer.memory[key]['rewards'], axis=0)
+            # 【重要】巨大な NumPy の結合をやめ、GPU(VRAM)上で直接テンソルとして結合する
+            all_states_gpu = torch.cat(gpu_memory[key]['states'], dim=0).float() # 学習用にfloat32化
+            all_rewards_gpu = torch.cat(gpu_memory[key]['rewards'], dim=0)
             
-            dataset = TensorDataset(torch.from_numpy(all_states), torch.from_numpy(all_rewards))
+            # 結合前のリストを破棄してVRAMを節約
+            del gpu_memory[key]['states']
+            del gpu_memory[key]['rewards']
+            
+            dataset = TensorDataset(all_states_gpu, all_rewards_gpu)
+            
+            # 【最重要】データは既にGPUにあるため、スワップの元凶である pin_memory は False にする
             data_loader = DataLoader(
                 dataset, 
                 batch_size=batch_size, 
                 shuffle=True, 
-                pin_memory=True,
+                pin_memory=False,  # ★ここをFalseに変更
                 num_workers=0
             )
             
             for step, (state_batch, reward_batch) in enumerate(data_loader):
-                state_batch = state_batch.to(device, non_blocking=True).float()
-                reward_batch = reward_batch.to(device, non_blocking=True)
-                
+                # ★すでにGPU上にあるため .to(device) や .float() の転送は削除
                 optimizer[key].zero_grad()
                 
-                with torch.amp.autocast(device_type='cuda'):
+                # JITトレースに合わせて bfloat16 で計算
+                with torch.amp.autocast('cuda', dtype=torch.bfloat16):
                     q_values = value_net[key](state_batch).squeeze(1)
                     loss = criterion(q_values, reward_batch)
                 
@@ -706,10 +753,18 @@ if __name__ == '__main__':
                 scaler.step(optimizer[key])
                 scaler.update()
                 
-                train_loss.append(loss.cpu().data.item())
+                # .cpu().data.item() を .item() に短縮
+                train_loss.append(loss.item())
+                
             print_log(f'{time_str()} {key} net, {step+1} steps, loss = {np.mean(train_loss)}', log_path)
         
-        buffer = Buffer()
+            # 1つのネットワークの学習が終わったら、データセットを即座に破棄してVRAMをクリーンアップ
+            del all_states_gpu, all_rewards_gpu, dataset, data_loader
+            
+        # ★追加：Pythonのガベージコレクションを明示的に呼び出し、RAMとVRAMを徹底的にクリア
+        import gc
+        gc.collect()
+        torch.cuda.empty_cache()
         
         if loop % n_loop_action_net_update == 0:
             type_dict = {'discard':'discard', 'discard-pick':'pick', 'draw-pick':'pick', 'koikoi':'koikoi'}
