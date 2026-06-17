@@ -49,28 +49,41 @@ def get_equal_result(result, action_mask):
 
 def get_action(round_record_dict, turn_16, state):
     turn_key = f'turn{turn_16}'
+    
+    # Translate JSON [suit, rank] to 0~47 integer ID for actions
     if state == 'discard':
-        action = round_record_dict[turn_key]['discardCard']
+        action_raw = round_record_dict[turn_key]['discardCard']
+        action = (action_raw[0]-1) * 4 + (action_raw[1]-1)
     elif state == 'discard-pick':
-        action = round_record_dict[turn_key]['collectCard'][-1]
+        action_raw = round_record_dict[turn_key]['collectCard'][-1]
+        action = (action_raw[0]-1) * 4 + (action_raw[1]-1)
     elif state == 'draw-pick':
-        action = round_record_dict[turn_key]['collectCard2'][-1]
+        action_raw = round_record_dict[turn_key]['collectCard2'][-1]
+        action = (action_raw[0]-1) * 4 + (action_raw[1]-1)
     elif state == 'koikoi':
         action = round_record_dict[turn_key]['isKoiKoi']    
+        
     if state == 'koikoi':
         result = int(action)
     else:
-        result = (action[0]-1) * 4 + (action[1]-1)    
+        result = action # action is already the integer ID
     return action, result
 
 def round_replay_transform(round_num, init_point, round_record_dict, record_name):
     init_dealer = round_record_dict['basic']['Dealer']
     game_state = koikoigame.KoiKoiGameState(
         round_num=round_num, init_point=init_point, init_dealer=init_dealer)
-    game_state.round_state.hand[1] = sorted(round_record_dict['basic']['initHand1'].copy())
-    game_state.round_state.hand[2] = sorted(round_record_dict['basic']['initHand2'].copy())
-    game_state.round_state.field_slot = sorted(round_record_dict['basic']['initBoard'].copy()) + [[0,0]] * 10
-    game_state.round_state.stock = round_record_dict['basic']['initPile'].copy()
+    
+    # Helper to transform JSON's [suit, rank] list to 1D integer IDs
+    def to_id_list(cards):
+        return [(c[0]-1) * 4 + (c[1]-1) for c in cards]
+
+    game_state.round_state.hand[1] = sorted(to_id_list(round_record_dict['basic']['initHand1']))
+    game_state.round_state.hand[2] = sorted(to_id_list(round_record_dict['basic']['initHand2']))
+    
+    # Empty slots are now represented by -1 instead of [0,0]
+    game_state.round_state.field_slot = sorted(to_id_list(round_record_dict['basic']['initBoard'])) + [-1] * 10
+    game_state.round_state.stock = to_id_list(round_record_dict['basic']['initPile'])
     
     while not game_state.round_state.round_over:
         state = game_state.round_state.state
@@ -123,6 +136,12 @@ if __name__ == '__main__':
     filename_list = [str(ii) for ii in range(1,201)]
     for filename in filename_list:
         path = f'{source_folder}/{filename}.json'
+        
+        # Validate file existence before opening to prevent I/O errors
+        if not os.path.exists(path):
+            print(f'File {path} not found. Skipping...')
+            continue
+            
         with open(path,'r') as f: 
             record_dict = json.load(f)
         record_dict_to_samples(record_dict,filename)

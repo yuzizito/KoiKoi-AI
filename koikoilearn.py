@@ -19,7 +19,8 @@ class Agent():
         for key in self.model.keys():
             self.model[key].eval()
 
-        card_list = [[i+1,j+1] for i in range(12) for j in range(4)]
+        # 新形式：0〜47 の1次元整数リストを生成
+        card_list = list(range(48))
         self.action_dict = {'discard':card_list, 'discard-pick':card_list, 
                             'draw-pick':card_list, 'koikoi':(False, True)}
         
@@ -209,7 +210,8 @@ class AgentForTest():
         for key in self.model.keys():
             self.model[key].eval()
 
-        card_list = [[i+1,j+1] for i in range(12) for j in range(4)]
+        # 新形式：0〜47 の1次元整数リストを生成
+        card_list = list(range(48))
         self.action_dict = {'discard':card_list, 'discard-pick':card_list, 
                             'draw-pick':card_list, 'koikoi':(False, True)}
         

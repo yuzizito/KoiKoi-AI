@@ -17,14 +17,20 @@ path_card_small = 'resource/cardpngsmall/'
 path_card_small_dark = 'resource/cardpngsmalldark/'
 path_card_small_light = 'resource/cardpngsmalllight/'
 
+def get_card_image_name(card_id):
+    if card_id == -1:
+        return 'null.png'
+    suit = card_id // 4 + 1
+    rank = card_id % 4 + 1
+    return f'{suit}-{rank}.png'
 
 def CardClassify(cardList):
-    brightList = [[1,1],[3,1],[8,1],[11,1],[12,1]]
-    seedList = [[2,1],[4,1],[5,1],[6,1],[7,1],[8,2],[9,1],[10,1],[11,2]]
-    ribbonList = [[1,2],[2,2],[3,2],[4,2],[5,2],[6,2],[7,2],[9,2],[10,2],[11,3]]
+    brightList = [0, 8, 28, 40, 44] 
+    seedList = [4, 12, 16, 20, 24, 29, 32, 36, 41]
+    ribbonList = [1, 5, 9, 13, 17, 21, 25, 33, 37, 42]
     cardBright, cardSeed, cardRibbon, cardDross = [], [], [], []
     for card in cardList:
-        if card == [9,1]:
+        if card == 32:
             cardSeed.append(card)
             cardDross.append(card)
         elif card in brightList:
@@ -203,33 +209,34 @@ def UpdateCollectCardsGUI(window, game_state):
     for (pre, CollectCard) in [('My',round_state.pile[1]),('Op',round_state.pile[2])]:
         cardBright, cardSeed, cardRibbon, cardDross = CardClassify(CollectCard)
         for i in range(1,len(cardBright)+1):
-            window[pre+'Brights'+str(i)].update(path_card_small+str(cardBright[i-1][0])+'-'+str(cardBright[i-1][1])+'.png')
+            window[pre+'Brights'+str(i)].update(path_card_small + get_card_image_name(cardBright[i-1]))
         for i in range(1,len(cardSeed)+1):
-            window[pre+'Seeds'+str(i)].update(path_card_small+str(cardSeed[i-1][0])+'-'+str(cardSeed[i-1][1])+'.png')
+            window[pre+'Seeds'+str(i)].update(path_card_small + get_card_image_name(cardSeed[i-1]))
         for i in range(1,len(cardRibbon)+1):
-            window[pre+'Ribbons'+str(i)].update(path_card_small+str(cardRibbon[i-1][0])+'-'+str(cardRibbon[i-1][1])+'.png')
+            window[pre+'Ribbons'+str(i)].update(path_card_small + get_card_image_name(cardRibbon[i-1]))
         for i in range(1,len(cardDross)+1):
-            window[pre+'Dross'+str(i)].update(path_card_small+str(cardDross[i-1][0])+'-'+str(cardDross[i-1][1])+'.png')
+            window[pre+'Dross'+str(i)].update(path_card_small + get_card_image_name(cardDross[i-1]))
     
     return window
 
-
 def UpdateCollectCardsHighlightGUI(window, game_state, card):
     round_state = game_state.round_state
+    target_suit = card // 4  # ハイライト対象の月(suit)
+    
     for (pre, CollectCard) in [('My',round_state.pile[1]),('Op',round_state.pile[2])]:
         cardBright, cardSeed, cardRibbon, cardDross = CardClassify(CollectCard)
         for i in range(1,len(cardBright)+1):
-            if cardBright[i-1][0] == card[0]:
-                window[pre+'Brights'+str(i)].update(path_card_small_dark+str(cardBright[i-1][0])+'-'+str(cardBright[i-1][1])+'.png')
+            if cardBright[i-1] // 4 == target_suit:
+                window[pre+'Brights'+str(i)].update(path_card_small_dark + get_card_image_name(cardBright[i-1]))
         for i in range(1,len(cardSeed)+1):
-            if cardSeed[i-1][0] == card[0]:
-                window[pre+'Seeds'+str(i)].update(path_card_small_dark+str(cardSeed[i-1][0])+'-'+str(cardSeed[i-1][1])+'.png')
+            if cardSeed[i-1] // 4 == target_suit:
+                window[pre+'Seeds'+str(i)].update(path_card_small_dark + get_card_image_name(cardSeed[i-1]))
         for i in range(1,len(cardRibbon)+1):
-            if cardRibbon[i-1][0] == card[0]:
-                window[pre+'Ribbons'+str(i)].update(path_card_small_dark+str(cardRibbon[i-1][0])+'-'+str(cardRibbon[i-1][1])+'.png')
+            if cardRibbon[i-1] // 4 == target_suit:
+                window[pre+'Ribbons'+str(i)].update(path_card_small_dark + get_card_image_name(cardRibbon[i-1]))
         for i in range(1,len(cardDross)+1):
-            if cardDross[i-1][0] == card[0]:
-                window[pre+'Dross'+str(i)].update(path_card_small_dark+str(cardDross[i-1][0])+'-'+str(cardDross[i-1][1])+'.png')
+            if cardDross[i-1] // 4 == target_suit:
+                window[pre+'Dross'+str(i)].update(path_card_small_dark + get_card_image_name(cardDross[i-1]))
         
     return window
     
@@ -239,12 +246,18 @@ def UpdateHandCardsGUI(window, game_state):
     myCardList, opCardList  = round_state.hand[1], round_state.hand[2]
     boardCard = round_state.field_slot
     
-    ind = [boardCard[i][0] for i in range(0,16)]
+    # 場にあるカードの「月(suit)」のリストを作る
+    ind_suits = [c // 4 for c in boardCard if c != -1]
+    
     for i in range(1,len(myCardList)+1):
-        if myCardList[i-1][0] in ind:
-            window['MyHand'+str(i)].update(image_filename=path_card+str(myCardList[i-1][0])+'-'+str(myCardList[i-1][1])+'.png',visible=True)            
+        c = myCardList[i-1]
+        img_name = get_card_image_name(c)
+        # 手札の月(c // 4)が場にあるか判定
+        if (c // 4) in ind_suits:
+            window['MyHand'+str(i)].update(image_filename=path_card + img_name, visible=True)            
         else:
-            window['MyHand'+str(i)].update(image_filename=path_card_dark+str(myCardList[i-1][0])+'-'+str(myCardList[i-1][1])+'.png',visible=True)
+            window['MyHand'+str(i)].update(image_filename=path_card_dark + img_name, visible=True)
+            
     for i in range(len(myCardList)+1,9):
         window['MyHand'+str(i)].update(image_filename=path_card+'null.png',visible=True)
     for i in range(1,len(opCardList)+1):
@@ -258,11 +271,12 @@ def UpdateMyDiscardCardGUI(window, game_state):
     round_state = game_state.round_state
     card = round_state.show[0]
     cardList = round_state.hand[1]
+    
     for i in range(1,len(cardList)+1):
         if cardList[i-1] == card:
-            window['MyHand'+str(i)].update(image_filename=path_card+str(cardList[i-1][0])+'-'+str(cardList[i-1][1])+'.png')            
+            window['MyHand'+str(i)].update(image_filename=path_card + get_card_image_name(cardList[i-1]))            
         else:
-            window['MyHand'+str(i)].update(image_filename=path_card_dark+str(cardList[i-1][0])+'-'+str(cardList[i-1][1])+'.png')
+            window['MyHand'+str(i)].update(image_filename=path_card_dark + get_card_image_name(cardList[i-1]))
     for i in range(len(cardList)+1,9):
         window['MyHand'+str(i)].update(image_filename=path_card+'null.png')
     
@@ -272,7 +286,7 @@ def UpdateMyDiscardCardGUI(window, game_state):
 def UpdateOpDiscardCardGUI(window, game_state):
     round_state = game_state.round_state
     card = round_state.show[0]
-    window['OpHand1'].update(image_filename=path_card+str(card[0])+'-'+str(card[1])+'.png')            
+    window['OpHand1'].update(image_filename=path_card + get_card_image_name(card))            
     return window
 
 
@@ -280,21 +294,28 @@ def UpdateBoardCardsGUI(window, game_state):
     round_state = game_state.round_state
     boardCard = round_state.field_slot
     for i in range(1,17):
-        if boardCard[i-1] == [0,0]:
+        if boardCard[i-1] == -1:
             window['Board'+str(i)].update(image_filename=path_card+'null.png')
         else:
-            window['Board'+str(i)].update(image_filename=path_card+str(boardCard[i-1][0])+'-'+str(boardCard[i-1][1])+'.png')
+            img_name = get_card_image_name(boardCard[i-1])
+            window['Board'+str(i)].update(image_filename=path_card + img_name)
     return window
 
 
 def UpdateBoardCardsHighlightGUI(window, game_state, card):
     round_state = game_state.round_state
     boardCard = round_state.field_slot
+    target_suit = card // 4
+    
     for i in range(1,17):
-        if boardCard[i-1][0] == card[0]:
-            window['Board'+str(i)].update(image_filename=path_card+str(boardCard[i-1][0])+'-'+str(boardCard[i-1][1])+'.png')
-        elif boardCard[i-1] != [0,0]:
-            window['Board'+str(i)].update(image_filename=path_card_dark+str(boardCard[i-1][0])+'-'+str(boardCard[i-1][1])+'.png')
+        if boardCard[i-1] == -1:
+            continue
+        
+        # 場札の月が一致する場合は明るく、そうでない場合は暗くする
+        if boardCard[i-1] // 4 == target_suit:
+            window['Board'+str(i)].update(image_filename=path_card + get_card_image_name(boardCard[i-1]))
+        else:
+            window['Board'+str(i)].update(image_filename=path_card_dark + get_card_image_name(boardCard[i-1]))
     return window
 
 
@@ -325,7 +346,7 @@ def UpdatePileCardGUI(window, game_state):
 def ShowPileCardGUI(window, game_state):
     round_state = game_state.round_state
     card = round_state.show[0]
-    window['PileCard'].update(image_filename=path_card+str(card[0])+'-'+str(card[1])+'.png')
+    window['PileCard'].update(image_filename=path_card + get_card_image_name(card))
     return window
 
 
