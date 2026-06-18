@@ -67,6 +67,11 @@ for module in koikoi_model.modules():
     elif type(module).__name__ == 'TransformerEncoderLayer':
         if not hasattr(module, 'norm_first'):
             module.norm_first = False
+            
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+discard_model = discard_model.to(device).bfloat16()
+pick_model    = pick_model.to(device).bfloat16()
+koikoi_model  = koikoi_model.to(device).bfloat16()
 
 ai_agent = AgentForTest(discard_model, pick_model, koikoi_model)
 

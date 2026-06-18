@@ -9,11 +9,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-# length: 48(discard/pick), 50(koikoi)
-# origin input size: (BATCH_SIZE, nFeature, length)
-# conv1d input size: (BATCH_SIZE, nFeature, length)
-# [UPDATED] multiheadattention input size: (BATCH_SIZE, length, nEmb) -> batch_first=True
-
 NetParameter = {
     'nInput': 300,
     'nEmb': 256,
@@ -28,15 +23,12 @@ class KoiKoiEncoderBlock(nn.Module):
         self.f1 = nn.Conv1d(nInput, nFw, 1)
         self.f2 = nn.Conv1d(nFw, nEmb, 1)
         
-        # 【変更点】batch_first=True を指定
-        # これにより、PyTorch 2.0以降で最速のエフェクティブなSDPAカーネル（FlashAttention等）が自動選択されます
         attn_layer = nn.TransformerEncoderLayer(nEmb, nAttnHead, nFw, batch_first=True)
         self.attn_encoder = nn.TransformerEncoder(attn_layer, nLayer)
         
     def forward(self, x): 
         x = self.f2(F.relu(self.f1(x)))
 
-        # 修正: 次元を (BATCH, length, nEmb) に入れ替えてから特徴量次元で正規化
         x = x.permute(0, 2, 1)
         x = F.layer_norm(x, [x.size(-1)]) 
 

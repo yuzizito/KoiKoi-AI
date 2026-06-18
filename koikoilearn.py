@@ -14,15 +14,26 @@ import koikoigame
 
 class Agent():
     def __init__(self, discard_model, pick_model, koikoi_model, random_action_prob=[0.,0.,0.,0.]):
-        self.model = {'discard':discard_model, 'discard-pick':pick_model, 
-                      'draw-pick':pick_model, 'koikoi':koikoi_model}
+        self.model = {
+            'discard': discard_model, 
+            'discard-pick': pick_model, 
+            'draw-pick': pick_model, 
+            'koikoi': koikoi_model,
+            'pick': pick_model  # <--- 追加
+        }
         for key in self.model.keys():
             self.model[key].eval()
 
         # 新形式：0〜47 の1次元整数リストを生成
         card_list = list(range(48))
-        self.action_dict = {'discard':card_list, 'discard-pick':card_list, 
-                            'draw-pick':card_list, 'koikoi':(False, True)}
+        
+        self.action_dict = {
+            'discard': card_list, 
+            'discard-pick': card_list, 
+            'draw-pick': card_list, 
+            'koikoi': (False, True),
+            'pick': card_list  # <--- 追加
+        }
         
         self.random_action_prob = {'discard':random_action_prob[0],
                                    'discard-pick':random_action_prob[1],
@@ -227,23 +238,47 @@ class AgentForTest():
         self.t_post_proc = 0.0
         self.last_feature = {'discard': None, 'discard-pick': None, 'draw-pick': None, 'koikoi': None}
 
-    def __predict(self, state, feature, mask):
+    def _move_to_gpu(self, feature_cpu):
+        # テンソルを非同期でGPUへ転送するメソッドをAgentForTestにも追加
+        t_start = time.perf_counter()
+        feature_gpu = feature_cpu.to('cuda:0', non_blocking=True)
+        # 既存のエージェントと同様にタイマー合算の互換性を維持する場合は下記を有効に
+        # self.t_cpu_to_gpu = getattr(self, 't_cpu_to_gpu', 0.0) + (time.perf_counter() - t_start)
+        return feature_gpu
+
+    def __predict(self, state, feature_gpu, game_state):
+        """【単発推論用】"""
+        # 1. GPU上での純粋な forward 時間を計測
         t1 = time.perf_counter()
-        with torch.inference_mode(), torch.amp.autocast('cuda', dtype=torch.float16):
-            output_tensor = self.model[state](feature)
+        with torch.inference_mode(), torch.amp.autocast('cuda', dtype=torch.bfloat16):
+            output_tensor = self.model[state](feature_gpu)
         self.t_forward += (time.perf_counter() - t1)
         
+        # 2. C++側での後処理時間を計測
         t2 = time.perf_counter()
-        output = output_tensor.squeeze(0)
-
-        mask_np = np.array(mask, dtype=np.bool_)
-        mask_tensor = torch.from_numpy(mask_np).to(output.device, non_blocking=True)
-        min_val = torch.finfo(output.dtype).min
-        output = output.masked_fill(~mask_tensor, min_val)
         
-        best_index = output.argmax().item()
-        action_output = self.action_dict[state][best_index]
+        # GPUのテンソルをCPUに戻し、NumPyのfloat32配列にする
+        logits_np = output_tensor.squeeze(0).float().cpu().numpy()
         
+        # state_type を判定
+        if state == 'discard':
+            state_type = 0
+        elif state in ['discard-pick', 'draw-pick']:
+            state_type = 1
+        else: # koikoi
+            state_type = 2
+            
+        turn_p = game_state.round_state.turn_player
+        
+        # ★ C++側でマスクチェックとargmaxを一瞬で行う
+        best_index = game_state.round_state.cpp_state.get_best_action(state_type, turn_p, logits_np)
+        
+        # こいこいの場合はboolean、それ以外は整数を返す
+        if state == 'koikoi':
+            action_output = bool(best_index)
+        else:
+            action_output = best_index
+            
         self.t_post_proc += (time.perf_counter() - t2)
         return action_output
     
@@ -268,15 +303,17 @@ class AgentForTest():
     
     def auto_definitely_action(self, game_state, use_mask=True):
         action_output = None
-        if game_state.round_state.wait_action==True:
+        if game_state.round_state.wait_action == True:
             state = game_state.round_state.state
-            # 1. feature_tensor 生成時間を計測
+            
             t0 = time.perf_counter()
-            feature = game_state.feature_tensor.unsqueeze(0)
+            feature_cpu = game_state.feature_tensor.unsqueeze(0)
             self.t_feat_gen += (time.perf_counter() - t0)
-            self.last_feature[state] = feature.squeeze(0).detach()
-            mask = game_state.round_state.action_mask
-            action_output = self.__predict(state, feature, mask)     
+            
+            feature_gpu = self._move_to_gpu(feature_cpu)
+            
+            # ★ 変更: maskの取得をなくし、game_stateをそのまま渡す
+            action_output = self.__predict(state, feature_gpu, game_state)     
         return action_output
     
     def auto_random_action(self, game_state):
