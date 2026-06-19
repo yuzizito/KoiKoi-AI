@@ -1,0 +1,949 @@
+
+260619 143659 start training on device: cuda:0
+
+260619 143953 start training on device: cuda:0
+
+260619 144148 start training on device: cuda:0
+260619 144154 ★ loop:1 (学習時間: 6.56s)
+[sample,loss] : discard [38400,0.14], pick [3360,0.04], koikoi [4800,0.28]
+260619 144200 ★ loop:2 (学習時間: 6.03s)
+[sample,loss] : discard [45552,0.39], pick [5272,0.40], koikoi [7200,0.72]
+260619 144206 ★ loop:3 (学習時間: 6.10s)
+[sample,loss] : discard [47632,0.10], pick [4768,0.11], koikoi [3904,0.12]
+260619 144213 ★ loop:4 (学習時間: 6.33s)
+[sample,loss] : discard [49976,0.35], pick [4816,0.41], koikoi [6664,0.92]
+260619 144219 ★ loop:5 (学習時間: 6.60s)
+[sample,loss] : discard [52320,0.14], pick [5768,0.12], koikoi [5696,0.28]
+260619 144219 Updated JIT models synced and saved natively.
+260619 144227 ★ loop:6 (学習時間: 7.53s)
+[sample,loss] : discard [55072,0.04], pick [4344,0.04], koikoi [1552,0.11]
+260619 144232 ★ loop:7 (学習時間: 5.34s)
+[sample,loss] : discard [47632,0.15], pick [3856,0.41], koikoi [5728,0.52]
+260619 144238 ★ loop:8 (学習時間: 6.40s)
+[sample,loss] : discard [52816,0.14], pick [6704,0.12], koikoi [5784,0.41]
+260619 144244 ★ loop:9 (学習時間: 5.72s)
+[sample,loss] : discard [49792,0.15], pick [3840,0.11], koikoi [6264,0.58]
+260619 144250 ★ loop:10 (学習時間: 5.66s)
+[sample,loss] : discard [45872,0.09], pick [3848,0.15], koikoi [3456,0.17]
+260619 144250 Updated JIT models synced and saved natively.
+260619 144330 400.0 games tested, 204.0 wins, 190.0 loses, 6.0 draws (0.51, 0.47, 0.01), 31.6 points
+Record,loop:10, score:0.517, point:31.63
+260619 144330 最新モデル保存完了
+260619 144336 ★ loop:11 (学習時間: 5.70s)
+[sample,loss] : discard [44512,0.12], pick [5272,0.07], koikoi [4744,0.26]
+260619 144341 ★ loop:12 (学習時間: 5.77s)
+[sample,loss] : discard [47656,0.03], pick [3912,0.11], koikoi [2912,0.05]
+260619 144348 ★ loop:13 (学習時間: 6.43s)
+[sample,loss] : discard [50408,0.12], pick [5680,0.19], koikoi [6216,0.52]
+260619 144354 ★ loop:14 (学習時間: 5.97s)
+[sample,loss] : discard [50280,0.16], pick [3888,0.20], koikoi [6664,0.60]
+260619 144400 ★ loop:15 (学習時間: 6.48s)
+[sample,loss] : discard [52752,0.07], pick [4280,0.06], koikoi [4352,0.14]
+260619 144400 Updated JIT models synced and saved natively.
+260619 144408 ★ loop:16 (学習時間: 7.74s)
+[sample,loss] : discard [55472,0.07], pick [5736,0.05], koikoi [3440,0.38]
+260619 144414 ★ loop:17 (学習時間: 6.28s)
+[sample,loss] : discard [54096,0.07], pick [3928,0.10], koikoi [4784,0.12]
+260619 144420 ★ loop:18 (学習時間: 5.59s)
+[sample,loss] : discard [48680,0.03], pick [5208,0.08], koikoi [3880,0.02]
+260619 144426 ★ loop:19 (学習時間: 5.79s)
+[sample,loss] : discard [50112,0.08], pick [4840,0.17], koikoi [5656,0.26]
+260619 144432 ★ loop:20 (学習時間: 5.79s)
+[sample,loss] : discard [48664,0.06], pick [3040,0.11], koikoi [5304,0.12]
+260619 144432 Updated JIT models synced and saved natively.
+260619 144509 400.0 games tested, 183.0 wins, 212.0 loses, 5.0 draws (0.46, 0.53, 0.01), 31.0 points
+Record,loop:20, score:0.464, point:30.96
+260619 144514 ★ loop:21 (学習時間: 5.32s)
+[sample,loss] : discard [48656,0.06], pick [2856,0.21], koikoi [4000,0.14]
+260619 144519 ★ loop:22 (学習時間: 5.48s)
+[sample,loss] : discard [46776,0.04], pick [3896,0.06], koikoi [4816,0.10]
+260619 144525 ★ loop:23 (学習時間: 5.81s)
+[sample,loss] : discard [49928,0.09], pick [6112,0.10], koikoi [3840,0.31]
+260619 144532 ★ loop:24 (学習時間: 6.43s)
+[sample,loss] : discard [52464,0.05], pick [6624,0.06], koikoi [3920,0.11]
+260619 144538 ★ loop:25 (学習時間: 6.71s)
+[sample,loss] : discard [53896,0.09], pick [4424,0.11], koikoi [4880,0.22]
+260619 144538 Updated JIT models synced and saved natively.
+260619 144544 ★ loop:26 (学習時間: 5.66s)
+[sample,loss] : discard [45104,0.09], pick [4344,0.03], koikoi [5168,0.17]
+260619 144550 ★ loop:27 (学習時間: 6.12s)
+[sample,loss] : discard [49088,0.13], pick [5656,0.09], koikoi [5688,0.27]
+260619 144556 ★ loop:28 (学習時間: 6.21s)
+[sample,loss] : discard [50320,0.16], pick [3488,0.06], koikoi [7384,0.51]
+260619 144602 ★ loop:29 (学習時間: 5.78s)
+[sample,loss] : discard [49312,0.23], pick [3056,0.19], koikoi [7528,0.46]
+260619 144608 ★ loop:30 (学習時間: 6.15s)
+[sample,loss] : discard [51296,0.06], pick [6032,0.09], koikoi [5208,0.09]
+260619 144608 Updated JIT models synced and saved natively.
+260619 144644 400.0 games tested, 192.0 wins, 196.0 loses, 12.0 draws (0.48, 0.49, 0.03), 31.0 points
+Record,loop:30, score:0.495, point:30.97
+260619 144650 ★ loop:31 (学習時間: 6.24s)
+[sample,loss] : discard [50776,0.11], pick [3064,0.13], koikoi [6592,0.29]
+260619 144655 ★ loop:32 (学習時間: 5.64s)
+[sample,loss] : discard [50688,0.06], pick [3880,0.08], koikoi [4752,0.26]
+260619 144702 ★ loop:33 (学習時間: 6.18s)
+[sample,loss] : discard [52608,0.08], pick [3800,0.10], koikoi [5800,0.16]
+260619 144707 ★ loop:34 (学習時間: 5.64s)
+[sample,loss] : discard [50704,0.09], pick [4264,0.11], koikoi [4344,0.20]
+260619 144713 ★ loop:35 (学習時間: 5.67s)
+[sample,loss] : discard [48000,0.09], pick [2984,0.07], koikoi [5640,0.21]
+260619 144713 Updated JIT models synced and saved natively.
+260619 144719 ★ loop:36 (学習時間: 6.03s)
+[sample,loss] : discard [51880,0.08], pick [5176,0.13], koikoi [5184,0.22]
+260619 144725 ★ loop:37 (学習時間: 5.71s)
+[sample,loss] : discard [49448,0.06], pick [5984,0.05], koikoi [4008,0.08]
+260619 144731 ★ loop:38 (学習時間: 5.98s)
+[sample,loss] : discard [48400,0.09], pick [3952,0.08], koikoi [4848,0.17]
+260619 144736 ★ loop:39 (学習時間: 5.82s)
+[sample,loss] : discard [50368,0.07], pick [3872,0.08], koikoi [3968,0.18]
+260619 144743 ★ loop:40 (学習時間: 6.45s)
+[sample,loss] : discard [53472,0.07], pick [5600,0.13], koikoi [3856,0.05]
+260619 144743 Updated JIT models synced and saved natively.
+260619 144820 400.0 games tested, 193.0 wins, 198.0 loses, 9.0 draws (0.48, 0.49, 0.02), 30.6 points
+Record,loop:40, score:0.494, point:30.59
+260619 144827 ★ loop:41 (学習時間: 6.52s)
+[sample,loss] : discard [54048,0.06], pick [2608,0.13], koikoi [3680,0.07]
+260619 144832 ★ loop:42 (学習時間: 5.55s)
+[sample,loss] : discard [49184,0.07], pick [3056,0.04], koikoi [4712,0.18]
+260619 144838 ★ loop:43 (学習時間: 5.50s)
+[sample,loss] : discard [48272,0.07], pick [4184,0.01], koikoi [5200,0.05]
+260619 144844 ★ loop:44 (学習時間: 6.69s)
+[sample,loss] : discard [53880,0.07], pick [5592,0.08], koikoi [4408,0.28]
+260619 144850 ★ loop:45 (学習時間: 6.06s)
+[sample,loss] : discard [51688,0.04], pick [4368,0.05], koikoi [4744,0.04]
+260619 144850 Updated JIT models synced and saved natively.
+260619 144857 ★ loop:46 (学習時間: 6.16s)
+[sample,loss] : discard [51768,0.04], pick [4888,0.05], koikoi [3384,0.02]
+260619 144903 ★ loop:47 (学習時間: 6.09s)
+[sample,loss] : discard [49360,0.08], pick [4344,0.12], koikoi [4024,0.22]
+260619 144908 ★ loop:48 (学習時間: 5.57s)
+[sample,loss] : discard [46760,0.05], pick [3496,0.05], koikoi [4264,0.06]
+260619 144914 ★ loop:49 (学習時間: 6.00s)
+[sample,loss] : discard [49176,0.05], pick [6480,0.05], koikoi [3880,0.11]
+260619 144920 ★ loop:50 (学習時間: 6.07s)
+[sample,loss] : discard [47144,0.08], pick [5200,0.06], koikoi [5272,0.39]
+260619 144920 Updated JIT models synced and saved natively.
+260619 144955 400.0 games tested, 207.0 wins, 188.0 loses, 5.0 draws (0.52, 0.47, 0.01), 31.9 points
+Record,loop:50, score:0.524, point:31.93
+260619 144955 最新モデル保存完了
+260619 145001 ★ loop:51 (学習時間: 5.50s)
+[sample,loss] : discard [45064,0.12], pick [4440,0.29], koikoi [4264,0.47]
+260619 145009 ★ loop:52 (学習時間: 8.37s)
+[sample,loss] : discard [55896,0.05], pick [4024,0.07], koikoi [3864,0.07]
+260619 145016 ★ loop:53 (学習時間: 6.19s)
+[sample,loss] : discard [50080,0.15], pick [5184,0.08], koikoi [5168,0.50]
+260619 145022 ★ loop:54 (学習時間: 6.47s)
+[sample,loss] : discard [51496,0.06], pick [6040,0.12], koikoi [5664,0.09]
+260619 145028 ★ loop:55 (学習時間: 6.04s)
+[sample,loss] : discard [48512,0.06], pick [5152,0.08], koikoi [4360,0.09]
+260619 145028 Updated JIT models synced and saved natively.
+260619 145034 ★ loop:56 (学習時間: 5.92s)
+[sample,loss] : discard [50512,0.08], pick [2728,0.21], koikoi [4336,0.11]
+260619 145040 ★ loop:57 (学習時間: 5.76s)
+[sample,loss] : discard [43952,0.24], pick [4320,0.41], koikoi [6928,0.52]
+260619 145046 ★ loop:58 (学習時間: 5.89s)
+[sample,loss] : discard [48608,0.07], pick [4232,0.09], koikoi [5608,0.12]
+260619 145052 ★ loop:59 (学習時間: 5.92s)
+[sample,loss] : discard [50664,0.07], pick [4264,0.04], koikoi [3064,0.22]
+260619 145059 ★ loop:60 (学習時間: 6.99s)
+[sample,loss] : discard [54368,0.11], pick [4856,0.18], koikoi [5200,0.30]
+260619 145059 Updated JIT models synced and saved natively.
+260619 145134 400.0 games tested, 195.0 wins, 199.0 loses, 6.0 draws (0.49, 0.50, 0.01), 30.9 points
+Record,loop:60, score:0.495, point:30.93
+260619 145141 ★ loop:61 (学習時間: 6.79s)
+[sample,loss] : discard [53896,0.08], pick [3000,0.14], koikoi [5232,0.19]
+260619 145147 ★ loop:62 (学習時間: 5.95s)
+[sample,loss] : discard [49152,0.09], pick [4288,0.09], koikoi [4704,0.19]
+260619 145153 ★ loop:63 (学習時間: 5.89s)
+[sample,loss] : discard [46600,0.08], pick [3304,0.05], koikoi [5192,0.26]
+260619 145158 ★ loop:64 (学習時間: 5.94s)
+[sample,loss] : discard [50392,0.06], pick [4712,0.06], koikoi [3920,0.16]
+260619 145205 ★ loop:65 (学習時間: 6.26s)
+[sample,loss] : discard [52304,0.07], pick [5176,0.08], koikoi [4320,0.18]
+260619 145205 Updated JIT models synced and saved natively.
+260619 145211 ★ loop:66 (学習時間: 5.80s)
+[sample,loss] : discard [48384,0.13], pick [3488,0.15], koikoi [6048,0.31]
+260619 145216 ★ loop:67 (学習時間: 5.72s)
+[sample,loss] : discard [49720,0.13], pick [3848,0.07], koikoi [5936,0.55]
+260619 145222 ★ loop:68 (学習時間: 5.31s)
+[sample,loss] : discard [44248,0.24], pick [3400,0.06], koikoi [5264,1.78]
+260619 145227 ★ loop:69 (学習時間: 5.34s)
+[sample,loss] : discard [47184,0.05], pick [3856,0.06], koikoi [3000,0.13]
+260619 145233 ★ loop:70 (学習時間: 6.34s)
+[sample,loss] : discard [51608,0.06], pick [4776,0.06], koikoi [4488,0.09]
+260619 145233 Updated JIT models synced and saved natively.
+260619 145311 400.0 games tested, 189.0 wins, 200.0 loses, 11.0 draws (0.47, 0.50, 0.03), 30.4 points
+Record,loop:70, score:0.486, point:30.40
+260619 145318 ★ loop:71 (学習時間: 6.46s)
+[sample,loss] : discard [48520,0.08], pick [6088,0.10], koikoi [4824,0.17]
+260619 145324 ★ loop:72 (学習時間: 5.94s)
+[sample,loss] : discard [48464,0.05], pick [3912,0.03], koikoi [4272,0.06]
+260619 145330 ★ loop:73 (学習時間: 6.05s)
+[sample,loss] : discard [49992,0.05], pick [5248,0.05], koikoi [3824,0.05]
+260619 145336 ★ loop:74 (学習時間: 5.94s)
+[sample,loss] : discard [48584,0.06], pick [4384,0.14], koikoi [4280,0.10]
+260619 145342 ★ loop:75 (学習時間: 5.94s)
+[sample,loss] : discard [48904,0.06], pick [6040,0.09], koikoi [4248,0.08]
+260619 145342 Updated JIT models synced and saved natively.
+260619 145348 ★ loop:76 (学習時間: 5.79s)
+[sample,loss] : discard [50112,0.05], pick [4304,0.06], koikoi [4304,0.11]
+260619 145353 ★ loop:77 (学習時間: 5.52s)
+[sample,loss] : discard [46288,0.06], pick [3520,0.02], koikoi [4304,0.15]
+260619 145359 ★ loop:78 (学習時間: 6.05s)
+[sample,loss] : discard [47424,0.05], pick [6632,0.09], koikoi [5656,0.09]
+260619 145405 ★ loop:79 (学習時間: 5.57s)
+[sample,loss] : discard [46880,0.05], pick [4400,0.07], koikoi [4296,0.04]
+260619 145410 ★ loop:80 (学習時間: 5.45s)
+[sample,loss] : discard [45128,0.03], pick [4792,0.02], koikoi [4312,0.03]
+260619 145410 Updated JIT models synced and saved natively.
+260619 145444 400.0 games tested, 198.0 wins, 194.0 loses, 8.0 draws (0.49, 0.48, 0.02), 31.1 points
+Record,loop:80, score:0.505, point:31.14
+260619 145450 ★ loop:81 (学習時間: 5.91s)
+[sample,loss] : discard [49520,0.06], pick [4432,0.03], koikoi [5248,0.04]
+260619 145456 ★ loop:82 (学習時間: 6.44s)
+[sample,loss] : discard [53208,0.05], pick [6496,0.12], koikoi [3912,0.09]
+260619 145502 ★ loop:83 (学習時間: 5.80s)
+[sample,loss] : discard [47408,0.09], pick [4856,0.05], koikoi [5672,0.13]
+260619 145508 ★ loop:84 (学習時間: 5.50s)
+[sample,loss] : discard [45624,0.16], pick [4752,0.22], koikoi [6096,0.57]
+260619 145514 ★ loop:85 (学習時間: 6.13s)
+[sample,loss] : discard [50104,0.07], pick [4800,0.05], koikoi [5584,0.13]
+260619 145514 Updated JIT models synced and saved natively.
+260619 145522 ★ loop:86 (学習時間: 7.91s)
+[sample,loss] : discard [56152,0.03], pick [4024,0.03], koikoi [3456,0.01]
+260619 145528 ★ loop:87 (学習時間: 5.87s)
+[sample,loss] : discard [50472,0.06], pick [5528,0.07], koikoi [4336,0.03]
+260619 145534 ★ loop:88 (学習時間: 5.83s)
+[sample,loss] : discard [48880,0.03], pick [4328,0.03], koikoi [3872,0.03]
+260619 145539 ★ loop:89 (学習時間: 5.94s)
+[sample,loss] : discard [50440,0.06], pick [4776,0.08], koikoi [3512,0.10]
+260619 145546 ★ loop:90 (学習時間: 6.05s)
+[sample,loss] : discard [49688,0.08], pick [4288,0.21], koikoi [5640,0.24]
+260619 145546 Updated JIT models synced and saved natively.
+260619 145620 400.0 games tested, 174.0 wins, 209.0 loses, 17.0 draws (0.43, 0.52, 0.04), 29.7 points
+Record,loop:90, score:0.456, point:29.74
+260619 145627 ★ loop:91 (学習時間: 6.10s)
+[sample,loss] : discard [49776,0.04], pick [4784,0.02], koikoi [5192,0.04]
+260619 145632 ★ loop:92 (学習時間: 5.63s)
+[sample,loss] : discard [49824,0.08], pick [2656,0.04], koikoi [5624,0.08]
+260619 145638 ★ loop:93 (学習時間: 5.81s)
+[sample,loss] : discard [49584,0.09], pick [4400,0.19], koikoi [3928,0.29]
+260619 145644 ★ loop:94 (学習時間: 5.56s)
+[sample,loss] : discard [45408,0.03], pick [4768,0.06], koikoi [3904,0.18]
+260619 145650 ★ loop:95 (学習時間: 5.97s)
+[sample,loss] : discard [50200,0.06], pick [4280,0.04], koikoi [4432,0.07]
+260619 145650 Updated JIT models synced and saved natively.
+260619 145655 ★ loop:96 (学習時間: 5.93s)
+[sample,loss] : discard [50280,0.07], pick [3816,0.04], koikoi [3936,0.09]
+260619 145701 ★ loop:97 (学習時間: 5.37s)
+[sample,loss] : discard [44368,0.07], pick [4336,0.12], koikoi [5120,0.15]
+260619 145707 ★ loop:98 (学習時間: 5.69s)
+[sample,loss] : discard [49296,0.07], pick [3512,0.11], koikoi [5168,0.06]
+260619 145713 ★ loop:99 (学習時間: 6.37s)
+[sample,loss] : discard [53624,0.05], pick [3040,0.08], koikoi [5272,0.06]
+260619 145719 ★ loop:100 (学習時間: 5.79s)
+[sample,loss] : discard [46152,0.06], pick [2616,0.03], koikoi [4792,0.07]
+260619 145719 Updated JIT models synced and saved natively.
+260619 145754 400.0 games tested, 186.0 wins, 203.0 loses, 11.0 draws (0.47, 0.51, 0.03), 30.9 points
+Record,loop:100, score:0.479, point:30.86
+260619 145800 ★ loop:101 (学習時間: 5.73s)
+[sample,loss] : discard [42216,0.11], pick [4728,0.05], koikoi [6152,0.22]
+260619 145806 ★ loop:102 (学習時間: 6.32s)
+[sample,loss] : discard [50848,0.04], pick [3864,0.04], koikoi [4328,0.06]
+260619 145812 ★ loop:103 (学習時間: 6.03s)
+[sample,loss] : discard [48504,0.05], pick [5976,0.08], koikoi [4808,0.08]
+260619 145818 ★ loop:104 (学習時間: 5.99s)
+[sample,loss] : discard [48704,0.05], pick [5056,0.06], koikoi [4448,0.09]
+260619 145824 ★ loop:105 (学習時間: 6.04s)
+[sample,loss] : discard [51112,0.05], pick [3816,0.05], koikoi [4344,0.04]
+260619 145824 Updated JIT models synced and saved natively.
+260619 145830 ★ loop:106 (学習時間: 6.03s)
+[sample,loss] : discard [46184,0.10], pick [5216,0.05], koikoi [4832,0.23]
+260619 145836 ★ loop:107 (学習時間: 6.19s)
+[sample,loss] : discard [48768,0.05], pick [4408,0.04], koikoi [3480,0.04]
+260619 145842 ★ loop:108 (学習時間: 5.65s)
+[sample,loss] : discard [48736,0.06], pick [3456,0.02], koikoi [3496,0.03]
+260619 145848 ★ loop:109 (学習時間: 6.34s)
+[sample,loss] : discard [50792,0.05], pick [5640,0.05], koikoi [4720,0.04]
+260619 145855 ★ loop:110 (学習時間: 6.45s)
+[sample,loss] : discard [50720,0.09], pick [5248,0.06], koikoi [4776,0.12]
+260619 145855 Updated JIT models synced and saved natively.
+260619 145930 400.0 games tested, 184.0 wins, 210.0 loses, 6.0 draws (0.46, 0.53, 0.01), 29.6 points
+Record,loop:110, score:0.468, point:29.58
+260619 145936 ★ loop:111 (学習時間: 6.41s)
+[sample,loss] : discard [49384,0.05], pick [2992,0.02], koikoi [4320,0.09]
+260619 145943 ★ loop:112 (学習時間: 6.57s)
+[sample,loss] : discard [52440,0.07], pick [5144,0.14], koikoi [3888,0.07]
+260619 145949 ★ loop:113 (学習時間: 6.64s)
+[sample,loss] : discard [52584,0.08], pick [5256,0.12], koikoi [5120,0.09]
+260619 145956 ★ loop:114 (学習時間: 6.25s)
+[sample,loss] : discard [49376,0.09], pick [3864,0.07], koikoi [5944,0.25]
+260619 150002 ★ loop:115 (学習時間: 6.70s)
+[sample,loss] : discard [53272,0.05], pick [5488,0.04], koikoi [3168,0.12]
+260619 150002 Updated JIT models synced and saved natively.
+260619 150008 ★ loop:116 (学習時間: 6.13s)
+[sample,loss] : discard [52816,0.05], pick [3496,0.04], koikoi [3120,0.08]
+260619 150014 ★ loop:117 (学習時間: 5.28s)
+[sample,loss] : discard [43976,0.08], pick [4208,0.07], koikoi [3968,0.18]
+260619 150019 ★ loop:118 (学習時間: 5.72s)
+[sample,loss] : discard [47880,0.06], pick [3848,0.06], koikoi [4368,0.04]
+260619 150026 ★ loop:119 (学習時間: 6.29s)
+[sample,loss] : discard [53440,0.06], pick [1848,0.03], koikoi [4496,0.06]
+260619 150032 ★ loop:120 (学習時間: 5.82s)
+[sample,loss] : discard [45808,0.08], pick [4712,0.10], koikoi [4736,0.15]
+260619 150032 Updated JIT models synced and saved natively.
+260619 150106 400.0 games tested, 202.0 wins, 182.0 loses, 16.0 draws (0.51, 0.46, 0.04), 30.5 points
+Record,loop:120, score:0.525, point:30.54
+260619 150106 最新モデル保存完了
+260619 150113 ★ loop:121 (学習時間: 6.42s)
+[sample,loss] : discard [49816,0.07], pick [5600,0.05], koikoi [5216,0.20]
+260619 150118 ★ loop:122 (学習時間: 5.92s)
+[sample,loss] : discard [46648,0.09], pick [4280,0.14], koikoi [5984,0.21]
+260619 150125 ★ loop:123 (学習時間: 6.30s)
+[sample,loss] : discard [47608,0.05], pick [5128,0.08], koikoi [5272,0.10]
+260619 150131 ★ loop:124 (学習時間: 5.84s)
+[sample,loss] : discard [49904,0.03], pick [3856,0.03], koikoi [3112,0.02]
+260619 150137 ★ loop:125 (学習時間: 6.77s)
+[sample,loss] : discard [51640,0.10], pick [4760,0.14], koikoi [6080,0.09]
+260619 150137 Updated JIT models synced and saved natively.
+260619 150143 ★ loop:126 (学習時間: 6.10s)
+[sample,loss] : discard [43400,0.05], pick [6056,0.05], koikoi [4808,0.04]
+260619 150150 ★ loop:127 (学習時間: 6.31s)
+[sample,loss] : discard [50448,0.05], pick [5664,0.05], koikoi [4000,0.09]
+260619 150156 ★ loop:128 (学習時間: 6.13s)
+[sample,loss] : discard [47504,0.06], pick [4704,0.08], koikoi [5600,0.07]
+260619 150202 ★ loop:129 (学習時間: 5.85s)
+[sample,loss] : discard [47920,0.07], pick [4856,0.09], koikoi [3976,0.04]
+260619 150208 ★ loop:130 (学習時間: 5.94s)
+[sample,loss] : discard [49120,0.06], pick [1880,0.10], koikoi [5600,0.06]
+260619 150208 Updated JIT models synced and saved natively.
+260619 150243 400.0 games tested, 172.0 wins, 218.0 loses, 10.0 draws (0.43, 0.55, 0.03), 29.2 points
+Record,loop:130, score:0.443, point:29.21
+260619 150248 ★ loop:131 (学習時間: 5.74s)
+[sample,loss] : discard [42872,0.06], pick [3928,0.04], koikoi [4784,0.15]
+260619 150254 ★ loop:132 (学習時間: 5.84s)
+[sample,loss] : discard [42368,0.05], pick [6528,0.05], koikoi [5152,0.04]
+260619 150300 ★ loop:133 (学習時間: 5.81s)
+[sample,loss] : discard [49584,0.05], pick [4336,0.08], koikoi [3888,0.03]
+260619 150306 ★ loop:134 (学習時間: 5.83s)
+[sample,loss] : discard [46592,0.04], pick [5512,0.03], koikoi [4352,0.03]
+260619 150312 ★ loop:135 (学習時間: 6.20s)
+[sample,loss] : discard [47848,0.03], pick [4768,0.03], koikoi [5192,0.06]
+260619 150312 Updated JIT models synced and saved natively.
+260619 150318 ★ loop:136 (学習時間: 5.77s)
+[sample,loss] : discard [48336,0.07], pick [3184,0.02], koikoi [3952,0.13]
+260619 150324 ★ loop:137 (学習時間: 5.91s)
+[sample,loss] : discard [49392,0.09], pick [5104,0.13], koikoi [5200,0.07]
+260619 150330 ★ loop:138 (学習時間: 6.10s)
+[sample,loss] : discard [47976,0.03], pick [5688,0.05], koikoi [3896,0.04]
+260619 150336 ★ loop:139 (学習時間: 5.77s)
+[sample,loss] : discard [46672,0.06], pick [3112,0.07], koikoi [5096,0.07]
+260619 150342 ★ loop:140 (学習時間: 5.84s)
+[sample,loss] : discard [47104,0.09], pick [4664,0.06], koikoi [3456,0.13]
+260619 150342 Updated JIT models synced and saved natively.
+260619 150419 400.0 games tested, 182.0 wins, 205.0 loses, 13.0 draws (0.46, 0.51, 0.03), 29.6 points
+Record,loop:140, score:0.471, point:29.57
+
+260619 150419 最新モデル保存中
+260619 150419 プログラム終了
+
+260619 152530 start training on device: cuda:0
+260619 152538 ★ loop:1 (学習時間: 7.87s)
+[sample,loss] : discard [33120,0.03], pick [3360,0.04], koikoi [2880,0.03]
+260619 152544 ★ loop:2 (学習時間: 6.16s)
+[sample,loss] : discard [37432,0.06], pick [5744,0.08], koikoi [4808,0.12]
+260619 152552 ★ loop:3 (学習時間: 7.79s)
+[sample,loss] : discard [42640,0.07], pick [4304,0.11], koikoi [5728,0.36]
+260619 152557 ★ loop:4 (学習時間: 5.41s)
+[sample,loss] : discard [37680,0.05], pick [5736,0.04], koikoi [4728,0.08]
+260619 152602 ★ loop:5 (学習時間: 4.66s)
+[sample,loss] : discard [31352,0.03], pick [4376,0.04], koikoi [3856,0.05]
+260619 152602 Updated JIT models synced and saved natively.
+260619 152609 ★ loop:6 (学習時間: 6.71s)
+[sample,loss] : discard [41824,0.02], pick [4800,0.01], koikoi [3840,0.02]
+260619 152616 ★ loop:7 (学習時間: 7.08s)
+[sample,loss] : discard [47520,0.03], pick [3840,0.03], koikoi [4320,0.08]
+260619 152621 ★ loop:8 (学習時間: 5.49s)
+[sample,loss] : discard [38360,0.03], pick [5752,0.02], koikoi [2904,0.01]
+260619 152626 ★ loop:9 (学習時間: 4.96s)
+[sample,loss] : discard [36464,0.01], pick [3856,0.02], koikoi [3840,0.02]
+260619 152633 ★ loop:10 (学習時間: 6.97s)
+[sample,loss] : discard [45008,0.04], pick [3392,0.03], koikoi [3872,0.07]
+260619 152633 Updated JIT models synced and saved natively.
+260619 152639 ★ loop:11 (学習時間: 5.38s)
+[sample,loss] : discard [37992,0.04], pick [4784,0.02], koikoi [4288,0.23]
+260619 152644 ★ loop:12 (学習時間: 5.75s)
+[sample,loss] : discard [39384,0.06], pick [4832,0.03], koikoi [3848,0.18]
+260619 152649 ★ loop:13 (学習時間: 5.04s)
+[sample,loss] : discard [36096,0.02], pick [5256,0.03], koikoi [3856,0.03]
+260619 152655 ★ loop:14 (学習時間: 5.54s)
+[sample,loss] : discard [37560,0.02], pick [5752,0.02], koikoi [3880,0.01]
+260619 152701 ★ loop:15 (学習時間: 6.22s)
+[sample,loss] : discard [41800,0.01], pick [3368,0.02], koikoi [3352,0.00]
+260619 152701 Updated JIT models synced and saved natively.
+260619 152707 ★ loop:16 (学習時間: 5.94s)
+[sample,loss] : discard [38568,0.02], pick [6200,0.02], koikoi [4312,0.02]
+260619 152716 ★ loop:17 (学習時間: 8.82s)
+[sample,loss] : discard [53256,0.03], pick [5800,0.03], koikoi [4328,0.05]
+260619 152722 ★ loop:18 (学習時間: 6.18s)
+[sample,loss] : discard [44032,0.05], pick [3840,0.03], koikoi [5256,0.03]
+260619 152727 ★ loop:19 (学習時間: 5.06s)
+[sample,loss] : discard [36616,0.02], pick [3384,0.03], koikoi [3856,0.00]
+260619 152733 ★ loop:20 (学習時間: 5.82s)
+[sample,loss] : discard [39920,0.03], pick [4752,0.03], koikoi [4312,0.02]
+260619 152733 Updated JIT models synced and saved natively.
+260619 152811 400.0 games tested, 385.0 wins, 14.0 loses, 1.0 draws (0.96, 0.04, 0.00), 54.2 points
+Record,loop:20, score:0.964, point:54.19
+260619 152811 最新モデル保存完了
+260619 152818 ★ loop:21 (学習時間: 7.33s)
+[sample,loss] : discard [45472,0.02], pick [2464,0.03], koikoi [4296,0.03]
+260619 152824 ★ loop:22 (学習時間: 5.65s)
+[sample,loss] : discard [37088,0.02], pick [6576,0.02], koikoi [4792,0.01]
+260619 152830 ★ loop:23 (学習時間: 6.22s)
+[sample,loss] : discard [43496,0.03], pick [4352,0.02], koikoi [3872,0.04]
+260619 152836 ★ loop:24 (学習時間: 6.13s)
+[sample,loss] : discard [45728,0.08], pick [3880,0.10], koikoi [3880,0.24]
+260619 152842 ★ loop:25 (学習時間: 6.37s)
+[sample,loss] : discard [43784,0.05], pick [5288,0.01], koikoi [3360,0.32]
+260619 152842 Updated JIT models synced and saved natively.
+260619 152849 ★ loop:26 (学習時間: 6.10s)
+[sample,loss] : discard [39752,0.04], pick [4376,0.03], koikoi [5184,0.02]
+260619 152854 ★ loop:27 (学習時間: 5.48s)
+[sample,loss] : discard [40336,0.04], pick [3408,0.02], koikoi [4320,0.10]
+260619 152901 ★ loop:28 (学習時間: 6.88s)
+[sample,loss] : discard [46440,0.05], pick [5704,0.04], koikoi [4784,0.09]
+260619 152908 ★ loop:29 (学習時間: 6.81s)
+[sample,loss] : discard [44680,0.04], pick [3032,0.03], koikoi [5736,0.05]
+260619 152914 ★ loop:30 (学習時間: 6.49s)
+[sample,loss] : discard [42224,0.02], pick [5664,0.02], koikoi [3440,0.01]
+260619 152914 Updated JIT models synced and saved natively.
+260619 152920 ★ loop:31 (学習時間: 5.95s)
+[sample,loss] : discard [39968,0.02], pick [4392,0.02], koikoi [4320,0.02]
+260619 152925 ★ loop:32 (学習時間: 5.28s)
+[sample,loss] : discard [34648,0.04], pick [3344,0.03], koikoi [5240,0.06]
+260619 152930 ★ loop:33 (学習時間: 4.97s)
+[sample,loss] : discard [36768,0.02], pick [2448,0.02], koikoi [3856,0.01]
+260619 152935 ★ loop:34 (学習時間: 4.63s)
+[sample,loss] : discard [31544,0.02], pick [3376,0.01], koikoi [3872,0.06]
+260619 152942 ★ loop:35 (学習時間: 6.60s)
+[sample,loss] : discard [42528,0.02], pick [3448,0.01], koikoi [4744,0.01]
+260619 152942 Updated JIT models synced and saved natively.
+260619 152948 ★ loop:36 (学習時間: 6.37s)
+[sample,loss] : discard [40272,0.02], pick [4184,0.02], koikoi [4688,0.00]
+260619 152953 ★ loop:37 (学習時間: 5.06s)
+[sample,loss] : discard [37104,0.02], pick [5200,0.04], koikoi [3872,0.02]
+260619 153000 ★ loop:38 (学習時間: 6.50s)
+[sample,loss] : discard [47056,0.02], pick [3072,0.02], koikoi [3856,0.01]
+260619 153006 ★ loop:39 (学習時間: 6.00s)
+[sample,loss] : discard [44400,0.03], pick [3400,0.02], koikoi [3416,0.01]
+260619 153013 ★ loop:40 (学習時間: 7.11s)
+[sample,loss] : discard [51496,0.01], pick [5184,0.01], koikoi [2624,0.01]
+260619 153013 Updated JIT models synced and saved natively.
+260619 153044 400.0 games tested, 375.0 wins, 21.0 loses, 4.0 draws (0.94, 0.05, 0.01), 52.4 points
+Record,loop:40, score:0.943, point:52.42
+
+260619 153044 最新モデル保存中
+260619 153044 プログラム終了
+
+260619 153204 start training on device: cuda:0
+260619 153211 ★ loop:1 (学習時間: 7.13s)
+[sample,loss] : discard [34080,0.02], pick [3360,0.02], koikoi [2880,0.02]
+260619 153217 ★ loop:2 (学習時間: 6.71s)
+[sample,loss] : discard [29880,0.03], pick [5736,0.06], koikoi [4320,0.05]
+260619 153225 ★ loop:3 (学習時間: 7.48s)
+[sample,loss] : discard [43720,0.04], pick [4320,0.02], koikoi [4776,0.01]
+260619 153231 ★ loop:4 (学習時間: 6.47s)
+[sample,loss] : discard [47904,0.02], pick [5736,0.00], koikoi [2896,0.01]
+260619 153237 ★ loop:5 (学習時間: 5.69s)
+[sample,loss] : discard [40752,0.01], pick [5312,0.01], koikoi [2912,0.01]
+260619 153237 Updated JIT models synced and saved natively.
+260619 153243 ★ loop:6 (学習時間: 6.18s)
+[sample,loss] : discard [46008,0.03], pick [4336,0.01], koikoi [4288,0.05]
+260619 153249 ★ loop:7 (学習時間: 6.20s)
+[sample,loss] : discard [47456,0.04], pick [3864,0.02], koikoi [3832,0.06]
+260619 153254 ★ loop:8 (学習時間: 4.56s)
+[sample,loss] : discard [30528,0.01], pick [5776,0.02], koikoi [3832,0.01]
+260619 153259 ★ loop:9 (学習時間: 5.24s)
+[sample,loss] : discard [37064,0.02], pick [3848,0.03], koikoi [4304,0.02]
+260619 153305 ★ loop:10 (学習時間: 5.65s)
+[sample,loss] : discard [41616,0.01], pick [3832,0.01], koikoi [3392,0.01]
+260619 153305 Updated JIT models synced and saved natively.
+260619 153311 ★ loop:11 (学習時間: 6.09s)
+[sample,loss] : discard [41256,0.02], pick [6136,0.01], koikoi [2880,0.03]
+260619 153316 ★ loop:12 (学習時間: 4.82s)
+[sample,loss] : discard [35208,0.01], pick [4736,0.03], koikoi [4232,0.02]
+260619 153320 ★ loop:13 (学習時間: 4.50s)
+[sample,loss] : discard [32064,0.02], pick [4400,0.02], koikoi [3880,0.03]
+260619 153326 ★ loop:14 (学習時間: 5.21s)
+[sample,loss] : discard [38168,0.02], pick [4424,0.01], koikoi [3424,0.01]
+260619 153332 ★ loop:15 (学習時間: 6.20s)
+[sample,loss] : discard [46464,0.02], pick [3824,0.02], koikoi [3272,0.01]
+260619 153332 Updated JIT models synced and saved natively.
+260619 153337 ★ loop:16 (学習時間: 5.66s)
+[sample,loss] : discard [37336,0.02], pick [6192,0.01], koikoi [3808,0.01]
+260619 153346 ★ loop:17 (学習時間: 8.12s)
+[sample,loss] : discard [48408,0.02], pick [5744,0.01], koikoi [5576,0.03]
+260619 153351 ★ loop:18 (学習時間: 5.75s)
+[sample,loss] : discard [39296,0.02], pick [3832,0.02], koikoi [3048,0.01]
+260619 153357 ★ loop:19 (学習時間: 5.97s)
+[sample,loss] : discard [40264,0.01], pick [4240,0.01], koikoi [3776,0.02]
+260619 153404 ★ loop:20 (学習時間: 6.53s)
+[sample,loss] : discard [43760,0.01], pick [3512,0.01], koikoi [3416,0.01]
+260619 153404 Updated JIT models synced and saved natively.
+260619 153438 400.0 games tested, 375.0 wins, 22.0 loses, 3.0 draws (0.94, 0.06, 0.01), 50.4 points
+Record,loop:20, score:0.941, point:50.41
+260619 153438 最新モデル保存完了
+260619 153444 ★ loop:21 (学習時間: 5.77s)
+[sample,loss] : discard [40216,0.02], pick [2872,0.00], koikoi [4224,0.01]
+260619 153449 ★ loop:22 (学習時間: 5.62s)
+[sample,loss] : discard [35296,0.03], pick [5216,0.02], koikoi [4312,0.11]
+260619 153455 ★ loop:23 (学習時間: 5.71s)
+[sample,loss] : discard [39544,0.02], pick [4680,0.01], koikoi [4224,0.01]
+260619 153502 ★ loop:24 (学習時間: 7.14s)
+[sample,loss] : discard [45256,0.04], pick [4864,0.05], koikoi [3952,0.03]
+260619 153510 ★ loop:25 (学習時間: 7.26s)
+[sample,loss] : discard [40168,0.03], pick [4848,0.01], koikoi [3744,0.05]
+260619 153510 Updated JIT models synced and saved natively.
+260619 153517 ★ loop:26 (学習時間: 7.23s)
+[sample,loss] : discard [37288,0.02], pick [5248,0.02], koikoi [3896,0.01]
+260619 153522 ★ loop:27 (学習時間: 5.62s)
+[sample,loss] : discard [38336,0.03], pick [2568,0.01], koikoi [3840,0.10]
+260619 153529 ★ loop:28 (学習時間: 6.56s)
+[sample,loss] : discard [39096,0.03], pick [6120,0.01], koikoi [4192,0.04]
+260619 153536 ★ loop:29 (学習時間: 7.23s)
+[sample,loss] : discard [43608,0.02], pick [2504,0.01], koikoi [4432,0.01]
+260619 153543 ★ loop:30 (学習時間: 6.48s)
+[sample,loss] : discard [40032,0.02], pick [5680,0.01], koikoi [3384,0.01]
+260619 153543 Updated JIT models synced and saved natively.
+260619 153550 ★ loop:31 (学習時間: 7.20s)
+[sample,loss] : discard [43016,0.01], pick [4392,0.01], koikoi [3832,0.04]
+260619 153557 ★ loop:32 (学習時間: 6.90s)
+[sample,loss] : discard [37312,0.03], pick [3328,0.02], koikoi [4424,0.04]
+260619 153602 ★ loop:33 (学習時間: 5.65s)
+[sample,loss] : discard [35312,0.02], pick [2488,0.01], koikoi [3840,0.05]
+
+260619 153602 最新モデル保存中
+260619 153602 プログラム終了
+
+260619 154323 start training on device: cuda:0
+
+260619 154406 start training on device: cuda:0
+260619 154413 ★ loop:1 (学習時間: 7.19s)
+[sample,loss] : discard [34080,0.03], pick [3360,0.01], koikoi [3360,0.05]
+260619 154418 ★ loop:2 (学習時間: 5.11s)
+[sample,loss] : discard [29768,0.02], pick [5744,0.04], koikoi [3848,0.01]
+260619 154424 ★ loop:3 (学習時間: 5.68s)
+[sample,loss] : discard [33200,0.02], pick [4320,0.02], koikoi [3840,0.01]
+260619 154430 ★ loop:4 (学習時間: 6.73s)
+[sample,loss] : discard [49416,0.01], pick [5752,0.00], koikoi [2416,0.01]
+260619 154436 ★ loop:5 (学習時間: 5.97s)
+[sample,loss] : discard [38744,0.01], pick [6232,0.01], koikoi [3368,0.01]
+260619 154436 Updated JIT models synced and saved natively.
+260619 154443 ★ loop:6 (学習時間: 6.11s)
+[sample,loss] : discard [44456,0.02], pick [4344,0.01], koikoi [3360,0.02]
+260619 154448 ★ loop:7 (学習時間: 5.75s)
+[sample,loss] : discard [44464,0.03], pick [3416,0.02], koikoi [3384,0.11]
+260619 154453 ★ loop:8 (学習時間: 4.64s)
+[sample,loss] : discard [30512,0.01], pick [5768,0.01], koikoi [3832,0.01]
+260619 154458 ★ loop:9 (学習時間: 4.77s)
+[sample,loss] : discard [33824,0.02], pick [3400,0.01], koikoi [4304,0.01]
+260619 154504 ★ loop:10 (学習時間: 6.20s)
+[sample,loss] : discard [43040,0.02], pick [4296,0.01], koikoi [3392,0.02]
+260619 154504 Updated JIT models synced and saved natively.
+260619 154510 ★ loop:11 (学習時間: 5.83s)
+[sample,loss] : discard [38296,0.01], pick [5744,0.01], koikoi [3352,0.01]
+260619 154515 ★ loop:12 (学習時間: 5.27s)
+[sample,loss] : discard [36816,0.01], pick [4776,0.00], koikoi [3840,0.01]
+260619 154520 ★ loop:13 (学習時間: 4.87s)
+[sample,loss] : discard [34464,0.01], pick [5216,0.01], koikoi [3848,0.01]
+260619 154525 ★ loop:14 (学習時間: 5.59s)
+[sample,loss] : discard [39600,0.02], pick [4360,0.01], koikoi [3384,0.01]
+260619 154531 ★ loop:15 (学習時間: 5.91s)
+[sample,loss] : discard [41376,0.02], pick [5544,0.02], koikoi [3776,0.01]
+260619 154531 Updated JIT models synced and saved natively.
+260619 154538 ★ loop:16 (学習時間: 6.34s)
+[sample,loss] : discard [43088,0.02], pick [5816,0.00], koikoi [3416,0.01]
+260619 154545 ★ loop:17 (学習時間: 6.99s)
+[sample,loss] : discard [48608,0.02], pick [4920,0.01], koikoi [5208,0.01]
+260619 154550 ★ loop:18 (学習時間: 5.43s)
+[sample,loss] : discard [38768,0.02], pick [3856,0.01], koikoi [3840,0.01]
+260619 154557 ★ loop:19 (学習時間: 6.52s)
+[sample,loss] : discard [42704,0.01], pick [4720,0.01], koikoi [3376,0.01]
+260619 154603 ★ loop:20 (学習時間: 6.49s)
+[sample,loss] : discard [42912,0.01], pick [2984,0.00], koikoi [3312,0.01]
+260619 154603 Updated JIT models synced and saved natively.
+260619 154638 400.0 games tested, 378.0 wins, 16.0 loses, 6.0 draws (0.94, 0.04, 0.01), 48.3 points
+Record,loop:20, score:0.952, point:48.33
+260619 154638 最新モデル保存完了
+260619 154645 ★ loop:21 (学習時間: 6.95s)
+[sample,loss] : discard [40096,0.01], pick [4576,0.02], koikoi [4688,0.01]
+260619 154651 ★ loop:22 (学習時間: 5.95s)
+[sample,loss] : discard [37168,0.02], pick [3560,0.02], koikoi [3880,0.02]
+260619 154658 ★ loop:23 (学習時間: 7.23s)
+[sample,loss] : discard [36616,0.03], pick [4832,0.03], koikoi [3448,0.06]
+260619 154705 ★ loop:24 (学習時間: 7.04s)
+[sample,loss] : discard [41160,0.01], pick [5632,0.00], koikoi [2936,0.04]
+
+260619 154705 最新モデル保存中
+260619 154705 プログラム終了
+
+260619 154931 start training on device: cuda:0
+260619 154938 ★ loop:1 (学習時間: 7.71s) [Main RSS: 8910.0 MB]
+[sample,loss] : discard [34080,0.03], pick [3360,0.01], koikoi [3360,0.05]
+260619 154945 ★ loop:2 (学習時間: 6.92s) [Main RSS: 10575.8 MB]
+[sample,loss] : discard [29768,0.02], pick [5744,0.03], koikoi [3848,0.01]
+260619 154952 ★ loop:3 (学習時間: 6.62s) [Main RSS: 11279.3 MB]
+[sample,loss] : discard [38880,0.02], pick [4320,0.02], koikoi [3360,0.01]
+260619 154959 ★ loop:4 (学習時間: 7.05s) [Main RSS: 12275.1 MB]
+[sample,loss] : discard [49400,0.01], pick [5752,0.00], koikoi [2416,0.00]
+260619 155005 ★ loop:5 (学習時間: 6.21s) [Main RSS: 12280.0 MB]
+[sample,loss] : discard [38744,0.01], pick [6232,0.01], koikoi [3368,0.01]
+260619 155005 Updated JIT models synced and saved natively.
+260619 155011 ★ loop:6 (学習時間: 6.09s) [Main RSS: 12295.1 MB]
+[sample,loss] : discard [44000,0.02], pick [3888,0.01], koikoi [3360,0.02]
+260619 155017 ★ loop:7 (学習時間: 5.79s) [Main RSS: 12297.2 MB]
+[sample,loss] : discard [43520,0.03], pick [3416,0.02], koikoi [3392,0.10]
+260619 155022 ★ loop:8 (学習時間: 4.89s) [Main RSS: 12638.3 MB]
+[sample,loss] : discard [30528,0.02], pick [5776,0.01], koikoi [3840,0.09]
+260619 155027 ★ loop:9 (学習時間: 4.81s) [Main RSS: 12858.1 MB]
+[sample,loss] : discard [33800,0.01], pick [3400,0.01], koikoi [4264,0.01]
+260619 155033 ★ loop:10 (学習時間: 6.38s) [Main RSS: 12858.4 MB]
+[sample,loss] : discard [43032,0.01], pick [4280,0.01], koikoi [3400,0.02]
+260619 155033 Updated JIT models synced and saved natively.
+260619 155039 ★ loop:11 (学習時間: 5.78s) [Main RSS: 12860.6 MB]
+[sample,loss] : discard [38224,0.01], pick [5728,0.01], koikoi [3368,0.01]
+260619 155044 ★ loop:12 (学習時間: 5.22s) [Main RSS: 13029.7 MB]
+[sample,loss] : discard [36512,0.01], pick [4688,0.00], koikoi [3760,0.01]
+260619 155049 ★ loop:13 (学習時間: 5.03s) [Main RSS: 13029.9 MB]
+[sample,loss] : discard [34624,0.01], pick [5264,0.01], koikoi [3840,0.01]
+260619 155055 ★ loop:14 (学習時間: 5.83s) [Main RSS: 13033.2 MB]
+[sample,loss] : discard [39384,0.01], pick [4416,0.01], koikoi [3384,0.01]
+260619 155102 ★ loop:15 (学習時間: 6.65s) [Main RSS: 13034.4 MB]
+[sample,loss] : discard [42776,0.01], pick [5544,0.01], koikoi [3728,0.01]
+260619 155102 Updated JIT models synced and saved natively.
+260619 155109 ★ loop:16 (学習時間: 7.75s) [Main RSS: 13035.3 MB]
+[sample,loss] : discard [43248,0.01], pick [5816,0.00], koikoi [3416,0.01]
+260619 155117 ★ loop:17 (学習時間: 7.71s) [Main RSS: 13090.3 MB]
+[sample,loss] : discard [42912,0.02], pick [4432,0.01], koikoi [5104,0.01]
+260619 155124 ★ loop:18 (学習時間: 6.65s) [Main RSS: 13090.3 MB]
+[sample,loss] : discard [38480,0.02], pick [3800,0.01], koikoi [3848,0.01]
+260619 155131 ★ loop:19 (学習時間: 7.18s) [Main RSS: 13091.8 MB]
+[sample,loss] : discard [40456,0.01], pick [4752,0.01], koikoi [3792,0.01]
+260619 155137 ★ loop:20 (学習時間: 6.28s) [Main RSS: 13092.1 MB]
+[sample,loss] : discard [42800,0.01], pick [3080,0.00], koikoi [3400,0.01]
+260619 155137 Updated JIT models synced and saved natively.
+260619 155211 400.0 games tested, 363.0 wins, 33.0 loses, 4.0 draws (0.91, 0.08, 0.01), 47.7 points
+Record,loop:20, score:0.912, point:47.70
+260619 155211 最新モデル保存完了
+260619 155217 ★ loop:21 (学習時間: 5.99s) [Main RSS: 13097.0 MB]
+[sample,loss] : discard [35136,0.01], pick [4120,0.02], koikoi [4272,0.01]
+260619 155224 ★ loop:22 (学習時間: 7.10s) [Main RSS: 13119.8 MB]
+[sample,loss] : discard [40136,0.01], pick [4000,0.01], koikoi [3472,0.01]
+260619 155232 ★ loop:23 (学習時間: 7.56s) [Main RSS: 13150.5 MB]
+[sample,loss] : discard [38552,0.01], pick [5584,0.00], koikoi [3800,0.02]
+260619 155239 ★ loop:24 (学習時間: 7.59s) [Main RSS: 13151.1 MB]
+[sample,loss] : discard [44288,0.01], pick [5400,0.01], koikoi [3864,0.01]
+260619 155246 ★ loop:25 (学習時間: 6.90s) [Main RSS: 13153.9 MB]
+[sample,loss] : discard [42840,0.01], pick [6128,0.01], koikoi [4176,0.01]
+260619 155246 Updated JIT models synced and saved natively.
+260619 155252 ★ loop:26 (学習時間: 6.03s) [Main RSS: 13152.8 MB]
+[sample,loss] : discard [38128,0.03], pick [2736,0.01], koikoi [3832,0.07]
+260619 155259 ★ loop:27 (学習時間: 6.28s) [Main RSS: 13154.1 MB]
+[sample,loss] : discard [39576,0.03], pick [5912,0.01], koikoi [4280,0.04]
+260619 155305 ★ loop:28 (学習時間: 6.76s) [Main RSS: 13154.6 MB]
+[sample,loss] : discard [43856,0.02], pick [2920,0.01], koikoi [4728,0.01]
+260619 155312 ★ loop:29 (学習時間: 6.94s) [Main RSS: 13154.4 MB]
+[sample,loss] : discard [45328,0.02], pick [5776,0.00], koikoi [3624,0.01]
+260619 155319 ★ loop:30 (学習時間: 6.60s) [Main RSS: 13157.9 MB]
+[sample,loss] : discard [42032,0.01], pick [4552,0.01], koikoi [3832,0.01]
+260619 155319 Updated JIT models synced and saved natively.
+260619 155325 ★ loop:31 (学習時間: 6.08s) [Main RSS: 13157.8 MB]
+[sample,loss] : discard [37968,0.02], pick [3760,0.02], koikoi [4256,0.04]
+260619 155331 ★ loop:32 (学習時間: 5.82s) [Main RSS: 13157.9 MB]
+[sample,loss] : discard [41224,0.01], pick [2624,0.01], koikoi [3456,0.01]
+260619 155337 ★ loop:33 (学習時間: 6.18s) [Main RSS: 13158.1 MB]
+[sample,loss] : discard [38136,0.02], pick [4104,0.00], koikoi [3792,0.02]
+260619 155343 ★ loop:34 (学習時間: 5.98s) [Main RSS: 13157.9 MB]
+[sample,loss] : discard [38840,0.02], pick [3544,0.01], koikoi [3832,0.01]
+260619 155349 ★ loop:35 (学習時間: 6.37s) [Main RSS: 13158.6 MB]
+[sample,loss] : discard [42760,0.01], pick [3304,0.00], koikoi [3776,0.00]
+260619 155349 Updated JIT models synced and saved natively.
+260619 155356 ★ loop:36 (学習時間: 6.86s) [Main RSS: 13157.8 MB]
+[sample,loss] : discard [38408,0.01], pick [4952,0.01], koikoi [3824,0.01]
+260619 155403 ★ loop:37 (学習時間: 6.40s) [Main RSS: 13157.8 MB]
+[sample,loss] : discard [38960,0.01], pick [3208,0.01], koikoi [3832,0.01]
+260619 155411 ★ loop:38 (学習時間: 8.34s) [Main RSS: 13157.8 MB]
+[sample,loss] : discard [43808,0.01], pick [3424,0.01], koikoi [3424,0.01]
+260619 155420 ★ loop:39 (学習時間: 8.94s) [Main RSS: 13157.7 MB]
+[sample,loss] : discard [48512,0.01], pick [5432,0.01], koikoi [3360,0.03]
+260619 155429 ★ loop:40 (学習時間: 8.76s) [Main RSS: 13308.7 MB]
+[sample,loss] : discard [48560,0.03], pick [4512,0.00], koikoi [3792,0.01]
+260619 155429 Updated JIT models synced and saved natively.
+260619 155500 400.0 games tested, 378.0 wins, 18.0 loses, 4.0 draws (0.94, 0.04, 0.01), 48.4 points
+Record,loop:40, score:0.950, point:48.37
+260619 155500 最新モデル保存完了
+260619 155508 ★ loop:41 (学習時間: 7.61s) [Main RSS: 13232.7 MB]
+[sample,loss] : discard [42792,0.02], pick [3792,0.01], koikoi [3768,0.01]
+260619 155514 ★ loop:42 (学習時間: 6.76s) [Main RSS: 13232.5 MB]
+[sample,loss] : discard [41920,0.02], pick [4064,0.01], koikoi [3784,0.08]
+260619 155521 ★ loop:43 (学習時間: 6.44s) [Main RSS: 13232.9 MB]
+[sample,loss] : discard [37376,0.03], pick [3904,0.02], koikoi [4264,0.02]
+
+260619 155521 最新モデル保存中
+260619 155521 プログラム終了
+260619 174808 JITモデル（学習用および固定SL対戦相手用）を初期化しています...
+
+260619 174809 start training on device: cuda:0
+260619 174817 loop:1 (学習時間: 7.74s)
+[sample,loss] : discard [23746,0.04], pick [2443,0.02], koikoi [4127,0.02]
+260619 174826 loop:2 (学習時間: 8.94s)
+[sample,loss] : discard [25447,0.03], pick [4007,0.01], koikoi [4904,0.02]
+260619 174833 loop:3 (学習時間: 7.92s)
+[sample,loss] : discard [26903,0.02], pick [2801,0.00], koikoi [4799,0.03]
+260619 174842 loop:4 (学習時間: 8.24s)
+[sample,loss] : discard [25685,0.02], pick [4784,0.01], koikoi [3422,0.02]
+260619 174849 loop:5 (学習時間: 7.55s)
+[sample,loss] : discard [27806,0.03], pick [2613,0.01], koikoi [3306,0.02]
+260619 174849 Updated JIT models synced and saved natively.
+260619 174857 loop:6 (学習時間: 7.49s)
+[sample,loss] : discard [26332,0.02], pick [3465,0.01], koikoi [3723,0.03]
+260619 174905 loop:7 (学習時間: 8.29s)
+[sample,loss] : discard [27681,0.02], pick [4644,0.01], koikoi [5004,0.02]
+260619 174913 loop:8 (学習時間: 7.49s)
+[sample,loss] : discard [26593,0.02], pick [3190,0.02], koikoi [4281,0.01]
+260619 174920 loop:9 (学習時間: 7.77s)
+[sample,loss] : discard [25703,0.02], pick [3442,0.01], koikoi [3635,0.01]
+260619 174929 loop:10 (学習時間: 8.17s)
+[sample,loss] : discard [26865,0.02], pick [2863,0.01], koikoi [4408,0.01]
+260619 174929 Updated JIT models synced and saved natively.
+260619 174938 loop:11 (学習時間: 9.10s)
+[sample,loss] : discard [26030,0.02], pick [3177,0.01], koikoi [4118,0.02]
+260619 174947 loop:12 (学習時間: 8.90s)
+[sample,loss] : discard [27568,0.02], pick [3689,0.01], koikoi [4322,0.02]
+260619 174955 loop:13 (学習時間: 8.49s)
+[sample,loss] : discard [26604,0.02], pick [4725,0.01], koikoi [4424,0.01]
+260619 175003 loop:14 (学習時間: 7.86s)
+[sample,loss] : discard [27132,0.02], pick [3630,0.01], koikoi [3753,0.01]
+260619 175011 loop:15 (学習時間: 8.36s)
+[sample,loss] : discard [26672,0.03], pick [3516,0.02], koikoi [4120,0.02]
+260619 175011 Updated JIT models synced and saved natively.
+260619 175020 loop:16 (学習時間: 9.01s)
+[sample,loss] : discard [27083,0.02], pick [3090,0.01], koikoi [4801,0.01]
+260619 175029 loop:17 (学習時間: 8.61s)
+[sample,loss] : discard [27860,0.02], pick [3393,0.01], koikoi [4350,0.01]
+260619 175037 loop:18 (学習時間: 8.15s)
+[sample,loss] : discard [26992,0.02], pick [3151,0.02], koikoi [3810,0.02]
+260619 175046 loop:19 (学習時間: 8.62s)
+[sample,loss] : discard [27409,0.03], pick [2918,0.01], koikoi [4204,0.02]
+260619 175055 loop:20 (学習時間: 9.20s)
+[sample,loss] : discard [27252,0.03], pick [3701,0.01], koikoi [4693,0.02]
+260619 175055 Updated JIT models synced and saved natively.
+260619 175104 loop:21 (学習時間: 9.10s)
+[sample,loss] : discard [27066,0.03], pick [2829,0.01], koikoi [4067,0.02]
+260619 175112 loop:22 (学習時間: 8.43s)
+[sample,loss] : discard [25849,0.02], pick [3056,0.01], koikoi [4131,0.02]
+260619 175121 loop:23 (学習時間: 8.44s)
+[sample,loss] : discard [27461,0.02], pick [2801,0.01], koikoi [4746,0.01]
+260619 175129 loop:24 (学習時間: 8.32s)
+[sample,loss] : discard [27497,0.02], pick [3220,0.01], koikoi [4958,0.01]
+260619 175138 loop:25 (学習時間: 8.40s)
+[sample,loss] : discard [28009,0.02], pick [3103,0.01], koikoi [4679,0.01]
+260619 175138 Updated JIT models synced and saved natively.
+260619 175146 loop:26 (学習時間: 8.01s)
+[sample,loss] : discard [27021,0.02], pick [2952,0.01], koikoi [4149,0.01]
+260619 175154 loop:27 (学習時間: 8.39s)
+[sample,loss] : discard [28043,0.02], pick [2315,0.01], koikoi [3466,0.02]
+260619 175202 loop:28 (学習時間: 8.07s)
+[sample,loss] : discard [27586,0.02], pick [2197,0.01], koikoi [3781,0.01]
+260619 175210 loop:29 (学習時間: 8.35s)
+[sample,loss] : discard [27548,0.02], pick [3470,0.01], koikoi [4508,0.02]
+260619 175220 loop:30 (学習時間: 9.36s)
+[sample,loss] : discard [27766,0.02], pick [3621,0.01], koikoi [4767,0.01]
+260619 175220 Updated JIT models synced and saved natively.
+260619 175252 400.0 games tested, 379.0 wins, 17.0 loses, 4.0 draws (0.95, 0.04, 0.01), 48.2 points
+Record,loop:30, score:0.953, point:48.20
+260619 175252 最新モデル保存完了
+260619 175301 loop:31 (学習時間: 9.59s)
+[sample,loss] : discard [27642,0.02], pick [2941,0.01], koikoi [3613,0.01]
+260619 175309 loop:32 (学習時間: 8.26s)
+[sample,loss] : discard [26917,0.02], pick [3057,0.01], koikoi [3653,0.01]
+260619 175318 loop:33 (学習時間: 8.27s)
+[sample,loss] : discard [27788,0.02], pick [2095,0.01], koikoi [3991,0.02]
+
+260619 175318 最新モデル保存中
+260619 175318 プログラム終了
+260619 183033 JITモデル（学習用および固定SL対戦相手用）を初期化しています...
+
+260619 183033 start training on device: cuda:0
+260619 183041 loop:1 (学習時間: 7.62s)
+[sample,loss] : discard [22672,0.02], pick [2025,0.01], koikoi [3758,0.01]
+260619 183049 loop:2 (学習時間: 8.25s)
+[sample,loss] : discard [25274,0.02], pick [3914,0.01], koikoi [4866,0.01]
+260619 183057 loop:3 (学習時間: 8.22s)
+[sample,loss] : discard [26806,0.02], pick [2734,0.00], koikoi [4563,0.01]
+260619 183105 loop:4 (学習時間: 7.50s)
+[sample,loss] : discard [25963,0.02], pick [5011,0.01], koikoi [3352,0.03]
+260619 183113 loop:5 (学習時間: 7.60s)
+[sample,loss] : discard [28426,0.03], pick [2709,0.01], koikoi [3344,0.01]
+260619 183120 loop:6 (学習時間: 7.72s)
+[sample,loss] : discard [26669,0.02], pick [3707,0.01], koikoi [3532,0.01]
+260619 183128 loop:7 (学習時間: 7.85s)
+[sample,loss] : discard [26845,0.02], pick [4156,0.01], koikoi [4549,0.01]
+260619 183136 loop:8 (学習時間: 7.55s)
+[sample,loss] : discard [26777,0.02], pick [3483,0.02], koikoi [4528,0.02]
+260619 183143 loop:9 (学習時間: 7.77s)
+[sample,loss] : discard [26244,0.02], pick [3295,0.00], koikoi [3545,0.01]
+260619 183151 loop:10 (学習時間: 7.56s)
+[sample,loss] : discard [26118,0.02], pick [2771,0.01], koikoi [4386,0.01]
+260619 183200 loop:11 (学習時間: 8.49s)
+[sample,loss] : discard [26173,0.02], pick [3130,0.01], koikoi [4369,0.01]
+260619 183207 loop:12 (学習時間: 7.96s)
+[sample,loss] : discard [28209,0.02], pick [3378,0.01], koikoi [4142,0.01]
+260619 183216 loop:13 (学習時間: 8.57s)
+[sample,loss] : discard [27469,0.02], pick [5388,0.01], koikoi [4385,0.01]
+260619 183224 loop:14 (学習時間: 8.06s)
+[sample,loss] : discard [27416,0.02], pick [3423,0.01], koikoi [3646,0.01]
+260619 183233 loop:15 (学習時間: 8.68s)
+[sample,loss] : discard [27033,0.02], pick [3788,0.01], koikoi [3830,0.01]
+260619 183242 loop:16 (学習時間: 8.75s)
+[sample,loss] : discard [27129,0.02], pick [3049,0.01], koikoi [4588,0.01]
+260619 183250 loop:17 (学習時間: 8.83s)
+[sample,loss] : discard [28678,0.02], pick [3505,0.01], koikoi [4270,0.01]
+260619 183259 loop:18 (学習時間: 9.00s)
+[sample,loss] : discard [27144,0.02], pick [2735,0.01], koikoi [3643,0.02]
+260619 183308 loop:19 (学習時間: 8.17s)
+[sample,loss] : discard [27693,0.02], pick [3064,0.01], koikoi [4155,0.01]
+260619 183316 loop:20 (学習時間: 8.24s)
+[sample,loss] : discard [27439,0.02], pick [3771,0.01], koikoi [4616,0.02]
+260619 183324 loop:21 (学習時間: 8.28s)
+[sample,loss] : discard [26646,0.02], pick [2737,0.01], koikoi [3979,0.01]
+260619 183332 loop:22 (学習時間: 8.26s)
+[sample,loss] : discard [26822,0.02], pick [3489,0.00], koikoi [4204,0.01]
+260619 183341 loop:23 (学習時間: 8.86s)
+[sample,loss] : discard [28493,0.02], pick [2719,0.01], koikoi [4771,0.01]
+260619 183350 loop:24 (学習時間: 8.98s)
+[sample,loss] : discard [28232,0.02], pick [3408,0.01], koikoi [4975,0.01]
+260619 183358 loop:25 (学習時間: 8.19s)
+[sample,loss] : discard [26506,0.02], pick [2987,0.01], koikoi [4268,0.01]
+260619 183407 loop:26 (学習時間: 8.45s)
+[sample,loss] : discard [27460,0.02], pick [2727,0.01], koikoi [3846,0.01]
+260619 183416 loop:27 (学習時間: 8.96s)
+[sample,loss] : discard [28318,0.02], pick [2076,0.01], koikoi [3598,0.01]
+260619 183424 loop:28 (学習時間: 8.50s)
+[sample,loss] : discard [27680,0.02], pick [2423,0.01], koikoi [3952,0.01]
+260619 183433 loop:29 (学習時間: 9.11s)
+[sample,loss] : discard [27259,0.02], pick [3840,0.01], koikoi [4789,0.01]
+260619 183442 loop:30 (学習時間: 8.49s)
+[sample,loss] : discard [28206,0.02], pick [3336,0.01], koikoi [4248,0.01]
+260619 183442 [検証] アリーナ評価を強制的に SL vs SL で実行します
+260619 183520 400.0 games tested, 175.0 wins, 214.0 loses, 11.0 draws (0.44, 0.54, 0.03), 29.5 points
+Record,loop:30, score:0.451, point:29.55
+260619 183529 loop:31 (学習時間: 8.73s)
+[sample,loss] : discard [28323,0.02], pick [2927,0.01], koikoi [3728,0.01]
+
+260619 183529 最新モデル保存中
+260619 183529 プログラム終了
+260619 183710 JITモデル（学習用および固定SL対戦相手用）を初期化しています...
+
+260619 183711 start training on device: cuda:0
+260619 183718 loop:1 (学習時間: 7.64s)
+[sample,loss] : discard [22914,0.02], pick [2229,0.01], koikoi [3615,0.01]
+260619 183727 loop:2 (学習時間: 8.33s)
+[sample,loss] : discard [26203,0.02], pick [3621,0.01], koikoi [4663,0.01]
+260619 183735 loop:3 (学習時間: 8.33s)
+[sample,loss] : discard [26745,0.02], pick [2911,0.00], koikoi [4329,0.02]
+260619 183743 loop:4 (学習時間: 7.53s)
+[sample,loss] : discard [25561,0.02], pick [4745,0.01], koikoi [3089,0.03]
+260619 183750 loop:5 (学習時間: 7.67s)
+[sample,loss] : discard [28539,0.02], pick [2626,0.01], koikoi [3308,0.01]
+260619 183758 loop:6 (学習時間: 7.51s)
+[sample,loss] : discard [27027,0.02], pick [3613,0.01], koikoi [3514,0.02]
+260619 183806 loop:7 (学習時間: 8.04s)
+[sample,loss] : discard [27404,0.02], pick [4671,0.01], koikoi [4891,0.01]
+260619 183813 loop:8 (学習時間: 7.68s)
+[sample,loss] : discard [26396,0.02], pick [2974,0.01], koikoi [4147,0.01]
+260619 183821 loop:9 (学習時間: 7.43s)
+[sample,loss] : discard [25313,0.02], pick [3327,0.00], koikoi [3783,0.01]
+260619 183829 loop:10 (学習時間: 8.25s)
+[sample,loss] : discard [27165,0.02], pick [2946,0.00], koikoi [4762,0.01]
+260619 183838 loop:11 (学習時間: 8.66s)
+[sample,loss] : discard [26270,0.02], pick [3404,0.01], koikoi [4391,0.02]
+260619 183847 loop:12 (学習時間: 9.47s)
+[sample,loss] : discard [28419,0.02], pick [4132,0.00], koikoi [4618,0.01]
+260619 183856 loop:13 (学習時間: 8.94s)
+[sample,loss] : discard [27050,0.02], pick [4807,0.01], koikoi [4250,0.01]
+260619 183904 loop:14 (学習時間: 7.97s)
+[sample,loss] : discard [27639,0.02], pick [3525,0.01], koikoi [3587,0.01]
+260619 183913 loop:15 (学習時間: 8.52s)
+[sample,loss] : discard [26166,0.02], pick [3207,0.01], koikoi [3767,0.01]
+260619 183922 loop:16 (学習時間: 8.98s)
+[sample,loss] : discard [27232,0.02], pick [3078,0.01], koikoi [4844,0.01]
+260619 183930 loop:17 (学習時間: 8.29s)
+[sample,loss] : discard [28046,0.02], pick [3623,0.01], koikoi [4243,0.01]
+260619 183938 loop:18 (学習時間: 8.49s)
+[sample,loss] : discard [27690,0.02], pick [2532,0.01], koikoi [3604,0.01]
+260619 183947 loop:19 (学習時間: 8.46s)
+[sample,loss] : discard [27492,0.02], pick [3237,0.01], koikoi [4146,0.01]
+260619 183956 loop:20 (学習時間: 8.75s)
+[sample,loss] : discard [27604,0.02], pick [3764,0.01], koikoi [4704,0.01]
+260619 184005 loop:21 (学習時間: 8.98s)
+[sample,loss] : discard [26651,0.02], pick [2513,0.01], koikoi [3857,0.02]
+260619 184013 loop:22 (学習時間: 8.54s)
+[sample,loss] : discard [25700,0.02], pick [3302,0.00], koikoi [3990,0.01]
+260619 184021 loop:23 (学習時間: 8.23s)
+[sample,loss] : discard [27648,0.02], pick [2457,0.01], koikoi [4800,0.01]
+260619 184030 loop:24 (学習時間: 8.53s)
+[sample,loss] : discard [27946,0.02], pick [3583,0.01], koikoi [5047,0.01]
+260619 184038 loop:25 (学習時間: 8.13s)
+[sample,loss] : discard [27598,0.02], pick [3095,0.01], koikoi [4171,0.01]
+260619 184047 loop:26 (学習時間: 8.43s)
+[sample,loss] : discard [28171,0.02], pick [2736,0.00], koikoi [3986,0.01]
+260619 184055 loop:27 (学習時間: 8.52s)
+[sample,loss] : discard [28385,0.02], pick [2014,0.01], koikoi [3350,0.02]
+260619 184103 loop:28 (学習時間: 7.97s)
+[sample,loss] : discard [28168,0.02], pick [2366,0.01], koikoi [4022,0.01]
+260619 184111 loop:29 (学習時間: 8.35s)
+[sample,loss] : discard [27273,0.02], pick [4101,0.01], koikoi [4710,0.01]
+260619 184120 loop:30 (学習時間: 8.51s)
+[sample,loss] : discard [27938,0.02], pick [3063,0.00], koikoi [4309,0.01]
+260619 184150 400.0 games tested, 373.0 wins, 22.0 loses, 5.0 draws (0.93, 0.06, 0.01), 47.4 points
+Record,loop:30, score:0.939, point:47.36
+260619 184159 loop:31 (学習時間: 8.85s)
+[sample,loss] : discard [28064,0.02], pick [3061,0.01], koikoi [3633,0.01]
+
+260619 184159 最新モデル保存中
+260619 184159 プログラム終了
+260619 184810 JITモデル（学習用および固定SL対戦相手用）を初期化しています...
+
+260619 184811 start training on device: cuda:0
+260619 184819 loop:1 (学習時間: 7.47s)
+[sample,loss] : discard [22696,0.02], pick [2076,0.00], koikoi [3896,0.01]
+260619 184827 loop:2 (学習時間: 8.49s)
+[sample,loss] : discard [25788,0.02], pick [3728,0.00], koikoi [5159,0.01]
+260619 184835 loop:3 (学習時間: 8.05s)
+[sample,loss] : discard [26755,0.01], pick [2557,0.00], koikoi [4158,0.02]
+260619 185003 400.0 games tested, 365.0 wins, 29.0 loses, 6.0 draws (0.91, 0.07, 0.01), 46.6 points
+Record,loop:3, score:0.920, point:46.58
+260619 185011 loop:4 (学習時間: 8.13s)
+[sample,loss] : discard [26627,0.02], pick [4993,0.01], koikoi [3120,0.02]
+
+260619 185011 最新モデル保存中
+260619 185011 プログラム終了
+260619 192917 JITモデルを初期化しています...
+
+260619 192918 start training on device: cuda:0
+260619 192925 loop:1 (学習時間: 7.49s)
+[sample,loss] : discard [22187,0.02], pick [1909,0.00], koikoi [3733,0.01]
+260619 192935 loop:2 (学習時間: 9.38s)
+[sample,loss] : discard [25762,0.01], pick [3890,0.00], koikoi [5173,0.01]
+260619 192943 loop:3 (学習時間: 8.45s)
+[sample,loss] : discard [26426,0.01], pick [2412,0.00], koikoi [4128,0.02]
+260619 193116 400.0 games tested, 366.0 wins, 31.0 loses, 3.0 draws (0.92, 0.08, 0.01), 46.2 points
+Record,loop:3, score:0.919, point:46.21
+260619 193123 loop:4 (学習時間: 7.74s)
+[sample,loss] : discard [25689,0.02], pick [4914,0.01], koikoi [2891,0.02]
+260619 193131 loop:5 (学習時間: 7.71s)
+[sample,loss] : discard [28485,0.02], pick [2727,0.00], koikoi [3165,0.01]
+
+260619 193131 最新モデル保存中
+260619 193131 プログラム終了

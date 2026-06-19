@@ -15,11 +15,11 @@ import torch # 1.8.1
 
 # Demo for playing 8-round koi-koi games vs trained AI
 your_name = 'Player'
-ai_name = 'RL-Point' # 'SL', 'RL-Point', 'RL-WP'
+ai_name = 'RL' # 'SL', 'RL'
 record_path = 'gamerecords_player/'
 
 # 
-assert ai_name in ['RL-Point','RL-WP','SL']
+assert ai_name in ['RL','SL']
 record_fold = record_path + ai_name + '/'
 
 for path in [record_path, record_fold]:
@@ -30,48 +30,53 @@ if ai_name == 'SL':
     discard_model_path = 'model_agent/discard_sl.pt'
     pick_model_path = 'model_agent/pick_sl.pt'
     koikoi_model_path = 'model_agent/koikoi_sl.pt'
-elif ai_name == 'RL-Point':
-    discard_model_path = 'model_agent/discard_rl_point.pt'
-    pick_model_path = 'model_agent/pick_rl_point.pt'
-    koikoi_model_path = 'model_agent/koikoi_rl_point.pt'
-elif ai_name == 'RL-WP':
-    discard_model_path = 'model_agent/discard_rl_wp.pt'
-    pick_model_path = 'model_agent/pick_rl_wp.pt'
-    koikoi_model_path = 'model_agent/koikoi_rl_wp.pt'
+elif ai_name == 'RL':
+    discard_model_path = 'traced_discard.pt'
+    pick_model_path = 'traced_pick.pt'
+    koikoi_model_path = 'traced_koikoi.pt'
+    
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+
+# ---------------------------------------------------------
+# 【JIT対応】torch.jit.load を用い、ロード段階からデバイスを決定する
+# ---------------------------------------------------------
 
 game_state = KoiKoiGameState(player_name=[your_name,ai_name], 
                              record_path=record_fold, 
                              save_record=True)
 
-discard_model = torch.load(discard_model_path, map_location=torch.device('cpu'), weights_only=False)
-for module in discard_model.modules():
-    if type(module).__name__ == 'MultiheadAttention':
-        if not hasattr(module, 'batch_first'):
-            module.batch_first = False
-    elif type(module).__name__ == 'TransformerEncoderLayer':
-        if not hasattr(module, 'norm_first'):
-            module.norm_first = False
-pick_model = torch.load(pick_model_path, map_location=torch.device('cpu'), weights_only=False)
-for module in pick_model.modules():
-    if type(module).__name__ == 'MultiheadAttention':
-         if not hasattr(module, 'batch_first'):
-            module.batch_first = False
-    elif type(module).__name__ == 'TransformerEncoderLayer':
-        if not hasattr(module, 'norm_first'):
-            module.norm_first = False
-koikoi_model = torch.load(koikoi_model_path, map_location=torch.device('cpu'), weights_only=False)
-for module in koikoi_model.modules():
-    if type(module).__name__ == 'MultiheadAttention':
-        if not hasattr(module, 'batch_first'):
-            module.batch_first = False
-    elif type(module).__name__ == 'TransformerEncoderLayer':
-        if not hasattr(module, 'norm_first'):
-            module.norm_first = False
+if ai_name == 'RL':
+    # 強化学習で作成されたJITモデルは内部がbfloat16化されているため、ロードして即座に.float()でFP32化する
+    discard_model = torch.jit.load(discard_model_path, map_location=device).float()
+    pick_model    = torch.jit.load(pick_model_path, map_location=device).float()
+    koikoi_model  = torch.jit.load(koikoi_model_path, map_location=device).float()
+else:
+    # 従来のSLモデル（ネイティブnn.Module）用のフォールバック
+    discard_model = torch.load(discard_model_path, map_location=device, weights_only=False)
+    for module in discard_model.modules():
+        if type(module).__name__ in ['MultiheadAttention', 'TransformerEncoderLayer']:
+            if not hasattr(module, 'batch_first'): module.batch_first = False
+            if not hasattr(module, 'norm_first'): module.norm_first = False
             
-device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-discard_model = discard_model.to(device).bfloat16()
-pick_model    = pick_model.to(device).bfloat16()
-koikoi_model  = koikoi_model.to(device).bfloat16()
+    pick_model = torch.load(pick_model_path, map_location=device, weights_only=False)
+    for module in pick_model.modules():
+        if type(module).__name__ in ['MultiheadAttention', 'TransformerEncoderLayer']:
+            if not hasattr(module, 'batch_first'): module.batch_first = False
+            if not hasattr(module, 'norm_first'): module.norm_first = False
+            
+    koikoi_model = torch.load(koikoi_model_path, map_location=device, weights_only=False)
+    for module in koikoi_model.modules():
+        if type(module).__name__ in ['MultiheadAttention', 'TransformerEncoderLayer']:
+            if not hasattr(module, 'batch_first'): module.batch_first = False
+            if not hasattr(module, 'norm_first'): module.norm_first = False
+
+    discard_model = discard_model.float()
+    pick_model    = pick_model.float()
+    koikoi_model  = koikoi_model.float()
+
+discard_model.eval()
+pick_model.eval()
+koikoi_model.eval()
 
 ai_agent = AgentForTest(discard_model, pick_model, koikoi_model)
 

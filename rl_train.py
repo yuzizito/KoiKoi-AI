@@ -33,30 +33,14 @@ torch.set_num_threads(1)
 # 終了を検知するためのシグナルオブジェクト
 stop_event = threading.Event()
 
-def wait_for_exit_key():
-    print("\n[システム] 画面上で 'q' キーを押して Enter を入力すると停止します。\n")
-    while True:
-        try:
-            user_input = input()
-            if user_input.strip().lower() == 'q':
-                print("\n[停止シグナル検知] モデルを保存して終了します。")
-                stop_event.set()
-                break
-        except Exception:
-            break
-
-# training settings
-task_name = 'point' # wp, point
-log_path = f'log_rl_{task_name}.txt'
-rl_folder = f'model_rl_{task_name}'
+log_path = 'log_rl_pbrs.txt'
+rl_folder = 'model_rl_pbrs'
 
 # continue training with trained models
 start_loop_num = 1
 saved_model_path = {'discard':f'{rl_folder}/discard_final_stop.pt', 
                     'pick':f'{rl_folder}/pick_final_stop.pt',
                     'koikoi':f'{rl_folder}/koikoi_final_stop.pt'}
-
-assert task_name in ['point', 'wp']
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 win_prob_mat = None
@@ -183,8 +167,6 @@ def parallel_sampling(n_games, global_win_prob_mat):
     try:
         device_str = "cuda:0" if torch.cuda.is_available() else "cpu"
         
-        # WPモードかPointモードか判定
-        task_type = 1 if task_name == 'wp' else 0
         wp_mat_np = global_win_prob_mat.astype(np.float32) if global_win_prob_mat is not None else np.zeros((2,9,61), dtype=np.float32)
 
         # 超高速C++シミュレータの起動 (内部でPyTorchモデルを読み込み、自己対局を完走させる)
@@ -235,28 +217,25 @@ def init_worker():
     master_discard_net, master_pick_net, master_koikoi_net = get_master_net()
     
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    
     master_discard_net = master_discard_net.to(device).bfloat16().eval()
     master_pick_net = master_pick_net.to(device).bfloat16().eval()
     master_koikoi_net = master_koikoi_net.to(device).bfloat16().eval()
     
     master_agent = koikoilearn.Agent(master_discard_net, master_pick_net, master_koikoi_net)
 
+def wait_for_exit_key():
+    print("\n[システム] 画面上で 'q' キーを押して Enter を入力すると停止します。\n")
+    while True:
+        try:
+            user_input = input()
+            if user_input.strip().lower() == 'q':
+                print("\n[停止シグナル検知] モデルを保存して終了します。")
+                stop_event.set()
+                break
+        except Exception:
+            break
+
 def parallel_arena_test(agent, n_games):
-    import psutil
-    import os
-    
-    # ==========================================
-    # 【追加】Worker開始直後のメモリ計測
-    # ==========================================
-    pid = os.getpid()
-    proc = psutil.Process(pid)
-    mem_start = proc.memory_info()
-    rss_start = mem_start.rss / (1024 * 1024)
-    vms_start = mem_start.vms / (1024 * 1024)
-    print(f"  [Worker PID {pid} - START] RSS: {rss_start:.1f} MB | VMS: {vms_start:.1f} MB")
-    # ==========================================
-    
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     
     for key in agent.model.keys():
@@ -267,15 +246,6 @@ def parallel_arena_test(agent, n_games):
     arena.multi_game_test(n_games)
     result = arena.test_win_num
     result.append(np.mean(arena.test_point[1]))
-    
-    # ==========================================
-    # 【追加】対局終了直後のメモリ計測
-    # ==========================================
-    mem_end = proc.memory_info()
-    rss_end = mem_end.rss / (1024 * 1024)
-    vms_end = mem_end.vms / (1024 * 1024)
-    print(f"  [Worker PID {pid} -  END ] RSS: {rss_end:.1f} MB | VMS: {vms_end:.1f} MB (Delta RSS: {rss_end - rss_start:+.1f} MB)")
-    # ==========================================
     
     return result
 
@@ -326,23 +296,20 @@ if __name__ == '__main__':
     master_agent = koikoilearn.Agent(master_discard_net, master_pick_net, master_koikoi_net)
     
     cpu_count = 8
-    loop_games = 640
+    loop_games = 480
     n_core_games = loop_games // cpu_count
-    batch_size = 256
+    batch_size = 128
     
     n_loop_action_net_update = 5
-    n_loop_arena_test = 10
+    n_loop_arena_test = 20
 
     # ==========================================
     # 1. モデルの準備 (ValueNetとActionNetの両方を保持)
     # ==========================================
     value_net, action_net = {}, {}
-    
-    # 読み込み先クラスの型(DiscardModelなど)を明示的に渡して生のモデルに重みを復元させる
     value_net['discard'], action_net['discard'] = get_value_action_net(saved_model_path['discard'], TargetQNet().cpu(), DiscardModel)
     value_net['pick'], action_net['pick'] = get_value_action_net(saved_model_path['pick'], TargetQNet().cpu(), PickModel)
     value_net['koikoi'], action_net['koikoi'] = get_value_action_net(saved_model_path['koikoi'], TargetQNet().cpu(), KoiKoiModel)
-
     example_input_normal = torch.zeros((1, 300, 48), dtype=torch.bfloat16, device=device)
     example_input_koikoi = torch.zeros((1, 300, 50), dtype=torch.bfloat16, device=device)
     
@@ -404,10 +371,7 @@ if __name__ == '__main__':
     for loop in range(start_loop_num, 100000):
         loop_start_time = time.perf_counter()
         
-        task_type = 1 if task_name == 'wp' else 0
         wp_mat_np = win_prob_mat.astype(np.float32) if win_prob_mat is not None else np.zeros((2,9,61), dtype=np.float32)
-
-        # 1〜3. シミュレーション・学習・モデル同期をC++内で一気に実行
         sync_models = (loop % n_loop_action_net_update == 0)
         
         losses = koikoicore.run_simulation_and_train(
@@ -415,16 +379,23 @@ if __name__ == '__main__':
             11000,  # cap_d (discard)
             1400,   # cap_p (pick)
             1600,   # cap_k (koikoi)
-            task_type, 1.0, wp_mat_np,
+            1.0, wp_mat_np,
             "traced_discard.pt", "traced_pick.pt", "traced_koikoi.pt", device_str,
             trainer['discard'], trainer['pick'], trainer['koikoi'],
             batch_size, sync_models
         )
         
         elapsed_time = time.perf_counter() - loop_start_time
-        print_log(f'{time_str()} ★ loop:{loop} (シミュレーション＆学習完了: {elapsed_time:.2f}s)', log_path)
         
-        print_log(f'discard net, ★ loss = {losses["loss_discard"]:.2f}, pick    net, ★ loss = {losses["loss_pick"]:.2f}, koikoi  net, ★ loss = {losses["loss_koikoi"]:.2f}', log_path)
+        s_d = losses["samples_discard"]
+        l_d = losses["loss_discard"]
+        s_p = losses["samples_pick"]
+        l_p = losses["loss_pick"]
+        s_k = losses["samples_koikoi"]
+        l_k = losses["loss_koikoi"]
+        
+        print_log(f'{time_str()} ★ loop:{loop} (学習時間: {elapsed_time:.2f}s)', log_path)
+        print_log(f'[sample,loss] : discard [{s_d},{l_d:.2f}], pick [{s_p},{l_p:.2f}], koikoi [{s_k},{l_k:.2f}]', log_path)
         
         if sync_models:
             print_log(f'{time_str()} Updated JIT models synced and saved natively.', log_path)
@@ -447,66 +418,24 @@ if __name__ == '__main__':
         
         # 4. アリーナ評価 (従来通り)
         if loop % n_loop_arena_test == 0:
-            import psutil
-            import os
-            import time
-
-            def print_arena_metrics(label, t_start=None):
-                sys_mem = psutil.virtual_memory()
-                main_proc = psutil.Process(os.getpid())
-                
-                print(f"\n--- [Arena Metrics: {label}] ---")
-                print("[RAM]")
-                print(f"  System Used : {sys_mem.used / (1024*1024):.1f} MB")
-                print(f"  System Avail: {sys_mem.available / (1024*1024):.1f} MB")
-                print(f"  Main RSS    : {main_proc.memory_info().rss / (1024*1024):.1f} MB")
-                
-                print("[VRAM]")
-                if torch.cuda.is_available():
-                    print(f"  Allocated   : {torch.cuda.memory_allocated(0) / (1024*1024):.1f} MB")
-                    print(f"  Reserved    : {torch.cuda.memory_reserved(0) / (1024*1024):.1f} MB")
-                    print(f"  Max Alloc   : {torch.cuda.max_memory_allocated(0) / (1024*1024):.1f} MB")
-                    print(f"  Max Reserved: {torch.cuda.max_memory_reserved(0) / (1024*1024):.1f} MB")
-                
-                if t_start is not None:
-                    print("[Timing]")
-                    print(f"  Elapsed Time: {time.perf_counter() - t_start:.3f} sec")
-                print("-" * 38)
-
+            
             for key in ['discard', 'pick', 'koikoi']:
                 action_net[key].load_state_dict(torch.jit.load(f"traced_{key}.pt", map_location='cpu').state_dict())
             
             test_agent = koikoilearn.Agent(action_net['discard'], action_net['pick'], action_net['koikoi'])
-            
-            t_arena_start = time.perf_counter()
-            print_arena_metrics("1. Before Arena Start", t_arena_start)
 
-            # 強制的にWorker数を4に固定
             arena_workers = 4 
             
-            t_pool_start = time.perf_counter()
             result = []
             pool = mp.Pool(arena_workers, initializer=init_worker)
-            
-            t_pool_created = time.perf_counter()
-            print_arena_metrics("2. After Pool Created", t_pool_created)
-            print(f"  -> Pool Creation Time: {t_pool_created - t_pool_start:.3f} sec")
-
             for _ in range(arena_workers):
                 result.append(pool.apply_async(parallel_arena_test, args=(test_agent, 400//arena_workers)))
             pool.close()
             pool.join()
             
-            t_arena_end = time.perf_counter()
-            print_arena_metrics("3. After Arena Finished", t_arena_end)
-            print(f"  -> Arena Exec Time: {t_arena_end - t_pool_created:.3f} sec")
-
+            torch.cuda.empty_cache()
             del pool
             
-            t_pool_destroyed = time.perf_counter()
-            print_arena_metrics("4. After Pool Destroyed", t_pool_destroyed)
-            print(f"  -> Total Arena Time: {t_pool_destroyed - t_arena_start:.3f} sec")
-
             s = test_result_analysis([res.get() for res in result], loop)
             score.append(s)
             
@@ -520,5 +449,7 @@ if __name__ == '__main__':
             print_log(f'\n{time_str()} 最新モデル保存中', log_path)
             for key in ['discard', 'pick', 'koikoi']:
                 trainer[key].save_model(f'{rl_folder}/{key}_final_stop.pt')
+                
+            koikoicore.destroy_sim_manager()
             print_log(f'{time_str()} プログラム終了', log_path)
             break
