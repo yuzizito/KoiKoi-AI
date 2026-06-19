@@ -7062,3 +7062,603 @@ discard net, ★ loss = 1.28, pick    net, ★ loss = 2.51, koikoi  net, ★ los
 
 260619 045509 最新モデル保存中
 260619 045509 プログラム終了
+
+260619 051317 start training on device: cuda:0
+260619 051324 ★ loop:1 (シミュレーション＆学習完了: 6.86s)
+discard net, ★ loss = 0.83, pick    net, ★ loss = 2.74, koikoi  net, ★ loss = 0.54
+260619 051333 ★ loop:2 (シミュレーション＆学習完了: 9.10s)
+discard net, ★ loss = 0.44, pick    net, ★ loss = 0.74, koikoi  net, ★ loss = 1.72
+
+260619 051333 最新モデル保存中
+260619 051333 プログラム終了
+
+260619 052352 start training on device: cuda:0
+260619 052358 ★ loop:1 (シミュレーション＆学習完了: 6.16s)
+discard net, ★ loss = 0.77, pick    net, ★ loss = 2.69, koikoi  net, ★ loss = 0.52
+
+260619 052358 最新モデル保存中
+260619 052358 プログラム終了
+
+260619 053350 start training on device: cuda:0
+260619 053359 ★ loop:1 (シミュレーション＆学習完了: 9.07s)
+discard net, ★ loss = 0.40, pick    net, ★ loss = 0.74, koikoi  net, ★ loss = 0.13
+260619 053407 ★ loop:2 (シミュレーション＆学習完了: 8.90s)
+discard net, ★ loss = 0.26, pick    net, ★ loss = 0.29, koikoi  net, ★ loss = 0.74
+260619 053415 ★ loop:3 (シミュレーション＆学習完了: 7.77s)
+discard net, ★ loss = 0.55, pick    net, ★ loss = 0.89, koikoi  net, ★ loss = 0.37
+260619 053422 ★ loop:4 (シミュレーション＆学習完了: 6.84s)
+discard net, ★ loss = 0.26, pick    net, ★ loss = 0.25, koikoi  net, ★ loss = 0.14
+260619 053428 ★ loop:5 (シミュレーション＆学習完了: 5.82s)
+discard net, ★ loss = 0.85, pick    net, ★ loss = 0.82, koikoi  net, ★ loss = 0.32
+260619 053428 Updated JIT models synced and saved natively.
+260619 053435 ★ loop:6 (シミュレーション＆学習完了: 7.51s)
+discard net, ★ loss = 0.52, pick    net, ★ loss = 0.52, koikoi  net, ★ loss = 0.36
+260619 053442 ★ loop:7 (シミュレーション＆学習完了: 6.77s)
+discard net, ★ loss = 0.30, pick    net, ★ loss = 0.31, koikoi  net, ★ loss = 0.44
+260619 053448 ★ loop:8 (シミュレーション＆学習完了: 6.27s)
+discard net, ★ loss = 0.20, pick    net, ★ loss = 0.08, koikoi  net, ★ loss = 0.05
+260619 053455 ★ loop:9 (シミュレーション＆学習完了: 6.54s)
+discard net, ★ loss = 0.55, pick    net, ★ loss = 0.17, koikoi  net, ★ loss = 0.51
+260619 053503 ★ loop:10 (シミュレーション＆学習完了: 7.59s)
+discard net, ★ loss = 0.47, pick    net, ★ loss = 0.30, koikoi  net, ★ loss = 0.40
+260619 053503 Updated JIT models synced and saved natively.
+260619 053531 400.0 games tested, 376.0 wins, 19.0 loses, 5.0 draws (0.94, 0.05, 0.01), 55.8 points
+Record,loop:10, score:0.946, point:55.84
+260619 053531 最新モデル保存完了
+
+260619 053531 最新モデル保存中
+260619 053532 プログラム終了
+
+260619 053940 start training on device: cuda:0
+260619 053948 ★ loop:1 (シミュレーション＆学習完了: 8.21s)
+discard net, ★ loss = 0.36, pick    net, ★ loss = 0.61, koikoi  net, ★ loss = 0.11
+260619 053956 ★ loop:2 (シミュレーション＆学習完了: 7.95s)
+discard net, ★ loss = 0.28, pick    net, ★ loss = 0.62, koikoi  net, ★ loss = 0.62
+
+260619 053956 最新モデル保存中
+260619 053956 プログラム終了
+
+260619 054035 start training on device: cuda:0
+260619 054043 ★ loop:1 (シミュレーション＆学習完了: 7.74s)
+discard net, ★ loss = 0.28, pick    net, ★ loss = 0.60, koikoi  net, ★ loss = 0.06
+260619 054049 ★ loop:2 (シミュレーション＆学習完了: 6.89s)
+discard net, ★ loss = 0.43, pick    net, ★ loss = 0.78, koikoi  net, ★ loss = 0.30
+260619 054056 ★ loop:3 (シミュレーション＆学習完了: 6.61s)
+discard net, ★ loss = 0.30, pick    net, ★ loss = 0.55, koikoi  net, ★ loss = 0.13
+260619 054103 ★ loop:4 (シミュレーション＆学習完了: 6.61s)
+discard net, ★ loss = 0.92, pick    net, ★ loss = 1.77, koikoi  net, ★ loss = 0.83
+260619 054111 ★ loop:5 (シミュレーション＆学習完了: 8.43s)
+discard net, ★ loss = 0.76, pick    net, ★ loss = 0.71, koikoi  net, ★ loss = 0.23
+260619 054111 Updated JIT models synced and saved natively.
+260619 054118 ★ loop:6 (シミュレーション＆学習完了: 7.19s)
+discard net, ★ loss = 0.99, pick    net, ★ loss = 0.85, koikoi  net, ★ loss = 0.67
+260619 054126 ★ loop:7 (シミュレーション＆学習完了: 7.45s)
+discard net, ★ loss = 0.36, pick    net, ★ loss = 0.31, koikoi  net, ★ loss = 0.12
+
+260619 054126 最新モデル保存中
+260619 054126 プログラム終了
+
+260619 054154 start training on device: cuda:0
+260619 054201 ★ loop:1 (シミュレーション＆学習完了: 6.84s)
+discard net, ★ loss = 0.33, pick    net, ★ loss = 0.18, koikoi  net, ★ loss = 0.28
+260619 054208 ★ loop:2 (シミュレーション＆学習完了: 6.80s)
+discard net, ★ loss = 0.37, pick    net, ★ loss = 0.55, koikoi  net, ★ loss = 0.20
+260619 054214 ★ loop:3 (シミュレーション＆学習完了: 5.94s)
+discard net, ★ loss = 0.43, pick    net, ★ loss = 0.51, koikoi  net, ★ loss = 0.25
+260619 054220 ★ loop:4 (シミュレーション＆学習完了: 6.11s)
+discard net, ★ loss = 0.16, pick    net, ★ loss = 0.23, koikoi  net, ★ loss = 0.11
+260619 054226 ★ loop:5 (シミュレーション＆学習完了: 6.22s)
+discard net, ★ loss = 0.22, pick    net, ★ loss = 0.12, koikoi  net, ★ loss = 0.27
+260619 054226 Updated JIT models synced and saved natively.
+260619 054233 ★ loop:6 (シミュレーション＆学習完了: 6.81s)
+discard net, ★ loss = 0.40, pick    net, ★ loss = 0.41, koikoi  net, ★ loss = 0.55
+260619 054241 ★ loop:7 (シミュレーション＆学習完了: 7.53s)
+discard net, ★ loss = 0.18, pick    net, ★ loss = 0.16, koikoi  net, ★ loss = 0.14
+260619 054246 ★ loop:8 (シミュレーション＆学習完了: 5.79s)
+discard net, ★ loss = 0.12, pick    net, ★ loss = 0.22, koikoi  net, ★ loss = 0.04
+260619 054253 ★ loop:9 (シミュレーション＆学習完了: 6.45s)
+discard net, ★ loss = 0.57, pick    net, ★ loss = 0.44, koikoi  net, ★ loss = 0.32
+260619 054259 ★ loop:10 (シミュレーション＆学習完了: 6.68s)
+discard net, ★ loss = 0.57, pick    net, ★ loss = 0.45, koikoi  net, ★ loss = 0.56
+260619 054259 Updated JIT models synced and saved natively.
+260619 054330 400.0 games tested, 383.0 wins, 13.0 loses, 4.0 draws (0.96, 0.03, 0.01), 55.9 points
+Record,loop:10, score:0.963, point:55.90
+260619 054330 最新モデル保存完了
+260619 054339 ★ loop:11 (シミュレーション＆学習完了: 9.04s)
+discard net, ★ loss = 0.57, pick    net, ★ loss = 0.76, koikoi  net, ★ loss = 0.16
+260619 054345 ★ loop:12 (シミュレーション＆学習完了: 5.68s)
+discard net, ★ loss = 0.33, pick    net, ★ loss = 0.44, koikoi  net, ★ loss = 0.21
+260619 054350 ★ loop:13 (シミュレーション＆学習完了: 5.89s)
+discard net, ★ loss = 0.11, pick    net, ★ loss = 0.12, koikoi  net, ★ loss = 0.02
+260619 054359 ★ loop:14 (シミュレーション＆学習完了: 9.07s)
+discard net, ★ loss = 0.31, pick    net, ★ loss = 0.34, koikoi  net, ★ loss = 0.11
+260619 054411 ★ loop:15 (シミュレーション＆学習完了: 11.89s)
+discard net, ★ loss = 0.10, pick    net, ★ loss = 0.11, koikoi  net, ★ loss = 0.02
+260619 054411 Updated JIT models synced and saved natively.
+260619 054418 ★ loop:16 (シミュレーション＆学習完了: 6.97s)
+discard net, ★ loss = 0.21, pick    net, ★ loss = 0.26, koikoi  net, ★ loss = 0.02
+260619 054426 ★ loop:17 (シミュレーション＆学習完了: 7.84s)
+discard net, ★ loss = 0.44, pick    net, ★ loss = 0.73, koikoi  net, ★ loss = 0.10
+260619 054434 ★ loop:18 (シミュレーション＆学習完了: 7.59s)
+discard net, ★ loss = 0.47, pick    net, ★ loss = 0.68, koikoi  net, ★ loss = 0.10
+260619 054441 ★ loop:19 (シミュレーション＆学習完了: 7.63s)
+discard net, ★ loss = 0.48, pick    net, ★ loss = 0.42, koikoi  net, ★ loss = 1.17
+260619 054449 ★ loop:20 (シミュレーション＆学習完了: 7.95s)
+discard net, ★ loss = 0.49, pick    net, ★ loss = 0.46, koikoi  net, ★ loss = 0.67
+260619 054449 Updated JIT models synced and saved natively.
+260619 054523 400.0 games tested, 384.0 wins, 15.0 loses, 1.0 draws (0.96, 0.04, 0.00), 55.3 points
+Record,loop:20, score:0.961, point:55.27
+260619 054536 ★ loop:21 (シミュレーション＆学習完了: 13.30s)
+discard net, ★ loss = 0.23, pick    net, ★ loss = 0.26, koikoi  net, ★ loss = 0.22
+260619 054543 ★ loop:22 (シミュレーション＆学習完了: 6.76s)
+discard net, ★ loss = 0.45, pick    net, ★ loss = 0.26, koikoi  net, ★ loss = 0.13
+260619 054551 ★ loop:23 (シミュレーション＆学習完了: 7.71s)
+discard net, ★ loss = 0.42, pick    net, ★ loss = 0.05, koikoi  net, ★ loss = 0.13
+260619 054559 ★ loop:24 (シミュレーション＆学習完了: 8.21s)
+discard net, ★ loss = 1.01, pick    net, ★ loss = 1.58, koikoi  net, ★ loss = 0.40
+
+260619 054559 最新モデル保存中
+260619 054559 プログラム終了
+
+260619 055747 start training on device: cuda:0
+260619 055759 ★ loop:1 (シミュレーション＆学習完了: 11.48s)
+discard net, ★ loss = 0.67, pick    net, ★ loss = 0.72, koikoi  net, ★ loss = 0.28
+260619 055806 ★ loop:2 (シミュレーション＆学習完了: 7.48s)
+discard net, ★ loss = 0.56, pick    net, ★ loss = 0.79, koikoi  net, ★ loss = 0.26
+260619 055812 ★ loop:3 (シミュレーション＆学習完了: 6.07s)
+discard net, ★ loss = 0.47, pick    net, ★ loss = 0.49, koikoi  net, ★ loss = 0.27
+260619 055819 ★ loop:4 (シミュレーション＆学習完了: 6.64s)
+discard net, ★ loss = 0.33, pick    net, ★ loss = 0.51, koikoi  net, ★ loss = 0.02
+
+260619 055819 最新モデル保存中
+260619 055819 プログラム終了
+
+260619 055914 start training on device: cuda:0
+260619 055922 ★ loop:1 (シミュレーション＆学習完了: 7.80s)
+discard net, ★ loss = 0.33, pick    net, ★ loss = 0.17, koikoi  net, ★ loss = 0.16
+260619 055929 ★ loop:2 (シミュレーション＆学習完了: 7.19s)
+discard net, ★ loss = 0.31, pick    net, ★ loss = 0.47, koikoi  net, ★ loss = 0.24
+260619 055934 ★ loop:3 (シミュレーション＆学習完了: 5.72s)
+discard net, ★ loss = 0.40, pick    net, ★ loss = 0.45, koikoi  net, ★ loss = 0.24
+260619 055941 ★ loop:4 (シミュレーション＆学習完了: 6.39s)
+discard net, ★ loss = 0.28, pick    net, ★ loss = 0.32, koikoi  net, ★ loss = 0.03
+260619 055946 ★ loop:5 (シミュレーション＆学習完了: 5.66s)
+discard net, ★ loss = 0.25, pick    net, ★ loss = 0.15, koikoi  net, ★ loss = 0.16
+260619 055946 Updated JIT models synced and saved natively.
+260619 055953 ★ loop:6 (シミュレーション＆学習完了: 6.72s)
+discard net, ★ loss = 0.94, pick    net, ★ loss = 1.07, koikoi  net, ★ loss = 0.82
+260619 060000 ★ loop:7 (シミュレーション＆学習完了: 7.00s)
+discard net, ★ loss = 0.28, pick    net, ★ loss = 0.15, koikoi  net, ★ loss = 0.02
+260619 060007 ★ loop:8 (シミュレーション＆学習完了: 6.60s)
+discard net, ★ loss = 0.15, pick    net, ★ loss = 0.24, koikoi  net, ★ loss = 0.07
+
+260619 060007 最新モデル保存中
+260619 060007 プログラム終了
+
+260619 062309 start training on device: cuda:0
+260619 062316 ★ loop:1 (シミュレーション＆学習完了: 7.09s)
+discard net, ★ loss = 0.14, pick    net, ★ loss = 0.11, koikoi  net, ★ loss = 0.10
+260619 062323 ★ loop:2 (シミュレーション＆学習完了: 6.72s)
+discard net, ★ loss = 0.18, pick    net, ★ loss = 0.41, koikoi  net, ★ loss = 0.14
+260619 062330 ★ loop:3 (シミュレーション＆学習完了: 6.88s)
+discard net, ★ loss = 0.54, pick    net, ★ loss = 0.85, koikoi  net, ★ loss = 0.23
+260619 062336 ★ loop:4 (シミュレーション＆学習完了: 6.23s)
+discard net, ★ loss = 0.23, pick    net, ★ loss = 0.35, koikoi  net, ★ loss = 0.24
+260619 062342 ★ loop:5 (シミュレーション＆学習完了: 5.98s)
+discard net, ★ loss = 0.29, pick    net, ★ loss = 0.24, koikoi  net, ★ loss = 0.04
+260619 062342 Updated JIT models synced and saved natively.
+260619 062349 ★ loop:6 (シミュレーション＆学習完了: 6.98s)
+discard net, ★ loss = 0.82, pick    net, ★ loss = 1.10, koikoi  net, ★ loss = 0.58
+260619 062355 ★ loop:7 (シミュレーション＆学習完了: 6.38s)
+discard net, ★ loss = 0.24, pick    net, ★ loss = 0.16, koikoi  net, ★ loss = 0.05
+260619 062401 ★ loop:8 (シミュレーション＆学習完了: 5.70s)
+discard net, ★ loss = 0.28, pick    net, ★ loss = 0.37, koikoi  net, ★ loss = 0.11
+260619 062407 ★ loop:9 (シミュレーション＆学習完了: 6.22s)
+discard net, ★ loss = 0.54, pick    net, ★ loss = 0.59, koikoi  net, ★ loss = 0.47
+260619 062414 ★ loop:10 (シミュレーション＆学習完了: 6.20s)
+discard net, ★ loss = 0.32, pick    net, ★ loss = 0.40, koikoi  net, ★ loss = 0.15
+260619 062414 Updated JIT models synced and saved natively.
+260619 062442 400.0 games tested, 384.0 wins, 15.0 loses, 1.0 draws (0.96, 0.04, 0.00), 55.5 points
+Record,loop:10, score:0.961, point:55.49
+260619 062442 最新モデル保存完了
+260619 062448 ★ loop:11 (シミュレーション＆学習完了: 6.18s)
+discard net, ★ loss = 0.31, pick    net, ★ loss = 0.26, koikoi  net, ★ loss = 0.02
+260619 062454 ★ loop:12 (シミュレーション＆学習完了: 5.87s)
+discard net, ★ loss = 0.22, pick    net, ★ loss = 0.43, koikoi  net, ★ loss = 0.03
+260619 062500 ★ loop:13 (シミュレーション＆学習完了: 5.90s)
+discard net, ★ loss = 0.13, pick    net, ★ loss = 0.11, koikoi  net, ★ loss = 0.01
+260619 062506 ★ loop:14 (シミュレーション＆学習完了: 6.57s)
+discard net, ★ loss = 0.28, pick    net, ★ loss = 0.49, koikoi  net, ★ loss = 0.11
+260619 062512 ★ loop:15 (シミュレーション＆学習完了: 5.90s)
+discard net, ★ loss = 0.17, pick    net, ★ loss = 0.10, koikoi  net, ★ loss = 0.01
+260619 062512 Updated JIT models synced and saved natively.
+260619 062517 ★ loop:16 (シミュレーション＆学習完了: 5.02s)
+discard net, ★ loss = 0.39, pick    net, ★ loss = 0.43, koikoi  net, ★ loss = 0.03
+260619 062523 ★ loop:17 (シミュレーション＆学習完了: 6.32s)
+discard net, ★ loss = 0.33, pick    net, ★ loss = 0.18, koikoi  net, ★ loss = 0.16
+260619 062530 ★ loop:18 (シミュレーション＆学習完了: 6.18s)
+discard net, ★ loss = 0.45, pick    net, ★ loss = 0.41, koikoi  net, ★ loss = 0.12
+260619 062536 ★ loop:19 (シミュレーション＆学習完了: 6.37s)
+discard net, ★ loss = 0.26, pick    net, ★ loss = 0.21, koikoi  net, ★ loss = 0.05
+260619 062543 ★ loop:20 (シミュレーション＆学習完了: 6.64s)
+discard net, ★ loss = 1.31, pick    net, ★ loss = 1.95, koikoi  net, ★ loss = 1.13
+260619 062543 Updated JIT models synced and saved natively.
+260619 062610 400.0 games tested, 392.0 wins, 8.0 loses, 0.0 draws (0.98, 0.02, 0.00), 55.9 points
+Record,loop:20, score:0.980, point:55.93
+260619 062610 最新モデル保存完了
+260619 062616 ★ loop:21 (シミュレーション＆学習完了: 5.75s)
+discard net, ★ loss = 0.18, pick    net, ★ loss = 0.07, koikoi  net, ★ loss = 0.07
+260619 062621 ★ loop:22 (シミュレーション＆学習完了: 5.51s)
+discard net, ★ loss = 0.14, pick    net, ★ loss = 0.14, koikoi  net, ★ loss = 0.03
+260619 062627 ★ loop:23 (シミュレーション＆学習完了: 6.27s)
+discard net, ★ loss = 0.40, pick    net, ★ loss = 0.27, koikoi  net, ★ loss = 0.19
+260619 062636 ★ loop:24 (シミュレーション＆学習完了: 8.31s)
+discard net, ★ loss = 0.65, pick    net, ★ loss = 0.32, koikoi  net, ★ loss = 0.58
+260619 062642 ★ loop:25 (シミュレーション＆学習完了: 6.24s)
+discard net, ★ loss = 0.22, pick    net, ★ loss = 0.27, koikoi  net, ★ loss = 0.02
+260619 062642 Updated JIT models synced and saved natively.
+260619 062647 ★ loop:26 (シミュレーション＆学習完了: 5.27s)
+discard net, ★ loss = 0.13, pick    net, ★ loss = 0.13, koikoi  net, ★ loss = 0.02
+260619 062654 ★ loop:27 (シミュレーション＆学習完了: 6.79s)
+discard net, ★ loss = 0.17, pick    net, ★ loss = 0.35, koikoi  net, ★ loss = 0.08
+260619 062700 ★ loop:28 (シミュレーション＆学習完了: 6.38s)
+discard net, ★ loss = 0.40, pick    net, ★ loss = 0.31, koikoi  net, ★ loss = 0.09
+260619 062707 ★ loop:29 (シミュレーション＆学習完了: 6.46s)
+discard net, ★ loss = 0.77, pick    net, ★ loss = 1.90, koikoi  net, ★ loss = 0.21
+260619 062713 ★ loop:30 (シミュレーション＆学習完了: 6.16s)
+discard net, ★ loss = 0.45, pick    net, ★ loss = 0.54, koikoi  net, ★ loss = 0.27
+260619 062713 Updated JIT models synced and saved natively.
+260619 062741 400.0 games tested, 378.0 wins, 21.0 loses, 1.0 draws (0.94, 0.05, 0.00), 55.9 points
+Record,loop:30, score:0.946, point:55.91
+260619 062748 ★ loop:31 (シミュレーション＆学習完了: 7.17s)
+discard net, ★ loss = 0.24, pick    net, ★ loss = 0.14, koikoi  net, ★ loss = 0.01
+260619 062755 ★ loop:32 (シミュレーション＆学習完了: 6.60s)
+discard net, ★ loss = 0.12, pick    net, ★ loss = 0.14, koikoi  net, ★ loss = 0.18
+
+260619 062755 最新モデル保存中
+260619 062755 プログラム終了
+
+260619 072626 start training on device: cuda:0
+260619 072634 ★ loop:1 (シミュレーション＆学習完了: 7.72s)
+discard net, ★ loss = 0.16, pick    net, ★ loss = 0.13, koikoi  net, ★ loss = 0.09
+260619 072641 ★ loop:2 (シミュレーション＆学習完了: 7.03s)
+discard net, ★ loss = 0.38, pick    net, ★ loss = 0.55, koikoi  net, ★ loss = 0.19
+260619 072646 ★ loop:3 (シミュレーション＆学習完了: 5.64s)
+discard net, ★ loss = 0.47, pick    net, ★ loss = 0.52, koikoi  net, ★ loss = 0.35
+260619 072653 ★ loop:4 (シミュレーション＆学習完了: 6.67s)
+discard net, ★ loss = 0.25, pick    net, ★ loss = 0.27, koikoi  net, ★ loss = 0.03
+260619 072700 ★ loop:5 (シミュレーション＆学習完了: 6.69s)
+discard net, ★ loss = 0.29, pick    net, ★ loss = 0.22, koikoi  net, ★ loss = 0.07
+260619 072700 Updated JIT models synced and saved natively.
+260619 072706 ★ loop:6 (シミュレーション＆学習完了: 6.50s)
+discard net, ★ loss = 0.83, pick    net, ★ loss = 1.30, koikoi  net, ★ loss = 0.45
+260619 072715 ★ loop:7 (シミュレーション＆学習完了: 8.66s)
+discard net, ★ loss = 0.14, pick    net, ★ loss = 0.17, koikoi  net, ★ loss = 0.01
+260619 072722 ★ loop:8 (シミュレーション＆学習完了: 6.65s)
+discard net, ★ loss = 0.12, pick    net, ★ loss = 0.13, koikoi  net, ★ loss = 0.06
+260619 072728 ★ loop:9 (シミュレーション＆学習完了: 6.08s)
+discard net, ★ loss = 0.55, pick    net, ★ loss = 0.39, koikoi  net, ★ loss = 0.17
+260619 072735 ★ loop:10 (シミュレーション＆学習完了: 7.06s)
+discard net, ★ loss = 0.37, pick    net, ★ loss = 0.35, koikoi  net, ★ loss = 0.14
+260619 072735 Updated JIT models synced and saved natively.
+260619 072803 400.0 games tested, 382.0 wins, 17.0 loses, 1.0 draws (0.95, 0.04, 0.00), 55.5 points
+Record,loop:10, score:0.956, point:55.50
+260619 072803 最新モデル保存完了
+260619 072809 ★ loop:11 (シミュレーション＆学習完了: 5.95s)
+discard net, ★ loss = 0.18, pick    net, ★ loss = 0.22, koikoi  net, ★ loss = 0.02
+260619 072815 ★ loop:12 (シミュレーション＆学習完了: 6.40s)
+discard net, ★ loss = 0.20, pick    net, ★ loss = 0.27, koikoi  net, ★ loss = 0.13
+260619 072822 ★ loop:13 (シミュレーション＆学習完了: 6.65s)
+discard net, ★ loss = 0.28, pick    net, ★ loss = 0.21, koikoi  net, ★ loss = 0.08
+260619 072831 ★ loop:14 (シミュレーション＆学習完了: 8.43s)
+discard net, ★ loss = 0.19, pick    net, ★ loss = 0.31, koikoi  net, ★ loss = 0.03
+260619 072837 ★ loop:15 (シミュレーション＆学習完了: 6.47s)
+discard net, ★ loss = 0.11, pick    net, ★ loss = 0.08, koikoi  net, ★ loss = 0.00
+260619 072837 Updated JIT models synced and saved natively.
+260619 072847 ★ loop:16 (シミュレーション＆学習完了: 10.02s)
+discard net, ★ loss = 0.44, pick    net, ★ loss = 0.49, koikoi  net, ★ loss = 0.23
+260619 072855 ★ loop:17 (シミュレーション＆学習完了: 7.86s)
+discard net, ★ loss = 0.26, pick    net, ★ loss = 0.50, koikoi  net, ★ loss = 0.02
+260619 072903 ★ loop:18 (シミュレーション＆学習完了: 7.82s)
+discard net, ★ loss = 0.32, pick    net, ★ loss = 0.15, koikoi  net, ★ loss = 0.07
+260619 072909 ★ loop:19 (シミュレーション＆学習完了: 6.37s)
+discard net, ★ loss = 0.24, pick    net, ★ loss = 0.36, koikoi  net, ★ loss = 0.01
+260619 072916 ★ loop:20 (シミュレーション＆学習完了: 6.54s)
+discard net, ★ loss = 0.15, pick    net, ★ loss = 0.13, koikoi  net, ★ loss = 0.18
+260619 072916 Updated JIT models synced and saved natively.
+260619 072947 400.0 games tested, 381.0 wins, 17.0 loses, 2.0 draws (0.95, 0.04, 0.01), 55.0 points
+Record,loop:20, score:0.955, point:54.97
+
+260619 072947 最新モデル保存中
+260619 072948 プログラム終了
+
+260619 074536 start training on device: cuda:0
+260619 074544 ★ loop:1 (シミュレーション＆学習完了: 7.55s)
+discard net, ★ loss = 0.41, pick    net, ★ loss = 0.48, koikoi  net, ★ loss = 0.09
+260619 074550 ★ loop:2 (シミュレーション＆学習完了: 5.99s)
+discard net, ★ loss = 0.43, pick    net, ★ loss = 1.06, koikoi  net, ★ loss = 0.28
+260619 074556 ★ loop:3 (シミュレーション＆学習完了: 5.65s)
+discard net, ★ loss = 0.40, pick    net, ★ loss = 0.44, koikoi  net, ★ loss = 0.30
+260619 074601 ★ loop:4 (シミュレーション＆学習完了: 5.85s)
+discard net, ★ loss = 0.23, pick    net, ★ loss = 0.26, koikoi  net, ★ loss = 0.01
+260619 074607 ★ loop:5 (シミュレーション＆学習完了: 5.84s)
+discard net, ★ loss = 0.18, pick    net, ★ loss = 0.10, koikoi  net, ★ loss = 0.03
+260619 074607 Updated JIT models synced and saved natively.
+260619 074615 ★ loop:6 (シミュレーション＆学習完了: 7.24s)
+discard net, ★ loss = 0.60, pick    net, ★ loss = 0.78, koikoi  net, ★ loss = 0.25
+260619 074622 ★ loop:7 (シミュレーション＆学習完了: 7.03s)
+discard net, ★ loss = 0.44, pick    net, ★ loss = 0.37, koikoi  net, ★ loss = 0.35
+260619 074627 ★ loop:8 (シミュレーション＆学習完了: 5.84s)
+discard net, ★ loss = 0.33, pick    net, ★ loss = 0.36, koikoi  net, ★ loss = 0.10
+260619 074633 ★ loop:9 (シミュレーション＆学習完了: 5.87s)
+discard net, ★ loss = 0.40, pick    net, ★ loss = 0.15, koikoi  net, ★ loss = 0.05
+260619 074640 ★ loop:10 (シミュレーション＆学習完了: 6.70s)
+discard net, ★ loss = 0.26, pick    net, ★ loss = 0.25, koikoi  net, ★ loss = 0.17
+260619 074640 Updated JIT models synced and saved natively.
+260619 074707 400.0 games tested, 387.0 wins, 11.0 loses, 2.0 draws (0.97, 0.03, 0.01), 56.4 points
+Record,loop:10, score:0.970, point:56.43
+260619 074707 最新モデル保存完了
+260619 074713 ★ loop:11 (シミュレーション＆学習完了: 6.27s)
+discard net, ★ loss = 0.40, pick    net, ★ loss = 0.45, koikoi  net, ★ loss = 0.01
+260619 074720 ★ loop:12 (シミュレーション＆学習完了: 6.50s)
+discard net, ★ loss = 0.35, pick    net, ★ loss = 0.27, koikoi  net, ★ loss = 0.24
+260619 074726 ★ loop:13 (シミュレーション＆学習完了: 6.25s)
+discard net, ★ loss = 0.17, pick    net, ★ loss = 0.21, koikoi  net, ★ loss = 0.07
+260619 074733 ★ loop:14 (シミュレーション＆学習完了: 6.72s)
+discard net, ★ loss = 0.28, pick    net, ★ loss = 0.23, koikoi  net, ★ loss = 0.25
+260619 074740 ★ loop:15 (シミュレーション＆学習完了: 7.51s)
+discard net, ★ loss = 0.34, pick    net, ★ loss = 0.29, koikoi  net, ★ loss = 0.35
+260619 074740 Updated JIT models synced and saved natively.
+260619 074746 ★ loop:16 (シミュレーション＆学習完了: 5.65s)
+discard net, ★ loss = 0.14, pick    net, ★ loss = 0.07, koikoi  net, ★ loss = 0.02
+260619 074752 ★ loop:17 (シミュレーション＆学習完了: 6.28s)
+discard net, ★ loss = 0.28, pick    net, ★ loss = 0.24, koikoi  net, ★ loss = 0.01
+260619 074758 ★ loop:18 (シミュレーション＆学習完了: 5.92s)
+discard net, ★ loss = 0.17, pick    net, ★ loss = 0.15, koikoi  net, ★ loss = 0.18
+260619 074804 ★ loop:19 (シミュレーション＆学習完了: 5.81s)
+discard net, ★ loss = 0.31, pick    net, ★ loss = 0.31, koikoi  net, ★ loss = 0.03
+260619 074811 ★ loop:20 (シミュレーション＆学習完了: 6.70s)
+discard net, ★ loss = 0.27, pick    net, ★ loss = 0.60, koikoi  net, ★ loss = 0.02
+260619 074811 Updated JIT models synced and saved natively.
+260619 074838 400.0 games tested, 389.0 wins, 9.0 loses, 2.0 draws (0.97, 0.02, 0.01), 56.3 points
+Record,loop:20, score:0.975, point:56.27
+260619 074838 最新モデル保存完了
+260619 074844 ★ loop:21 (シミュレーション＆学習完了: 6.15s)
+discard net, ★ loss = 0.20, pick    net, ★ loss = 0.04, koikoi  net, ★ loss = 0.01
+260619 074850 ★ loop:22 (シミュレーション＆学習完了: 5.93s)
+discard net, ★ loss = 0.29, pick    net, ★ loss = 0.27, koikoi  net, ★ loss = 0.41
+260619 074858 ★ loop:23 (シミュレーション＆学習完了: 7.69s)
+discard net, ★ loss = 0.31, pick    net, ★ loss = 0.18, koikoi  net, ★ loss = 0.33
+260619 074904 ★ loop:24 (シミュレーション＆学習完了: 6.13s)
+discard net, ★ loss = 0.45, pick    net, ★ loss = 0.35, koikoi  net, ★ loss = 0.10
+260619 074909 ★ loop:25 (シミュレーション＆学習完了: 5.33s)
+discard net, ★ loss = 0.29, pick    net, ★ loss = 0.47, koikoi  net, ★ loss = 0.01
+260619 074909 Updated JIT models synced and saved natively.
+260619 074915 ★ loop:26 (シミュレーション＆学習完了: 5.76s)
+discard net, ★ loss = 0.12, pick    net, ★ loss = 0.14, koikoi  net, ★ loss = 0.03
+260619 074922 ★ loop:27 (シミュレーション＆学習完了: 6.57s)
+discard net, ★ loss = 0.25, pick    net, ★ loss = 0.34, koikoi  net, ★ loss = 0.01
+260619 074928 ★ loop:28 (シミュレーション＆学習完了: 6.36s)
+discard net, ★ loss = 0.28, pick    net, ★ loss = 0.29, koikoi  net, ★ loss = 0.11
+
+260619 074928 最新モデル保存中
+260619 074928 プログラム終了
+
+260619 095250 start training on device: cuda:0
+260619 095256 ★ loop:1 (シミュレーション＆学習完了: 6.74s)
+discard net, ★ loss = 0.23, pick    net, ★ loss = 0.06, koikoi  net, ★ loss = 0.00
+260619 095302 ★ loop:2 (シミュレーション＆学習完了: 5.83s)
+discard net, ★ loss = 0.37, pick    net, ★ loss = 1.29, koikoi  net, ★ loss = 0.41
+260619 095308 ★ loop:3 (シミュレーション＆学習完了: 6.16s)
+discard net, ★ loss = 0.35, pick    net, ★ loss = 0.33, koikoi  net, ★ loss = 0.18
+260619 095315 ★ loop:4 (シミュレーション＆学習完了: 6.48s)
+discard net, ★ loss = 0.68, pick    net, ★ loss = 0.97, koikoi  net, ★ loss = 0.06
+260619 095321 ★ loop:5 (シミュレーション＆学習完了: 5.60s)
+discard net, ★ loss = 0.26, pick    net, ★ loss = 0.19, koikoi  net, ★ loss = 0.08
+260619 095321 Updated JIT models synced and saved natively.
+260619 095328 ★ loop:6 (シミュレーション＆学習完了: 7.00s)
+discard net, ★ loss = 0.75, pick    net, ★ loss = 1.30, koikoi  net, ★ loss = 0.46
+260619 095336 ★ loop:7 (シミュレーション＆学習完了: 7.99s)
+discard net, ★ loss = 0.19, pick    net, ★ loss = 0.24, koikoi  net, ★ loss = 0.07
+260619 095341 ★ loop:8 (シミュレーション＆学習完了: 5.85s)
+discard net, ★ loss = 0.07, pick    net, ★ loss = 0.05, koikoi  net, ★ loss = 0.00
+260619 095347 ★ loop:9 (シミュレーション＆学習完了: 5.29s)
+discard net, ★ loss = 0.39, pick    net, ★ loss = 0.11, koikoi  net, ★ loss = 0.27
+260619 095352 ★ loop:10 (シミュレーション＆学習完了: 5.75s)
+discard net, ★ loss = 0.21, pick    net, ★ loss = 0.18, koikoi  net, ★ loss = 0.05
+260619 095352 Updated JIT models synced and saved natively.
+260619 095423 400.0 games tested, 379.0 wins, 20.0 loses, 1.0 draws (0.95, 0.05, 0.00), 55.0 points
+Record,loop:10, score:0.949, point:54.97
+260619 095423 最新モデル保存完了
+260619 095430 ★ loop:11 (シミュレーション＆学習完了: 7.18s)
+discard net, ★ loss = 0.18, pick    net, ★ loss = 0.13, koikoi  net, ★ loss = 0.00
+260619 095436 ★ loop:12 (シミュレーション＆学習完了: 6.11s)
+discard net, ★ loss = 0.19, pick    net, ★ loss = 0.29, koikoi  net, ★ loss = 0.12
+260619 095443 ★ loop:13 (シミュレーション＆学習完了: 6.73s)
+discard net, ★ loss = 0.15, pick    net, ★ loss = 0.17, koikoi  net, ★ loss = 0.02
+260619 095451 ★ loop:14 (シミュレーション＆学習完了: 7.62s)
+discard net, ★ loss = 0.22, pick    net, ★ loss = 0.33, koikoi  net, ★ loss = 0.08
+260619 095457 ★ loop:15 (シミュレーション＆学習完了: 6.61s)
+discard net, ★ loss = 0.12, pick    net, ★ loss = 0.07, koikoi  net, ★ loss = 0.01
+260619 095457 Updated JIT models synced and saved natively.
+260619 095504 ★ loop:16 (シミュレーション＆学習完了: 6.79s)
+discard net, ★ loss = 0.15, pick    net, ★ loss = 0.11, koikoi  net, ★ loss = 0.00
+260619 095512 ★ loop:17 (シミュレーション＆学習完了: 7.47s)
+discard net, ★ loss = 0.36, pick    net, ★ loss = 0.33, koikoi  net, ★ loss = 0.05
+260619 095519 ★ loop:18 (シミュレーション＆学習完了: 7.27s)
+discard net, ★ loss = 0.35, pick    net, ★ loss = 0.41, koikoi  net, ★ loss = 0.06
+260619 095525 ★ loop:19 (シミュレーション＆学習完了: 6.25s)
+discard net, ★ loss = 0.58, pick    net, ★ loss = 0.72, koikoi  net, ★ loss = 0.24
+260619 095532 ★ loop:20 (シミュレーション＆学習完了: 6.46s)
+discard net, ★ loss = 0.15, pick    net, ★ loss = 0.10, koikoi  net, ★ loss = 0.17
+260619 095532 Updated JIT models synced and saved natively.
+260619 095601 400.0 games tested, 389.0 wins, 11.0 loses, 0.0 draws (0.97, 0.03, 0.00), 56.1 points
+Record,loop:20, score:0.973, point:56.14
+260619 095601 最新モデル保存完了
+260619 095607 ★ loop:21 (シミュレーション＆学習完了: 6.49s)
+discard net, ★ loss = 0.22, pick    net, ★ loss = 0.14, koikoi  net, ★ loss = 0.03
+260619 095614 ★ loop:22 (シミュレーション＆学習完了: 6.20s)
+discard net, ★ loss = 0.26, pick    net, ★ loss = 0.23, koikoi  net, ★ loss = 0.15
+260619 095621 ★ loop:23 (シミュレーション＆学習完了: 7.55s)
+discard net, ★ loss = 0.37, pick    net, ★ loss = 0.57, koikoi  net, ★ loss = 0.03
+
+260619 095621 最新モデル保存中
+260619 095621 プログラム終了
+
+260619 100123 start training on device: cuda:0
+260619 100130 ★ loop:1 (シミュレーション＆学習完了: 6.91s)
+discard net, ★ loss = 0.22, pick    net, ★ loss = 0.06, koikoi  net, ★ loss = 0.00
+260619 100136 ★ loop:2 (シミュレーション＆学習完了: 6.35s)
+discard net, ★ loss = 0.33, pick    net, ★ loss = 0.31, koikoi  net, ★ loss = 0.14
+260619 100142 ★ loop:3 (シミュレーション＆学習完了: 6.17s)
+discard net, ★ loss = 0.31, pick    net, ★ loss = 0.58, koikoi  net, ★ loss = 0.04
+260619 100148 ★ loop:4 (シミュレーション＆学習完了: 5.78s)
+discard net, ★ loss = 0.78, pick    net, ★ loss = 1.76, koikoi  net, ★ loss = 0.89
+260619 100154 ★ loop:5 (シミュレーション＆学習完了: 6.11s)
+discard net, ★ loss = 0.26, pick    net, ★ loss = 0.24, koikoi  net, ★ loss = 0.02
+260619 100154 Updated JIT models synced and saved natively.
+260619 100202 ★ loop:6 (シミュレーション＆学習完了: 8.18s)
+discard net, ★ loss = 0.42, pick    net, ★ loss = 0.59, koikoi  net, ★ loss = 0.11
+260619 100209 ★ loop:7 (シミュレーション＆学習完了: 6.75s)
+discard net, ★ loss = 0.22, pick    net, ★ loss = 0.12, koikoi  net, ★ loss = 0.02
+260619 100216 ★ loop:8 (シミュレーション＆学習完了: 6.70s)
+discard net, ★ loss = 0.26, pick    net, ★ loss = 0.31, koikoi  net, ★ loss = 0.10
+260619 100221 ★ loop:9 (シミュレーション＆学習完了: 5.49s)
+discard net, ★ loss = 0.34, pick    net, ★ loss = 0.13, koikoi  net, ★ loss = 0.05
+260619 100231 ★ loop:10 (シミュレーション＆学習完了: 9.13s)
+discard net, ★ loss = 0.24, pick    net, ★ loss = 0.26, koikoi  net, ★ loss = 0.02
+260619 100231 Updated JIT models synced and saved natively.
+260619 100301 400.0 games tested, 382.0 wins, 14.0 loses, 4.0 draws (0.95, 0.04, 0.01), 54.6 points
+Record,loop:10, score:0.960, point:54.63
+260619 100301 最新モデル保存完了
+260619 100309 ★ loop:11 (シミュレーション＆学習完了: 7.44s)
+discard net, ★ loss = 0.32, pick    net, ★ loss = 0.24, koikoi  net, ★ loss = 0.00
+
+260619 100309 最新モデル保存中
+260619 100309 プログラム終了
+
+260619 100947 start training on device: cuda:0
+260619 100953 ★ loop:1 (シミュレーション＆学習完了: 6.81s)
+discard net, ★ loss = 0.21, pick    net, ★ loss = 0.04, koikoi  net, ★ loss = 0.00
+260619 101000 ★ loop:2 (シミュレーション＆学習完了: 6.63s)
+discard net, ★ loss = 0.25, pick    net, ★ loss = 0.27, koikoi  net, ★ loss = 0.13
+260619 101007 ★ loop:3 (シミュレーション＆学習完了: 6.70s)
+discard net, ★ loss = 0.37, pick    net, ★ loss = 0.40, koikoi  net, ★ loss = 0.37
+260619 101013 ★ loop:4 (シミュレーション＆学習完了: 6.24s)
+discard net, ★ loss = 0.17, pick    net, ★ loss = 0.34, koikoi  net, ★ loss = 0.07
+260619 101019 ★ loop:5 (シミュレーション＆学習完了: 5.99s)
+discard net, ★ loss = 0.33, pick    net, ★ loss = 0.36, koikoi  net, ★ loss = 0.10
+260619 101019 Updated JIT models synced and saved natively.
+260619 101026 ★ loop:6 (シミュレーション＆学習完了: 6.74s)
+discard net, ★ loss = 0.66, pick    net, ★ loss = 1.35, koikoi  net, ★ loss = 0.41
+260619 101032 ★ loop:7 (シミュレーション＆学習完了: 6.06s)
+discard net, ★ loss = 0.16, pick    net, ★ loss = 0.13, koikoi  net, ★ loss = 0.02
+260619 101037 ★ loop:8 (シミュレーション＆学習完了: 5.78s)
+discard net, ★ loss = 0.15, pick    net, ★ loss = 0.17, koikoi  net, ★ loss = 0.03
+260619 101043 ★ loop:9 (シミュレーション＆学習完了: 5.49s)
+discard net, ★ loss = 0.44, pick    net, ★ loss = 0.42, koikoi  net, ★ loss = 0.18
+260619 101050 ★ loop:10 (シミュレーション＆学習完了: 6.87s)
+discard net, ★ loss = 0.19, pick    net, ★ loss = 0.18, koikoi  net, ★ loss = 0.02
+260619 101050 Updated JIT models synced and saved natively.
+260619 101117 400.0 games tested, 382.0 wins, 15.0 loses, 3.0 draws (0.95, 0.04, 0.01), 54.9 points
+Record,loop:10, score:0.959, point:54.88
+260619 101118 最新モデル保存完了
+260619 101124 ★ loop:11 (シミュレーション＆学習完了: 6.09s)
+discard net, ★ loss = 0.26, pick    net, ★ loss = 0.26, koikoi  net, ★ loss = 0.02
+
+260619 101124 最新モデル保存中
+260619 101124 プログラム終了
+
+260619 101801 start training on device: cuda:0
+260619 101807 ★ loop:1 (シミュレーション＆学習完了: 6.79s)
+discard net, ★ loss = 0.20, pick    net, ★ loss = 0.05, koikoi  net, ★ loss = 0.00
+260619 101813 ★ loop:2 (シミュレーション＆学習完了: 5.96s)
+discard net, ★ loss = 0.39, pick    net, ★ loss = 0.93, koikoi  net, ★ loss = 0.24
+260619 101819 ★ loop:3 (シミュレーション＆学習完了: 6.02s)
+discard net, ★ loss = 0.36, pick    net, ★ loss = 0.39, koikoi  net, ★ loss = 0.05
+260619 101827 ★ loop:4 (シミュレーション＆学習完了: 7.27s)
+discard net, ★ loss = 0.75, pick    net, ★ loss = 2.05, koikoi  net, ★ loss = 0.61
+260619 101834 ★ loop:5 (シミュレーション＆学習完了: 7.20s)
+discard net, ★ loss = 0.23, pick    net, ★ loss = 0.23, koikoi  net, ★ loss = 0.01
+260619 101834 Updated JIT models synced and saved natively.
+260619 101841 ★ loop:6 (シミュレーション＆学習完了: 7.55s)
+discard net, ★ loss = 0.56, pick    net, ★ loss = 1.19, koikoi  net, ★ loss = 0.29
+260619 101848 ★ loop:7 (シミュレーション＆学習完了: 6.23s)
+discard net, ★ loss = 0.19, pick    net, ★ loss = 0.10, koikoi  net, ★ loss = 0.03
+260619 101853 ★ loop:8 (シミュレーション＆学習完了: 5.80s)
+discard net, ★ loss = 0.28, pick    net, ★ loss = 0.31, koikoi  net, ★ loss = 0.13
+260619 101859 ★ loop:9 (シミュレーション＆学習完了: 5.38s)
+discard net, ★ loss = 0.35, pick    net, ★ loss = 0.11, koikoi  net, ★ loss = 0.01
+260619 101905 ★ loop:10 (シミュレーション＆学習完了: 6.79s)
+discard net, ★ loss = 0.28, pick    net, ★ loss = 0.24, koikoi  net, ★ loss = 0.14
+260619 101906 Updated JIT models synced and saved natively.
+260619 101938 400.0 games tested, 387.0 wins, 11.0 loses, 2.0 draws (0.97, 0.03, 0.01), 56.5 points
+Record,loop:10, score:0.970, point:56.47
+260619 101938 最新モデル保存完了
+260619 101944 ★ loop:11 (シミュレーション＆学習完了: 6.15s)
+discard net, ★ loss = 0.58, pick    net, ★ loss = 0.68, koikoi  net, ★ loss = 0.34
+
+260619 101944 最新モデル保存中
+260619 101944 プログラム終了
+
+260619 104403 start training on device: cuda:0
+260619 104410 ★ loop:1 (シミュレーション＆学習完了: 7.16s)
+discard net, ★ loss = 0.28, pick    net, ★ loss = 0.03, koikoi  net, ★ loss = 0.06
+260619 104416 ★ loop:2 (シミュレーション＆学習完了: 5.98s)
+discard net, ★ loss = 0.38, pick    net, ★ loss = 0.87, koikoi  net, ★ loss = 0.21
+260619 104422 ★ loop:3 (シミュレーション＆学習完了: 5.67s)
+discard net, ★ loss = 0.45, pick    net, ★ loss = 0.29, koikoi  net, ★ loss = 0.12
+260619 104427 ★ loop:4 (シミュレーション＆学習完了: 5.80s)
+discard net, ★ loss = 0.28, pick    net, ★ loss = 0.45, koikoi  net, ★ loss = 0.00
+260619 104433 ★ loop:5 (シミュレーション＆学習完了: 5.70s)
+discard net, ★ loss = 0.42, pick    net, ★ loss = 0.22, koikoi  net, ★ loss = 0.25
+260619 104433 Updated JIT models synced and saved natively.
+260619 104440 ★ loop:6 (シミュレーション＆学習完了: 6.64s)
+discard net, ★ loss = 0.51, pick    net, ★ loss = 1.12, koikoi  net, ★ loss = 0.23
+260619 104445 ★ loop:7 (シミュレーション＆学習完了: 5.42s)
+discard net, ★ loss = 0.11, pick    net, ★ loss = 0.09, koikoi  net, ★ loss = 0.00
+260619 104452 ★ loop:8 (シミュレーション＆学習完了: 6.53s)
+discard net, ★ loss = 0.23, pick    net, ★ loss = 0.39, koikoi  net, ★ loss = 0.05
+260619 104457 ★ loop:9 (シミュレーション＆学習完了: 5.34s)
+discard net, ★ loss = 0.29, pick    net, ★ loss = 0.10, koikoi  net, ★ loss = 0.00
+260619 104503 ★ loop:10 (シミュレーション＆学習完了: 5.79s)
+discard net, ★ loss = 0.26, pick    net, ★ loss = 0.13, koikoi  net, ★ loss = 0.20
+260619 104503 Updated JIT models synced and saved natively.
+260619 104536 400.0 games tested, 378.0 wins, 20.0 loses, 2.0 draws (0.94, 0.05, 0.01), 54.6 points
+Record,loop:10, score:0.947, point:54.58
+260619 104536 最新モデル保存完了
+
+260619 104536 最新モデル保存中
+260619 104536 プログラム終了
+
+260619 105326 start training on device: cuda:0
+260619 105333 ★ loop:1 (シミュレーション＆学習完了: 7.46s)
+discard net, ★ loss = 0.26, pick    net, ★ loss = 0.03, koikoi  net, ★ loss = 0.04
+260619 105340 ★ loop:2 (シミュレーション＆学習完了: 6.51s)
+discard net, ★ loss = 0.39, pick    net, ★ loss = 0.87, koikoi  net, ★ loss = 0.19
+260619 105346 ★ loop:3 (シミュレーション＆学習完了: 6.14s)
+discard net, ★ loss = 0.24, pick    net, ★ loss = 0.24, koikoi  net, ★ loss = 0.12
+260619 105352 ★ loop:4 (シミュレーション＆学習完了: 6.21s)
+discard net, ★ loss = 0.59, pick    net, ★ loss = 1.02, koikoi  net, ★ loss = 0.07
+260619 105359 ★ loop:5 (シミュレーション＆学習完了: 6.75s)
+discard net, ★ loss = 0.23, pick    net, ★ loss = 0.26, koikoi  net, ★ loss = 0.07
+260619 105359 Updated JIT models synced and saved natively.
+260619 105406 ★ loop:6 (シミュレーション＆学習完了: 7.13s)
+discard net, ★ loss = 0.56, pick    net, ★ loss = 1.21, koikoi  net, ★ loss = 0.26
+260619 105411 ★ loop:7 (シミュレーション＆学習完了: 5.55s)
+discard net, ★ loss = 0.15, pick    net, ★ loss = 0.09, koikoi  net, ★ loss = 0.02
+260619 105417 ★ loop:8 (シミュレーション＆学習完了: 5.38s)
+discard net, ★ loss = 0.16, pick    net, ★ loss = 0.17, koikoi  net, ★ loss = 0.00
+260619 105422 ★ loop:9 (シミュレーション＆学習完了: 5.27s)
+discard net, ★ loss = 0.33, pick    net, ★ loss = 0.17, koikoi  net, ★ loss = 0.04
+260619 105428 ★ loop:10 (シミュレーション＆学習完了: 6.04s)
+discard net, ★ loss = 0.20, pick    net, ★ loss = 0.11, koikoi  net, ★ loss = 0.05
+260619 105428 Updated JIT models synced and saved natively.
+260619 105459 400.0 games tested, 384.0 wins, 14.0 loses, 2.0 draws (0.96, 0.04, 0.01), 55.2 points
+Record,loop:10, score:0.962, point:55.18
+260619 105459 最新モデル保存完了
+260619 105505 ★ loop:11 (シミュレーション＆学習完了: 5.88s)
+discard net, ★ loss = 0.16, pick    net, ★ loss = 0.09, koikoi  net, ★ loss = 0.01
+
+260619 105505 最新モデル保存中
+260619 105505 プログラム終了

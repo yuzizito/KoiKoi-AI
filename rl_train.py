@@ -236,23 +236,27 @@ def init_worker():
     
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     
-    # ★ 完全にBFloat16化してからトレースする
     master_discard_net = master_discard_net.to(device).bfloat16().eval()
     master_pick_net = master_pick_net.to(device).bfloat16().eval()
     master_koikoi_net = master_koikoi_net.to(device).bfloat16().eval()
     
-    example_input_normal = torch.zeros((1, 300, 48), dtype=torch.bfloat16, device=device)
-    example_input_koikoi = torch.zeros((1, 300, 50), dtype=torch.bfloat16, device=device)
-    
-    with torch.inference_mode():
-        # マスターモデルのJITコンパイル（autocast不要）
-        master_discard_net = torch.jit.trace(master_discard_net, example_input_normal, check_trace=False)
-        master_pick_net    = torch.jit.trace(master_pick_net, example_input_normal, check_trace=False)
-        master_koikoi_net  = torch.jit.trace(master_koikoi_net, example_input_koikoi, check_trace=False)
-
     master_agent = koikoilearn.Agent(master_discard_net, master_pick_net, master_koikoi_net)
 
 def parallel_arena_test(agent, n_games):
+    import psutil
+    import os
+    
+    # ==========================================
+    # 【追加】Worker開始直後のメモリ計測
+    # ==========================================
+    pid = os.getpid()
+    proc = psutil.Process(pid)
+    mem_start = proc.memory_info()
+    rss_start = mem_start.rss / (1024 * 1024)
+    vms_start = mem_start.vms / (1024 * 1024)
+    print(f"  [Worker PID {pid} - START] RSS: {rss_start:.1f} MB | VMS: {vms_start:.1f} MB")
+    # ==========================================
+    
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     
     for key in agent.model.keys():
@@ -263,6 +267,16 @@ def parallel_arena_test(agent, n_games):
     arena.multi_game_test(n_games)
     result = arena.test_win_num
     result.append(np.mean(arena.test_point[1]))
+    
+    # ==========================================
+    # 【追加】対局終了直後のメモリ計測
+    # ==========================================
+    mem_end = proc.memory_info()
+    rss_end = mem_end.rss / (1024 * 1024)
+    vms_end = mem_end.vms / (1024 * 1024)
+    print(f"  [Worker PID {pid} -  END ] RSS: {rss_end:.1f} MB | VMS: {vms_end:.1f} MB (Delta RSS: {rss_end - rss_start:+.1f} MB)")
+    # ==========================================
+    
     return result
 
 def test_result_analysis(result,loop):
@@ -398,7 +412,9 @@ if __name__ == '__main__':
         
         losses = koikoicore.run_simulation_and_train(
             cpu_count, n_core_games, n_core_games,          
-            n_core_games * 150, n_core_games * 150, n_core_games * 50,
+            11000,  # cap_d (discard)
+            1400,   # cap_p (pick)
+            1600,   # cap_k (koikoi)
             task_type, 1.0, wp_mat_np,
             "traced_discard.pt", "traced_pick.pt", "traced_koikoi.pt", device_str,
             trainer['discard'], trainer['pick'], trainer['koikoi'],
@@ -413,21 +429,84 @@ if __name__ == '__main__':
         if sync_models:
             print_log(f'{time_str()} Updated JIT models synced and saved natively.', log_path)
         
+        # ==========================================
+        # 【追加】CUDAメモリ状況をフォーマット出力するヘルパー関数
+        # ==========================================
+        def print_cuda_mem_status(label):
+            if torch.cuda.is_available():
+                alloc = torch.cuda.memory_allocated(0) / (1024 * 1024)
+                res = torch.cuda.memory_reserved(0) / (1024 * 1024)
+                max_alloc = torch.cuda.max_memory_allocated(0) / (1024 * 1024)
+                max_res = torch.cuda.max_memory_reserved(0) / (1024 * 1024)
+                print(f"--- [CUDA Memory: {label}] ---")
+                print(f"  allocated_memory     : {alloc:.2f} MB")
+                print(f"  reserved_memory      : {res:.2f} MB")
+                print(f"  max_allocated_memory : {max_alloc:.2f} MB")
+                print(f"  max_reserved_memory  : {max_res:.2f} MB")
+                print("-" * 35)
+        
         # 4. アリーナ評価 (従来通り)
         if loop % n_loop_arena_test == 0:
-            # 評価用のために重みをPythonに一時読み込み (テスト用のみ)
+            import psutil
+            import os
+            import time
+
+            def print_arena_metrics(label, t_start=None):
+                sys_mem = psutil.virtual_memory()
+                main_proc = psutil.Process(os.getpid())
+                
+                print(f"\n--- [Arena Metrics: {label}] ---")
+                print("[RAM]")
+                print(f"  System Used : {sys_mem.used / (1024*1024):.1f} MB")
+                print(f"  System Avail: {sys_mem.available / (1024*1024):.1f} MB")
+                print(f"  Main RSS    : {main_proc.memory_info().rss / (1024*1024):.1f} MB")
+                
+                print("[VRAM]")
+                if torch.cuda.is_available():
+                    print(f"  Allocated   : {torch.cuda.memory_allocated(0) / (1024*1024):.1f} MB")
+                    print(f"  Reserved    : {torch.cuda.memory_reserved(0) / (1024*1024):.1f} MB")
+                    print(f"  Max Alloc   : {torch.cuda.max_memory_allocated(0) / (1024*1024):.1f} MB")
+                    print(f"  Max Reserved: {torch.cuda.max_memory_reserved(0) / (1024*1024):.1f} MB")
+                
+                if t_start is not None:
+                    print("[Timing]")
+                    print(f"  Elapsed Time: {time.perf_counter() - t_start:.3f} sec")
+                print("-" * 38)
+
             for key in ['discard', 'pick', 'koikoi']:
                 action_net[key].load_state_dict(torch.jit.load(f"traced_{key}.pt", map_location='cpu').state_dict())
             
             test_agent = koikoilearn.Agent(action_net['discard'], action_net['pick'], action_net['koikoi'])
             
+            t_arena_start = time.perf_counter()
+            print_arena_metrics("1. Before Arena Start", t_arena_start)
+
+            # 強制的にWorker数を4に固定
+            arena_workers = 4 
+            
+            t_pool_start = time.perf_counter()
             result = []
-            pool = mp.Pool(cpu_count, initializer=init_worker)
-            for _ in range(cpu_count):
-                result.append(pool.apply_async(parallel_arena_test, args=(test_agent, 400//cpu_count)))
+            pool = mp.Pool(arena_workers, initializer=init_worker)
+            
+            t_pool_created = time.perf_counter()
+            print_arena_metrics("2. After Pool Created", t_pool_created)
+            print(f"  -> Pool Creation Time: {t_pool_created - t_pool_start:.3f} sec")
+
+            for _ in range(arena_workers):
+                result.append(pool.apply_async(parallel_arena_test, args=(test_agent, 400//arena_workers)))
             pool.close()
             pool.join()
             
+            t_arena_end = time.perf_counter()
+            print_arena_metrics("3. After Arena Finished", t_arena_end)
+            print(f"  -> Arena Exec Time: {t_arena_end - t_pool_created:.3f} sec")
+
+            del pool
+            
+            t_pool_destroyed = time.perf_counter()
+            print_arena_metrics("4. After Pool Destroyed", t_pool_destroyed)
+            print(f"  -> Total Arena Time: {t_pool_destroyed - t_arena_start:.3f} sec")
+
             s = test_result_analysis([res.get() for res in result], loop)
             score.append(s)
             

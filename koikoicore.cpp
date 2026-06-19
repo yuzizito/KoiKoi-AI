@@ -883,6 +883,7 @@ public:
     int rows;
     int cols;
     int current_size;
+    int peak_size = 0; // 実行中に観測された最大サイズを記録
     std::vector<float> states, rewards;
     std::vector<int> actions;
 
@@ -901,6 +902,9 @@ public:
         float* dest = &states[current_size * rows * cols];
         std::memcpy(dest, state.data(), rows * cols * sizeof(float));
         actions[current_size] = action; rewards[current_size] = reward; current_size++;
+        if (current_size > peak_size) {
+            peak_size = current_size;
+        }
     }
 
     // 遅延再構築用メソッド
@@ -915,6 +919,9 @@ public:
                            log_buf_ptr, order, cache_ptr,
                            true, action); // マスク有効化、アライメント実行
         current_size++;
+        if (current_size > peak_size) {
+            peak_size = current_size;
+        }
     }
 
     std::pair<torch::Tensor, torch::Tensor> get_tensors() {
@@ -938,6 +945,22 @@ public:
         py::dict result;
         result["states"] = res_states; result["actions"] = res_actions; result["rewards"] = res_rewards;
         return result;
+    }
+
+    size_t print_buffer_memory_report(const std::string& prefix) const {
+        size_t states_bytes  = states.capacity() * sizeof(float);
+        size_t rewards_bytes = rewards.capacity() * sizeof(float);
+        size_t actions_bytes = actions.capacity() * sizeof(int);
+
+        double states_mb  = static_cast<double>(states_bytes)  / (1024.0 * 1024.0);
+        double rewards_mb = static_cast<double>(rewards_bytes) / (1024.0 * 1024.0);
+        double actions_mb = static_cast<double>(actions_bytes) / (1024.0 * 1024.0);
+
+        std::cout << "  " << prefix << ".states  : " << std::fixed << std::setprecision(2) << states_mb << " MB\n"
+                  << "  " << prefix << ".rewards : " << std::fixed << std::setprecision(2) << rewards_mb << " MB\n"
+                  << "  " << prefix << ".actions : " << std::fixed << std::setprecision(2) << actions_mb << " MB\n";
+
+        return states_bytes + rewards_bytes + actions_bytes;
     }
 };
 
@@ -1476,6 +1499,23 @@ public:
             }
         }
     }
+
+    size_t get_pinned_tensors_bytes() const {
+        size_t total = 0;
+        for (int i = 0; i < 3; ++i) {
+            total += feat_tensor[i].nbytes();
+            total += mask_tensor[i].nbytes();
+        }
+        return total;
+    }
+
+    size_t print_simulator_memory_report() const {
+        size_t total_buf_bytes = 0;
+        total_buf_bytes += buf_discard.print_buffer_memory_report("discard");
+        total_buf_bytes += buf_pick.print_buffer_memory_report("pick");
+        total_buf_bytes += buf_koikoi.print_buffer_memory_report("koikoi");
+        return total_buf_bytes;
+    }
 };
 
 class KoiKoiTrainer {
@@ -1726,6 +1766,81 @@ public:
             }
         }
     }
+
+    void print_memory_report() const {
+        if (sims.empty()) return;
+
+        std::cout << "\n[Memory Report]\n";
+        
+        // 1. 各バッファの内訳 (全スレッドで容量設定は共通なため、sims[0]を代表値として出力)
+        size_t single_sim_buf_bytes = sims[0]->print_simulator_memory_report();
+
+        // 2. Pinned Tensor の集計 (全スレッド分)
+        size_t total_pinned_bytes = 0;
+        for (const auto& sim : sims) {
+            total_pinned_bytes += sim->get_pinned_tensors_bytes();
+        }
+
+        // 3. 全スレッドの合計
+        size_t total_sims_buf_bytes = single_sim_buf_bytes * sims.size();
+        size_t manager_total_bytes = total_sims_buf_bytes + total_pinned_bytes;
+
+        double single_sim_mb  = static_cast<double>(single_sim_buf_bytes) / (1024.0 * 1024.0);
+        double manager_total_mb = static_cast<double>(manager_total_bytes) / (1024.0 * 1024.0);
+        double pinned_total_mb  = static_cast<double>(total_pinned_bytes)  / (1024.0 * 1024.0);
+
+        std::cout << "  BatchSimulator Total    : " << std::fixed << std::setprecision(2) << single_sim_mb << " MB (per thread)\n"
+                  << "  Pinned Tensor Total     : " << std::fixed << std::setprecision(2) << pinned_total_mb << " MB (all threads)\n"
+                  << "  SimulationManager Total : " << std::fixed << std::setprecision(2) << manager_total_mb << " MB (Buffers + Pinned)\n"
+                  << "-------------------------------------\n\n";
+    }
+
+    void print_buffer_utilization_report() const {
+        if (sims.empty()) return;
+
+        // 全スレッドの現在のサイズとピークサイズを正確に合算するための変数
+        long long total_discard_cap = 0, total_discard_size = 0, total_discard_peak = 0;
+        long long total_pick_cap = 0, total_pick_size = 0, total_pick_peak = 0;
+        long long total_koikoi_cap = 0, total_koikoi_size = 0, total_koikoi_peak = 0;
+
+        for (const auto& sim : sims) {
+            total_discard_cap  += sim->buf_discard.capacity;
+            total_discard_size += sim->buf_discard.current_size;
+            total_discard_peak += sim->buf_discard.peak_size;
+
+            total_pick_cap  += sim->buf_pick.capacity;
+            total_pick_size += sim->buf_pick.current_size;
+            total_pick_peak += sim->buf_pick.peak_size;
+
+            total_koikoi_cap  += sim->buf_koikoi.capacity;
+            total_koikoi_size += sim->buf_koikoi.current_size;
+            total_koikoi_peak += sim->buf_koikoi.peak_size;
+        }
+
+        auto calc_pct = [](long long part, long long total) -> double {
+            return total > 0 ? (static_cast<double>(part) / static_cast<double>(total)) * 100.0 : 0.0;
+        };
+
+        std::cout << "\n[Replay Buffer Utilization Report (All Threads Summed)]\n";
+        std::cout << "  discard:\n"
+                  << "    - Capacity     : " << total_discard_cap << "\n"
+                  << "    - Current Size : " << total_discard_size << "\n"
+                  << "    - Peak Size    : " << total_discard_peak << "\n"
+                  << "    - Usage Rate   : " << std::fixed << std::setprecision(1) << calc_pct(total_discard_peak, total_discard_cap) << " %\n";
+                  
+        std::cout << "  pick:\n"
+                  << "    - Capacity     : " << total_pick_cap << "\n"
+                  << "    - Current Size : " << total_pick_size << "\n"
+                  << "    - Peak Size    : " << total_pick_peak << "\n"
+                  << "    - Usage Rate   : " << std::fixed << std::setprecision(1) << calc_pct(total_pick_peak, total_pick_cap) << " %\n";
+
+        std::cout << "  koikoi:\n"
+                  << "    - Capacity     : " << total_koikoi_cap << "\n"
+                  << "    - Current Size : " << total_koikoi_size << "\n"
+                  << "    - Peak Size    : " << total_koikoi_peak << "\n"
+                  << "    - Usage Rate   : " << std::fixed << std::setprecision(1) << calc_pct(total_koikoi_peak, total_koikoi_cap) << " %\n";
+        std::cout << "--------------------------------------------------------\n\n";
+    }
 };
 
 static std::unique_ptr<SimulationManager> g_sim_manager = nullptr;
@@ -1768,6 +1883,8 @@ py::dict run_simulation_and_train(
     {
         py::gil_scoped_release release; 
         g_sim_manager->run_simulation_parallel();
+//        g_sim_manager->print_memory_report(); // --- メモリ使用量測定用
+//        g_sim_manager->print_buffer_utilization_report(); // --- メモリ使用量測定用
     }
 
     std::vector<torch::Tensor> states_d, rewards_d;
@@ -1823,9 +1940,21 @@ py::list run_parallel_simulations(
         g_sim_manager->reset_all();
     }
 
+    // ==========================================
+    // 【追加行】実行前のメモリレポート
+    // ==========================================
+    std::cout << "\n>>> [Arena Simulation START] Current Component Memory Status:";
+    g_sim_manager->print_memory_report();
+    // ==========================================
+
     {
         py::gil_scoped_release release;
         g_sim_manager->run_simulation_parallel();
+
+        // ==========================================
+        std::cout << "\n>>> [Arena Simulation END] Final Component Memory Status:";
+        g_sim_manager->print_memory_report(); // --- メモリ使用量測定用
+//        g_sim_manager->print_buffer_utilization_report(); // --- メモリ使用量測定用
     }
 
     py::list results;
