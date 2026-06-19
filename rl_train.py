@@ -30,11 +30,10 @@ os.environ['MKL_NUM_THREADS'] = '1'
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 torch.set_num_threads(1)
 
-# 終了を検知するためのシグナルオブジェクト
 stop_event = threading.Event()
 
 log_path = 'log_rl_pbrs.txt'
-rl_folder = 'model_rl_pbrs'
+rl_folder = 'model_rl'
 
 # continue training with trained models
 start_loop_num = 1
@@ -45,11 +44,8 @@ saved_model_path = {'discard':f'{rl_folder}/discard_final_stop.pt',
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 win_prob_mat = None
 
-TraceSlot = namedtuple(
-    'TraceSlot', ['key','state','action'])
-
-Transition = namedtuple(
-    'Transition', ['state','action','reward'])
+TraceSlot = namedtuple('TraceSlot', ['key','state','action'])
+Transition = namedtuple('Transition', ['state','action','reward'])
 
 def time_str():
     return time.strftime("%y%m%d %H%M%S",time.localtime())
@@ -62,16 +58,12 @@ def print_log(log_str, log_path):
 
 class Buffer():
     def __init__(self):
-        #self.memory = {'discard':[], 'pick':[], 'koikoi':[]}
-        # ★ SoA (Struct of Arrays) 形式でデータを保持するように変更
         self.memory = {'discard': {'states': [], 'actions': [], 'rewards': []}, 
                        'pick': {'states': [], 'actions': [], 'rewards': []}, 
                        'koikoi': {'states': [], 'actions': [], 'rewards': []}}
         self.sizes = {'discard': 0, 'pick': 0, 'koikoi': 0}
     
     def extend(self, data_dict):
-        #for key in data_dict.keys():
-        #    self.memory[key].extend(data_dict[key])
         for key in ['discard', 'pick', 'koikoi']:
             if data_dict.get(key) is not None:
                 self.memory[key]['states'].append(data_dict[key]['states'])
@@ -173,7 +165,7 @@ def parallel_sampling(n_games, global_win_prob_mat):
         sim = koikoicore.BatchSimulator(
             min(128, n_games), n_games, 
             n_games * 150, n_games * 150, n_games * 50,
-            task_type, 1.0, wp_mat_np,
+            1.0, wp_mat_np,
             "traced_discard.pt", "traced_pick.pt", "traced_koikoi.pt", device_str
         )
         
@@ -181,7 +173,6 @@ def parallel_sampling(n_games, global_win_prob_mat):
         sim.play_games()  # ← ここでGPU推論を含めた全ゲームがC++ネイティブで実行される
         t_play = time.perf_counter() - t_start
         
-        # 学習結果のバッファを回収
         buffers = sim.finalize_buffers()
         
         clean_buffer = {'discard': None, 'pick': None, 'koikoi': None}
@@ -202,12 +193,6 @@ def parallel_sampling(n_games, global_win_prob_mat):
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 def init_worker():
-    import os
-    import time
-    import random
-    import numpy as np
-    import torch
-    
     seed = (os.getpid() * int(time.time() * 1000)) % 123456789
     random.seed(seed)
     np.random.seed(seed)
@@ -264,20 +249,13 @@ def test_result_analysis(result,loop):
     return score
 
 def random_action_prob_scheduler(score):
-    if score < 0.10:
-        p = [0.25] * 4
-    elif score < 0.20:
-        p = [0.20] * 4
-    elif score < 0.30:
-        p = [0.15] * 4
-    elif score < 0.40:
-        p = [0.125] * 4
-    elif score < 0.50:
-        p = [0.10] * 4
-    elif score < 0.55:
-        p = [0.075] * 4
-    else:
-        p = [0.05] * 4
+    if score < 0.10: p = [0.25] * 4
+    elif score < 0.20: p = [0.20] * 4
+    elif score < 0.30: p = [0.15] * 4
+    elif score < 0.40: p = [0.125] * 4
+    elif score < 0.50: p = [0.10] * 4
+    elif score < 0.55: p = [0.075] * 4
+    else: p = [0.05] * 4
     return p
 
 from collections import deque
@@ -306,18 +284,19 @@ if __name__ == '__main__':
     # ==========================================
     # 1. モデルの準備 (ValueNetとActionNetの両方を保持)
     # ==========================================
+    
     value_net, action_net = {}, {}
     value_net['discard'], action_net['discard'] = get_value_action_net(saved_model_path['discard'], TargetQNet().cpu(), DiscardModel)
     value_net['pick'], action_net['pick'] = get_value_action_net(saved_model_path['pick'], TargetQNet().cpu(), PickModel)
     value_net['koikoi'], action_net['koikoi'] = get_value_action_net(saved_model_path['koikoi'], TargetQNet().cpu(), KoiKoiModel)
-    example_input_normal = torch.zeros((1, 300, 48), dtype=torch.bfloat16, device=device)
-    example_input_koikoi = torch.zeros((1, 300, 50), dtype=torch.bfloat16, device=device)
+    example_input_normal = torch.zeros((1, 300, 48), dtype=torch.bfloat16, device=device) # ダミーデータ
+    example_input_koikoi = torch.zeros((1, 300, 50), dtype=torch.bfloat16, device=device) # ダミーデータ
     
     # ==========================================
     # 2. 推論用モデル (ActionNet) のトレース (C++シミュレータ用)
     # ==========================================
+    
     for key in ['discard', 'pick', 'koikoi']:
-        # ★ 完全にBFloat16化してからトレースする
         action_net[key] = action_net[key].to(device).bfloat16().eval()
 
     with torch.inference_mode():
@@ -335,11 +314,10 @@ if __name__ == '__main__':
     # ==========================================
     # 3. 学習用モデル (ValueNet) のトレース (C++トレーナー用)
     # ==========================================
+    
     for key in ['discard', 'pick', 'koikoi']:
-        # ★ 学習用も完全にBFloat16化してからトレースする
         value_net[key] = value_net[key].to(device).bfloat16().train()
 
-    # autocast なし
     traced_val_discard = torch.jit.trace(value_net['discard'], example_input_normal, check_trace=False)
     traced_val_pick    = torch.jit.trace(value_net['pick'], example_input_normal, check_trace=False)
     traced_val_koikoi  = torch.jit.trace(value_net['koikoi'], example_input_koikoi, check_trace=False)
@@ -354,6 +332,7 @@ if __name__ == '__main__':
     # ==========================================
     # 4. C++ トレーナーの初期化 (学習用モデルを読み込む)
     # ==========================================
+    
     lr = 1e-5
     device_str = "cuda:0" if torch.cuda.is_available() else "cpu"
     trainer = {
@@ -368,6 +347,7 @@ if __name__ == '__main__':
     # ==========================================
     # 5. 強化学習 メインループ
     # ==========================================
+    
     for loop in range(start_loop_num, 100000):
         loop_start_time = time.perf_counter()
         
@@ -399,22 +379,6 @@ if __name__ == '__main__':
         
         if sync_models:
             print_log(f'{time_str()} Updated JIT models synced and saved natively.', log_path)
-        
-        # ==========================================
-        # 【追加】CUDAメモリ状況をフォーマット出力するヘルパー関数
-        # ==========================================
-        def print_cuda_mem_status(label):
-            if torch.cuda.is_available():
-                alloc = torch.cuda.memory_allocated(0) / (1024 * 1024)
-                res = torch.cuda.memory_reserved(0) / (1024 * 1024)
-                max_alloc = torch.cuda.max_memory_allocated(0) / (1024 * 1024)
-                max_res = torch.cuda.max_memory_reserved(0) / (1024 * 1024)
-                print(f"--- [CUDA Memory: {label}] ---")
-                print(f"  allocated_memory     : {alloc:.2f} MB")
-                print(f"  reserved_memory      : {res:.2f} MB")
-                print(f"  max_allocated_memory : {max_alloc:.2f} MB")
-                print(f"  max_reserved_memory  : {max_res:.2f} MB")
-                print("-" * 35)
         
         # 4. アリーナ評価 (従来通り)
         if loop % n_loop_arena_test == 0:
