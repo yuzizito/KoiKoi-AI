@@ -212,150 +212,6 @@ std::vector<std::tuple<int, std::string, int>> evaluate_yaku(
     return evaluate_yaku_by_bitboard(cards_to_bitboard(pile_cards), koikoi_num);
 }
 
-std::vector<std::pair<int, int>> evaluate_yaku_id_by_bitboard(uint64_t pile, int koikoi_num) {
-    std::vector<std::pair<int, int>> yaku_list;
-    return yaku_list; 
-}
-
-std::vector<std::vector<int>> get_yaku_status_features_by_bitboard(
-    uint64_t mh, uint64_t b, uint64_t mc, uint64_t oc, uint64_t u) { return {}; }
-
-std::vector<std::vector<int>> get_yaku_status_features(
-    const std::vector<std::vector<int>>& my_hand,
-    const std::vector<std::vector<int>>& board,
-    const std::vector<std::vector<int>>& my_collect,
-    const std::vector<std::vector<int>>& op_collect,
-    const std::vector<std::vector<int>>& unseen) { return {}; }
-
-void build_feature_inplace(
-    py::array_t<float>& feat_buf, 
-    bool is_koikoi,
-    float point_diff_half,
-    float yp_t, float yp_i,
-    int round_num, int turn_16, int dealer,
-    int koikoi_num_turn, int koikoi_num_idle,
-    uint8_t koikoi_turn_flags,
-    uint8_t koikoi_idle_flags,
-    uint64_t hand,
-    uint64_t init_board,
-    uint64_t unseen,
-    uint64_t my_pile,
-    uint64_t field,
-    uint64_t op_pile,
-    uint64_t show,
-    uint64_t pairing,
-    py::array_t<float>& card_log_buf, 
-    py::array_t<py::ssize_t>& order) 
-{
-    auto buf = feat_buf.mutable_unchecked<2>();
-    auto log_buf = card_log_buf.unchecked<3>();
-    auto ord = order.unchecked<1>();
-
-    int offset = is_koikoi ? 2 : 0;
-    auto sgn = [](float x) { return (x > 0) ? 1.0f : ((x < 0) ? -1.0f : 0.0f); };
-
-    float t55[55] = {0.0f};
-
-    float ax0 = std::abs(point_diff_half); float sgn0 = sgn(point_diff_half);
-    t55[0] = std::sqrt(ax0) * sgn0; t55[1] = ax0 * sgn0 * 0.5f; t55[2] = std::pow(ax0, 1.5f) * sgn0 * 0.1f;
-
-    float ax1 = std::abs(yp_t); float sgn1 = sgn(yp_t);
-    t55[3] = std::sqrt(ax1) * sgn1; t55[4] = ax1 * sgn1 * 0.5f; t55[5] = std::pow(ax1, 1.5f) * sgn1 * 0.1f;
-
-    float ax2 = std::abs(yp_i); float sgn2 = sgn(yp_i);
-    t55[6] = std::sqrt(ax2) * sgn2; t55[7] = ax2 * sgn2 * 0.5f; t55[8] = std::pow(ax2, 1.5f) * sgn2 * 0.1f;
-
-    t55[9 + round_num - 1] = 1.0f;
-    t55[17 + turn_16 - 1] = 1.0f;
-    t55[33 + dealer - 1] = 1.0f;
-
-    float k1 = static_cast<float>(koikoi_num_turn); float k2 = static_cast<float>(koikoi_num_idle);
-    t55[35] = std::abs(k1) * sgn(k1); t55[36] = (k1 * k1) * sgn(k1);
-    t55[37] = std::abs(k2) * sgn(k2); t55[38] = (k2 * k2) * sgn(k2);
-
-    for (int i = 0; i < 8; ++i) {
-        t55[39 + i] = static_cast<float>((koikoi_turn_flags >> i) & 1);
-        t55[47 + i] = static_cast<float>((koikoi_idle_flags >> i) & 1);
-    }
-
-    float yaku_feat[65] = {0.0f};
-    const uint64_t m[13] = {
-        MASKS.crane, MASKS.curtain, MASKS.moon, MASKS.rainman, MASKS.phoenix, MASKS.sake,
-        MASKS.boar_deer_butterfly, MASKS.seed, MASKS.red_ribbon, MASKS.blue_ribbon,
-        MASKS.red_blue_ribbon, MASKS.ribbon, MASKS.dross
-    };
-
-    for (int i = 0; i < 13; ++i) {
-        yaku_feat[i]      = static_cast<float>(popcount(m[i] & hand));
-        yaku_feat[i + 13] = static_cast<float>(popcount(m[i] & field));
-        yaku_feat[i + 26] = static_cast<float>(popcount(m[i] & my_pile));
-        yaku_feat[i + 39] = static_cast<float>(popcount(m[i] & op_pile));
-        yaku_feat[i + 52] = static_cast<float>(popcount(m[i] & unseen));
-    }
-
-    for (int r = 17; r < 72; ++r) {
-        float val = t55[r - 17];
-        for (int c = 0; c < 48; ++c) buf(r, c + offset) = val;
-    }
-    for (int r = 72; r < 137; ++r) {
-        float val = yaku_feat[r - 72];
-        for (int c = 0; c < 48; ++c) buf(r, c + offset) = val;
-    }
-
-    auto set_bits = [&](int row, uint64_t bb) {
-        while (bb) {
-#if defined(__GNUC__) || defined(__clang__)
-            int c = __builtin_ctzll(bb);
-#elif defined(_MSC_VER)
-            unsigned long c;
-            _BitScanForward64(&c, bb);
-#else
-            int c = 0; uint64_t temp = bb;
-            while((temp & 1) == 0) { temp >>= 1; c++; }
-#endif
-            buf(row, c + offset) = 1.0f;
-            bb &= bb - 1; 
-        }
-    };
-
-    for (int r = 162; r < 172; ++r) {
-        for (int c = 0; c < 48; ++c) buf(r, c + offset) = 0.0f;
-    }
-    set_bits(162, hand); set_bits(165, hand);
-    set_bits(163, init_board);
-    set_bits(164, unseen); set_bits(169, unseen);
-    set_bits(166, my_pile);
-    set_bits(167, field);
-    set_bits(168, op_pile);
-    set_bits(170, show);
-    set_bits(171, pairing);
-
-    int out_r = 172;
-    for (int i = 0; i < 16; ++i) {
-        py::ssize_t t = ord(i); 
-        for (int sub_r = 0; sub_r < 8; ++sub_r) {
-            for (int c = 0; c < 48; ++c) buf(out_r, c + offset) = log_buf(t, sub_r, c);
-            out_r++;
-        }
-    }
-
-    if (is_koikoi) {
-        for(int r = 0; r < 300; ++r) { buf(r, 0) = 0.0f; buf(r, 1) = 0.0f; }
-        for(int r = 0; r < 137; ++r) { buf(r, 0) = buf(r, 2); buf(r, 1) = buf(r, 3); }
-        buf(0, 0) = 1.0f;
-        buf(1, 1) = 1.0f;
-    }
-}
-
-inline uint64_t list_to_bb(const py::list& l) {
-    uint64_t bb = 0;
-    for (size_t i = 0; i < l.size(); ++i) {
-        int val = l[i].cast<int>();
-        if (val >= 0 && val < 48) bb |= (1ULL << val);
-    }
-    return bb;
-}
-
 struct Snapshot {
     uint64_t bb_hand;
     uint64_t bb_init_board;
@@ -396,17 +252,24 @@ inline void write_feature_core(
     auto sgn = [](float x) { return (x > 0) ? 1.0f : ((x < 0) ? -1.0f : 0.0f); };
     float t55[55] = {0.0f};
 
+    // 1. 数学演算の最適化 (std::powの排除とabsの整理)
     float df = static_cast<float>(snap.point_turn - snap.point_idle) * 0.5f;
-    float ax0 = std::abs(df); float sgn0 = sgn(df);
-    t55[0] = std::sqrt(ax0) * sgn0; t55[1] = ax0 * sgn0 * 0.5f; t55[2] = std::pow(ax0, 1.5f) * sgn0 * 0.1f;
+    float sq_df = std::sqrt(std::abs(df));
+    t55[0] = sq_df * sgn(df);
+    t55[1] = df * 0.5f;
+    t55[2] = df * sq_df * 0.1f;
 
     float yp_t = static_cast<float>(get_yaku_point_by_bitboard(snap.bb_my_pile, snap.koikoi_num_turn));
-    float ax1 = std::abs(yp_t); float sgn1 = sgn(yp_t);
-    t55[3] = std::sqrt(ax1) * sgn1; t55[4] = ax1 * sgn1 * 0.5f; t55[5] = std::pow(ax1, 1.5f) * sgn1 * 0.1f;
+    float sq_yp_t = std::sqrt(std::abs(yp_t));
+    t55[3] = sq_yp_t * sgn(yp_t);
+    t55[4] = yp_t * 0.5f;
+    t55[5] = yp_t * sq_yp_t * 0.1f;
 
     float yp_i = static_cast<float>(get_yaku_point_by_bitboard(snap.bb_op_pile, snap.koikoi_num_idle));
-    float ax2 = std::abs(yp_i); float sgn2 = sgn(yp_i);
-    t55[6] = std::sqrt(ax2) * sgn2; t55[7] = ax2 * sgn2 * 0.5f; t55[8] = std::pow(ax2, 1.5f) * sgn2 * 0.1f;
+    float sq_yp_i = std::sqrt(std::abs(yp_i));
+    t55[6] = sq_yp_i * sgn(yp_i);
+    t55[7] = yp_i * 0.5f;
+    t55[8] = yp_i * sq_yp_i * 0.1f;
 
     if(snap.round_num >= 1 && snap.round_num <= 8) t55[9 + snap.round_num - 1] = 1.0f;
     if(snap.turn_16 >= 1 && snap.turn_16 <= 16) t55[17 + snap.turn_16 - 1] = 1.0f;
@@ -436,24 +299,30 @@ inline void write_feature_core(
         yaku_feat[i + 52] = static_cast<float>(popcount(m[i] & snap.bb_unseen));
     }
 
-    auto set_v = [&](int r, int c, float v) { dest[r * cols + c + off] = v; };
-
+    // 1. t55 特徴量の埋め立て (std::fill_n)
     for (int r = 17; r < 72; ++r) {
         float val = t55[r - 17];
-        if (val != 0.0f) { for (int c = 0; c < 48; ++c) set_v(r, c, val); }
-    }
-    for (int r = 72; r < 137; ++r) {
-        float val = yaku_feat[r - 72];
-        if (val != 0.0f) { for (int c = 0; c < 48; ++c) set_v(r, c, val); }
-    }
-    for (int r = 0; r < 25; ++r) {
-        for (int c = 0; c < 48; ++c) {
-            float val = cache_ptr[r * 48 + c];
-            if (val != 0.0f) set_v(137 + r, c, val);
+        if (val != 0.0f) {
+            std::fill_n(dest + r * cols + off, 48, val);
         }
     }
 
+    // 2. 役特徴量の埋め立て (std::fill_n)
+    for (int r = 72; r < 137; ++r) {
+        float val = yaku_feat[r - 72];
+        if (val != 0.0f) {
+            std::fill_n(dest + r * cols + off, 48, val);
+        }
+    }
+
+    // 3. cache_ptr からの転記 (std::copy_n)
+    for (int r = 0; r < 25; ++r) {
+        std::copy_n(cache_ptr + r * 48, 48, dest + (137 + r) * cols + off);
+    }
+
+    // 4. set_bitsのラムダ式をポインタ直接アクセスに最適化
     auto set_bits = [&](int row, uint64_t bb) {
+        float* row_ptr = dest + row * cols + off;
         while (bb) {
 #if defined(__GNUC__) || defined(__clang__)
             int c = __builtin_ctzll(bb);
@@ -462,7 +331,8 @@ inline void write_feature_core(
 #else
             int c = 0; uint64_t temp = bb; while((temp & 1) == 0) { temp >>= 1; c++; }
 #endif
-            set_v(row, c, 1.0f); bb &= bb - 1; 
+            row_ptr[c] = 1.0f; 
+            bb &= bb - 1; 
         }
     };
 
@@ -478,24 +348,24 @@ inline void write_feature_core(
     int out_r = 172;
     for (int j = 0; j < 16; ++j) {
         int t = order[j];
-        for (int sr = 0; sr < 8; ++sr) {
-            bool ignore = false;
-            // 同一 turn_16 内の未確定 sr マスク処理
-            if (apply_mask) {
-                if (t > snap.turn_16) ignore = true;
-                else if (t == snap.turn_16) {
-                    if (snap.state_type == 0) ignore = true;
-                    else if (snap.state_type == 1) {
-                        if (!snap.is_draw_pick && sr >= 2) ignore = true;
-                        if (snap.is_draw_pick && sr >= 6) ignore = true;
-                    }
-                }
+        
+        if (apply_mask && t > snap.turn_16) {
+            out_r += 8; 
+            continue;
+        }
+
+        int max_sr = 8;
+        if (apply_mask && t == snap.turn_16) {
+            if (snap.state_type == 0) {
+                max_sr = 0; 
+            } else if (snap.state_type == 1) {
+                max_sr = snap.is_draw_pick ? 6 : 2;
             }
-            if (!ignore) {
-                for (int c = 0; c < 48; ++c) {
-                    float val = log_buf_ptr[t * 8 * 48 + sr * 48 + c];
-                    if (val != 0.0f) set_v(out_r, c, val);
-                }
+        }
+
+        for (int sr = 0; sr < 8; ++sr) {
+            if (sr < max_sr) {
+                std::copy_n(log_buf_ptr + (t * 384) + (sr * 48), 48, dest + (out_r * cols) + off);
             }
             out_r++;
         }
@@ -509,15 +379,14 @@ inline void write_feature_core(
         dest[0 * cols + 0] = 1.0f; dest[1 * cols + 1] = 1.0f;
     }
 
-    // Action Alignment の統合 (0-copy シフト)
+    // 5. Action Alignment (動的メモリ確保 std::vector の排除)
     if (action_to_align > 0 && action_to_align < cols) {
-        std::vector<float> temp(cols);
+        float temp[50]; // colsは最大50と保証されているため、高速なスタック配列を使用
         for (int r = 0; r < 300; ++r) {
             float* row_ptr = dest + r * cols;
-            std::memcpy(temp.data(), row_ptr, cols * sizeof(float));
+            std::memcpy(temp, row_ptr, cols * sizeof(float));
             row_ptr[0] = temp[action_to_align];
-            std::memcpy(row_ptr + 1, temp.data(), action_to_align * sizeof(float));
-            // action+1 以降は相対位置が変わらないためコピー不要
+            std::memcpy(row_ptr + 1, temp, action_to_align * sizeof(float));
         }
     }
 }
@@ -560,207 +429,6 @@ py::array_t<float> build_feature_fast(
         false, -1 // マスクなし、アライメントなし
     );
 
-    return result;
-}
-
-py::array_t<float> adjust_feature(py::array_t<float>& feature, int index) {
-    auto buf = feature.unchecked<2>();
-    py::ssize_t rows = buf.shape(0);
-    py::ssize_t cols = buf.shape(1);
-
-    auto result = py::array_t<float>({rows, cols});
-    float* dest = result.mutable_data();
-    const float* src = feature.data();
-
-    if (index < 0 || index >= cols) {
-        std::memcpy(dest, src, rows * cols * sizeof(float));
-        return result;
-    }
-
-    for (py::ssize_t r = 0; r < rows; ++r) {
-        dest[r * cols + 0] = src[r * cols + index];
-        if (index > 0) {
-            std::memcpy(&dest[r * cols + 1], &src[r * cols + 0], index * sizeof(float));
-        }
-        if (index < cols - 1) {
-            std::memcpy(&dest[r * cols + 1 + index], &src[r * cols + index + 1], (cols - 1 - index) * sizeof(float));
-        }
-    }
-    return result;
-}
-
-py::array_t<float> adjust_features_batched(py::array_t<float>& states, py::array_t<int>& actions) {
-    auto buf_s = states.unchecked<3>();
-    auto buf_a = actions.unchecked<1>();
-    
-    py::ssize_t B = buf_s.shape(0);
-    py::ssize_t rows = buf_s.shape(1);
-    py::ssize_t cols = buf_s.shape(2);
-
-    auto result = py::array_t<float>({B, rows, cols});
-    float* dest = result.mutable_data();
-    const float* src = states.data();
-
-    for (py::ssize_t b = 0; b < B; ++b) {
-        int index = buf_a(b);
-        py::ssize_t b_offset = b * rows * cols;
-        
-        if (index < 0 || index >= cols) {
-            std::memcpy(&dest[b_offset], &src[b_offset], rows * cols * sizeof(float));
-            continue;
-        }
-
-        for (py::ssize_t r = 0; r < rows; ++r) {
-            py::ssize_t r_offset = b_offset + r * cols;
-            dest[r_offset + 0] = src[r_offset + index];
-            if (index > 0) {
-                std::memcpy(&dest[r_offset + 1], &src[r_offset + 0], index * sizeof(float));
-            }
-            if (index < cols - 1) {
-                std::memcpy(&dest[r_offset + 1 + index], &src[r_offset + index + 1], (cols - 1 - index) * sizeof(float));
-            }
-        }
-    }
-    return result;
-}
-
-py::array_t<float> build_feature_packed(
-    py::array_t<uint64_t>& state_arr,
-    py::array_t<float>& card_log_buf, 
-    py::array_t<py::ssize_t>& order,
-    py::array_t<float>& cache_buf) 
-{
-    auto st = state_arr.unchecked<1>();
-    
-    bool is_koikoi = (st(0) != 0);
-    int point_turn = static_cast<int>(st(1));
-    int point_idle = static_cast<int>(st(2));
-    int round_num = static_cast<int>(st(3));
-    int turn_16 = static_cast<int>(st(4));
-    int dealer = static_cast<int>(st(5));
-    int koikoi_num_turn = static_cast<int>(st(6));
-    int koikoi_num_idle = static_cast<int>(st(7));
-    uint8_t f_turn = static_cast<uint8_t>(st(8));
-    uint8_t f_idle = static_cast<uint8_t>(st(9));
-    
-    uint64_t bb_hand = st(10);
-    uint64_t bb_init_board = st(11);
-    uint64_t bb_unseen = st(12);
-    uint64_t bb_my_pile = st(13);
-    uint64_t bb_field = st(14);
-    uint64_t bb_op_pile = st(15);
-    uint64_t bb_show = st(16);
-    uint64_t bb_pairing = st(17);
-
-    int cols = is_koikoi ? 50 : 48;
-    int offset = is_koikoi ? 2 : 0;
-    
-    auto result = py::array_t<float>({300, cols});
-    float* buf_ptr = result.mutable_data();
-    std::memset(buf_ptr, 0, 300 * cols * sizeof(float));
-
-    auto log_buf = card_log_buf.unchecked<3>();
-    auto ord = order.unchecked<1>();
-    auto cache = cache_buf.unchecked<2>();
-    auto buf = [&](int r, int c) -> float& { return buf_ptr[r * cols + c]; };
-
-    float yp_t = static_cast<float>(get_yaku_point_by_bitboard(bb_my_pile, koikoi_num_turn));
-    float yp_i = static_cast<float>(get_yaku_point_by_bitboard(bb_op_pile, koikoi_num_idle));
-    float point_diff_half = static_cast<float>(point_turn - point_idle) * 0.5f;
-
-    auto sgn = [](float x) { return (x > 0) ? 1.0f : ((x < 0) ? -1.0f : 0.0f); };
-
-    float t55[55] = {0.0f};
-    float ax0 = std::abs(point_diff_half); float sgn0 = sgn(point_diff_half);
-    t55[0] = std::sqrt(ax0) * sgn0; t55[1] = ax0 * sgn0 * 0.5f; t55[2] = std::pow(ax0, 1.5f) * sgn0 * 0.1f;
-
-    float ax1 = std::abs(yp_t); float sgn1 = sgn(yp_t);
-    t55[3] = std::sqrt(ax1) * sgn1; t55[4] = ax1 * sgn1 * 0.5f; t55[5] = std::pow(ax1, 1.5f) * sgn1 * 0.1f;
-
-    float ax2 = std::abs(yp_i); float sgn2 = sgn(yp_i);
-    t55[6] = std::sqrt(ax2) * sgn2; t55[7] = ax2 * sgn2 * 0.5f; t55[8] = std::pow(ax2, 1.5f) * sgn2 * 0.1f;
-
-    if(round_num >= 1 && round_num <= 8) t55[9 + round_num - 1] = 1.0f;
-    if(turn_16 >= 1 && turn_16 <= 16) t55[17 + turn_16 - 1] = 1.0f;
-    if(dealer >= 1 && dealer <= 2) t55[33 + dealer - 1] = 1.0f;
-
-    float k1 = static_cast<float>(koikoi_num_turn); float k2 = static_cast<float>(koikoi_num_idle);
-    t55[35] = std::abs(k1) * sgn(k1); t55[36] = (k1 * k1) * sgn(k1);
-    t55[37] = std::abs(k2) * sgn(k2); t55[38] = (k2 * k2) * sgn(k2);
-
-    for (int i = 0; i < 8; ++i) {
-        t55[39 + i] = static_cast<float>((f_turn >> i) & 1);
-        t55[47 + i] = static_cast<float>((f_idle >> i) & 1);
-    }
-
-    float yaku_feat[65] = {0.0f};
-    const uint64_t m[13] = {
-        MASKS.crane, MASKS.curtain, MASKS.moon, MASKS.rainman, MASKS.phoenix, MASKS.sake,
-        MASKS.boar_deer_butterfly, MASKS.seed, MASKS.red_ribbon, MASKS.blue_ribbon,
-        MASKS.red_blue_ribbon, MASKS.ribbon, MASKS.dross
-    };
-
-    for (int i = 0; i < 13; ++i) {
-        yaku_feat[i]      = static_cast<float>(popcount(m[i] & bb_hand));
-        yaku_feat[i + 13] = static_cast<float>(popcount(m[i] & bb_field));
-        yaku_feat[i + 26] = static_cast<float>(popcount(m[i] & bb_my_pile));
-        yaku_feat[i + 39] = static_cast<float>(popcount(m[i] & bb_op_pile));
-        yaku_feat[i + 52] = static_cast<float>(popcount(m[i] & bb_unseen));
-    }
-
-    for (int r = 17; r < 72; ++r) {
-        float val = t55[r - 17];
-        if (val != 0.0f) { for (int c = 0; c < 48; ++c) buf(r, c + offset) = val; }
-    }
-    for (int r = 72; r < 137; ++r) {
-        float val = yaku_feat[r - 72];
-        if (val != 0.0f) { for (int c = 0; c < 48; ++c) buf(r, c + offset) = val; }
-    }
-    for (int r = 0; r < 25; ++r) {
-        for (int c = 0; c < 48; ++c) buf(137 + r, c + offset) = cache(r, c);
-    }
-
-    auto set_bits = [&](int row, uint64_t bb) {
-        while (bb) {
-#if defined(__GNUC__) || defined(__clang__)
-            int c = __builtin_ctzll(bb);
-#elif defined(_MSC_VER)
-            unsigned long c; _BitScanForward64(&c, bb);
-#else
-            int c = 0; uint64_t temp = bb; while((temp & 1) == 0) { temp >>= 1; c++; }
-#endif
-            buf(row, c + offset) = 1.0f;
-            bb &= bb - 1; 
-        }
-    };
-
-    set_bits(162, bb_hand); set_bits(165, bb_hand);
-    set_bits(163, bb_init_board);
-    set_bits(164, bb_unseen); set_bits(169, bb_unseen);
-    set_bits(166, bb_my_pile);
-    set_bits(167, bb_field);
-    set_bits(168, bb_op_pile);
-    set_bits(170, bb_show);
-    set_bits(171, bb_pairing);
-
-    int out_r = 172;
-    for (int i = 0; i < 16; ++i) {
-        py::ssize_t t = ord(i); 
-        for (int sub_r = 0; sub_r < 8; ++sub_r) {
-            for (int c = 0; c < 48; ++c) {
-                float val = log_buf(t, sub_r, c);
-                if (val != 0.0f) buf(out_r, c + offset) = val;
-            }
-            out_r++;
-        }
-    }
-
-    if (is_koikoi) {
-        for(int r = 0; r < 137; ++r) { 
-            buf(r, 0) = buf(r, 2); buf(r, 1) = buf(r, 3); 
-        }
-        buf(0, 0) = 1.0f; buf(1, 1) = 1.0f;
-    }
     return result;
 }
 
@@ -1207,7 +875,13 @@ public:
           device(dev_str)
     {
         envs.resize(n_envs);
-        for(int p=1; p<=2; ++p) traces[p].resize(n_envs);
+        for(int p=1; p<=2; ++p) {
+            traces[p].resize(n_envs);
+            // 事前に各環境の軌跡用ベクターにメモリを割り当て、シミュレーション中の動的確保を防ぐ
+            for(auto& v : traces[p]) {
+                v.reserve(32);
+            }
+        }
 
         auto wp = wp_mat.unchecked<3>();
         win_prob_mat.resize(2 * 9 * 61, 0.0f);
@@ -1284,15 +958,32 @@ public:
         auto sgn = [](float x) { return (x > 0) ? 1.0f : ((x < 0) ? -1.0f : 0.0f); };
         
         float t55[55] = {0.0f};
+
+        // 1. 点数差 (df) の計算
         float df = static_cast<float>(env.point[pt] - env.point[pi]) * 0.5f;
-        t55[0] = std::sqrt(std::abs(df))*sgn(df); t55[1] = std::abs(df)*sgn(df)*0.5f; t55[2] = std::pow(std::abs(df),1.5f)*sgn(df)*0.1f;
+        float sq_df = std::sqrt(std::abs(df)); // 1度だけ計算して使い回す
+        t55[0] = sq_df * sgn(df);
+        t55[1] = df * 0.5f;                    // |df| * sgn(df) は df と等価
+        t55[2] = df * sq_df * 0.1f;            // pow(abs, 1.5) * sgn は df * sqrt(abs) と等価
+
+        // 2. ターンプレイヤーの役ポイント (yp_t) の計算（都度計算）
         float yp_t = static_cast<float>(env.state_manager.get_yaku_point(pt, env.koikoi_num(pt)));
-        t55[3] = std::sqrt(yp_t)*sgn(yp_t); t55[4] = yp_t*sgn(yp_t)*0.5f; t55[5] = std::pow(yp_t,1.5f)*sgn(yp_t)*0.1f;
+        float sq_yp_t = std::sqrt(std::abs(yp_t));
+        t55[3] = sq_yp_t * sgn(yp_t);
+        t55[4] = yp_t * 0.5f;
+        t55[5] = yp_t * sq_yp_t * 0.1f;
+
+        // 3. アイドルプレイヤーの役ポイント (yp_i) の計算（都度計算）
         float yp_i = static_cast<float>(env.state_manager.get_yaku_point(pi, env.koikoi_num(pi)));
-        t55[6] = std::sqrt(yp_i)*sgn(yp_i); t55[7] = yp_i*sgn(yp_i)*0.5f; t55[8] = std::pow(yp_i,1.5f)*sgn(yp_i)*0.1f;
+        float sq_yp_i = std::sqrt(std::abs(yp_i));
+        t55[6] = sq_yp_i * sgn(yp_i);
+        t55[7] = yp_i * 0.5f;
+        t55[8] = yp_i * sq_yp_i * 0.1f;
+
         if(env.round_num <= 8) t55[9 + env.round_num - 1] = 1.0f;
         if(env.turn_16 <= 16) t55[17 + env.turn_16 - 1] = 1.0f;
         t55[33 + env.dealer - 1] = 1.0f;
+
         t55[35] = static_cast<float>(env.koikoi_num(pt)); t55[36] = t55[35]*t55[35];
         t55[37] = static_cast<float>(env.koikoi_num(pi)); t55[38] = t55[37]*t55[37];
         for(int j=0; j<8; ++j) { t55[39+j] = static_cast<float>(env.koikoi[pt][j]); t55[47+j] = static_cast<float>(env.koikoi[pi][j]); }
@@ -1304,11 +995,24 @@ public:
         for(int j=0; j<13; ++j) { y_f[j]=static_cast<float>(popcount(ms[j]&bb_h)); y_f[j+13]=static_cast<float>(popcount(ms[j]&bb_f)); y_f[j+26]=static_cast<float>(popcount(ms[j]&bb_m)); y_f[j+39]=static_cast<float>(popcount(ms[j]&bb_o)); y_f[j+52]=static_cast<float>(popcount(ms[j]&bb_u)); }
 
         auto set_v = [&](int r, int c, float v) { feat[r * cols + c + off] = v; };
-        for(int r=17; r<72; ++r) if(t55[r-17] != 0.0f) for(int c=0; c<48; ++c) set_v(r, c, t55[r-17]);
-        for(int r=72; r<137; ++r) if(y_f[r-72] != 0.0f) for(int c=0; c<48; ++c) set_v(r, c, y_f[r-72]);
-        for(int r=0; r<25; ++r) for(int c=0; c<48; ++c) set_v(137+r, c, cache_buf[r][c]);
+        for(int r=17; r<72; ++r) {
+            if(t55[r-17] != 0.0f) {
+                std::fill_n(feat + r * cols + off, 48, t55[r-17]);
+            }
+        }
+        for(int r=72; r<137; ++r) {
+            if(y_f[r-72] != 0.0f) {
+                std::fill_n(feat + r * cols + off, 48, y_f[r-72]);
+            }
+        }
+        // cache_buf[r] からのコピーは std::copy_n の方が高速かつ安全です
+        for(int r=0; r<25; ++r) {
+            std::copy_n(cache_buf[r], 48, feat + (137 + r) * cols + off);
+        }
 
-        auto set_b = [&](int row, uint64_t bb) {
+        // ラムダ式を排し、直接ポインタに書き込むマクロまたはインライン関数化
+        auto set_b_fast = [&](int row, uint64_t bb) {
+            float* row_ptr = feat + row * cols + off;
             while(bb) {
 #if defined(__GNUC__) || defined(__clang__)
                 int c = __builtin_ctzll(bb);
@@ -1317,19 +1021,21 @@ public:
 #else
                 int c=0; uint64_t t=bb; while((t&1)==0){ t>>=1; c++; }
 #endif
-                set_v(row, c, 1.0f); bb &= bb-1;
+                row_ptr[c] = 1.0f; // 2次元インデックス計算を排除
+                bb &= bb-1;
             }
         };
 
-        set_b(162, bb_h); set_b(165, bb_h); set_b(163, env.state_manager.bb_initBoard);
-        set_b(164, bb_u); set_b(169, bb_u); set_b(166, bb_m); set_b(167, bb_f);
-        set_b(168, bb_o); set_b(170, env.state_manager.bb_show); set_b(171, env.state_manager.bb_pairing);
+        set_b_fast(162, bb_h); set_b_fast(165, bb_h); set_b_fast(163, env.state_manager.bb_initBoard);
+        set_b_fast(164, bb_u); set_b_fast(169, bb_u); set_b_fast(166, bb_m); set_b_fast(167, bb_f);
+        set_b_fast(168, bb_o); set_b_fast(170, env.state_manager.bb_show); set_b_fast(171, env.state_manager.bb_pairing);
 
         int out_r = 172, t16 = std::max(1, std::min(16, env.turn_16));
         for(int j=0; j<16; ++j) {
             int t = order[t16][j];
             for(int sr=0; sr<8; ++sr) {
-                for(int c=0; c<48; ++c) { float v = env.card_log_buf[t][sr][c]; if(v != 0.0f) set_v(out_r, c, v); }
+                // 事前に全体が0初期化されているため、条件分岐を排して48要素をまとめて高速コピー
+                std::copy_n(&env.card_log_buf[t][sr][0], 48, feat + out_r * cols + off);
                 out_r++;
             }
         }
@@ -1840,7 +1546,7 @@ static std::unique_ptr<SimulationManager> g_sim_manager = nullptr;
 py::dict run_simulation_and_train(
     int num_threads, int n_envs_per_thread, int target_games_per_thread,
     int cap_d, int cap_p, int cap_k, float disc, py::array_t<float> wp_mat,
-    std::string path_discard, std::string path_pick, std::string path_koikoi
+    std::string path_discard, std::string path_pick, std::string path_koikoi,
     std::string dev_str,
     KoiKoiTrainer& trainer_discard, KoiKoiTrainer& trainer_pick, KoiKoiTrainer& trainer_koikoi,
     int batch_size, bool sync_models) 
@@ -1970,19 +1676,12 @@ PYBIND11_MODULE(koikoicore, m) {
     m.def("card_to_multi_hot", &card_to_multi_hot);
     m.def("evaluate_yaku", &evaluate_yaku);
     m.def("get_yaku_point", &get_yaku_point);
-    m.def("get_yaku_status_features", &get_yaku_status_features);
     m.def("cards_to_bitboard", &cards_to_bitboard);
     m.def("get_yaku_point_by_bitboard", &get_yaku_point_by_bitboard);
     m.def("evaluate_yaku_by_bitboard", &evaluate_yaku_by_bitboard);
-    m.def("get_yaku_status_features_by_bitboard", &get_yaku_status_features_by_bitboard);
-    m.def("evaluate_yaku_id_by_bitboard", &evaluate_yaku_id_by_bitboard);
     m.def("cards_to_multi_hot_np", &cards_to_multi_hot_np);
     m.def("get_yaku_status_features_np", &get_yaku_status_features_np);
-    m.def("build_feature_inplace", &build_feature_inplace);
     m.def("build_feature_fast", &build_feature_fast);
-    m.def("adjust_feature", &adjust_feature);
-    m.def("adjust_features_batched", &adjust_features_batched);
-    m.def("build_feature_packed", &build_feature_packed);
     m.def("run_parallel_simulations", &run_parallel_simulations);
     m.def("run_simulation_and_train", &run_simulation_and_train);
     m.def("destroy_sim_manager", []() {

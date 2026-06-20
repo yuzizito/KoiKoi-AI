@@ -12,9 +12,9 @@ import os
 from koikoigame import KoiKoiGameState
 from koikoilearn import AgentForTest
 import koikoigui as gui
-import torch # 1.8.1
+import torch
+from koikoinet2L import DiscardModel, PickModel, KoiKoiModel
 
-# Demo for playing 8-round koi-koi games vs trained AI
 your_name = 'Player'
 ai_name = 'RL' # 'SL', 'RL'
 record_path = 'gamerecords_player/'
@@ -38,9 +38,17 @@ elif ai_name == 'RL':
     
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-def load_native_model(path, device):
+def load_native_model(path, device, model_class):
     """通常の torch.load でモデルを読み込み、必要な属性の補正とFP32化を行う"""
-    model = torch.load(path, map_location=device, weights_only=False)
+    model = model_class().to(device)
+    
+    # 過去のモデル(Module全体)と新しいモデル(state_dict)の両方に対応
+    loaded_data = torch.load(path, map_location=device, weights_only=False)
+    if isinstance(loaded_data, torch.nn.Module):
+        model.load_state_dict(loaded_data.state_dict())
+    else:
+        model.load_state_dict(loaded_data)
+        
     for module in model.modules():
         if type(module).__name__ in ['MultiheadAttention', 'TransformerEncoderLayer']:
             if not hasattr(module, 'batch_first'): module.batch_first = False
@@ -51,9 +59,9 @@ game_state = KoiKoiGameState(player_name=[your_name, ai_name],
                              record_path=record_fold, 
                              save_record=True)
 
-discard_model = load_native_model(discard_model_path, device)
-pick_model    = load_native_model(pick_model_path, device)
-koikoi_model  = load_native_model(koikoi_model_path, device)
+discard_model = load_native_model(discard_model_path, device, DiscardModel)
+pick_model    = load_native_model(pick_model_path, device, PickModel)
+koikoi_model  = load_native_model(koikoi_model_path, device, KoiKoiModel)
 
 ai_agent = AgentForTest(discard_model, pick_model, koikoi_model)
 

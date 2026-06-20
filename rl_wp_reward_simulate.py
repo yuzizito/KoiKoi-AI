@@ -15,6 +15,7 @@ import koikoilearn
 
 import pickle
 import multiprocessing
+from koikoinet2L import DiscardModel, PickModel, KoiKoiModel
 
 rl_folder = 'model_rl_wp'
 
@@ -22,9 +23,25 @@ discard_model_path = f'{rl_folder}/discard_0_0.pt'
 pick_model_path = f'{rl_folder}/pick_0_0.pt'
 koikoi_model_path = f'{rl_folder}/koikoi_0_0.pt'
 
-discard_model = torch.load(discard_model_path, map_location=torch.device('cpu'))
-pick_model = torch.load(pick_model_path, map_location=torch.device('cpu'))
-koikoi_model = torch.load(koikoi_model_path, map_location=torch.device('cpu'))
+def load_model_state(path, model_class):
+    model = model_class()
+    loaded_data = torch.load(path, map_location=torch.device('cpu'), weights_only=False)
+    
+    if isinstance(loaded_data, torch.nn.Module):
+        model.load_state_dict(loaded_data.state_dict())
+    else:
+        model.load_state_dict(loaded_data)
+        
+    for module in model.modules():
+        if type(module).__name__ in ['MultiheadAttention', 'TransformerEncoderLayer']:
+            if not hasattr(module, 'batch_first'): module.batch_first = False
+            if not hasattr(module, 'norm_first'): module.norm_first = False
+    return model.eval()
+
+# if __name__ == '__main__': の直前のロード部分を修正
+discard_model = load_model_state(discard_model_path, DiscardModel)
+pick_model = load_model_state(pick_model_path, PickModel)
+koikoi_model = load_model_state(koikoi_model_path, KoiKoiModel)
 ai_agent = koikoilearn.Agent(discard_model, pick_model, koikoi_model)
 
 def make_win_prob_dict(agent, round_num, point, dealer, n_test):
