@@ -4,6 +4,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
+#include <omp.h>
 #include <array>
 #include <cmath>
 #include <mutex>
@@ -583,25 +584,45 @@ public:
     // 遅延再構築用メソッド
     void push_reconstructed(const Snapshot& snap, int action, float reward,
                             const float* log_buf_ptr, const int* order, const float* cache_ptr) {
-        if (current_size >= capacity) return;
-        float* dest = &states[current_size * rows * cols];
-        actions[current_size] = action;
-        rewards[current_size] = reward;
+        int idx;
+        // ★ 1. アトミック操作で「書き込み先のインデックス」だけを一瞬で確保（スレッド間の競合ゼロ）
+        #pragma omp atomic capture
+        {
+            idx = current_size;
+            current_size++;
+        }
+        
+        if (idx >= capacity) {
+            #pragma omp atomic write
+            current_size = capacity;
+            return;
+        }
+
+        // ピークサイズの更新のみロックする（一瞬で終わる）
+        #pragma omp critical
+        {
+            if (idx + 1 > peak_size) peak_size = idx + 1;
+        }
+
+        // ★ 2. 最も重い特徴量の構築処理を、ロックの外で完全並列に実行！
+        // idx は各スレッドで重複しないため、states への書き込みは完全に安全です。
+        float* dest = &states[idx * rows * cols];
+        actions[idx] = action;
+        rewards[idx] = reward;
 
         write_feature_core(dest, cols, snap.state_type == 2 ? 2 : 0, snap,
                            log_buf_ptr, order, cache_ptr,
-                           true, action); // マスク有効化、アライメント実行
-        current_size++;
-        if (current_size > peak_size) {
-            peak_size = current_size;
-        }
+                           true, action);
     }
 
     std::pair<torch::Tensor, torch::Tensor> get_tensors() {
         if (current_size == 0) return {torch::empty({0}), torch::empty({0})};
-        auto res_states = torch::empty({current_size, rows, cols}, torch::kFloat32);
-        auto res_rewards = torch::empty({current_size}, torch::kFloat32);
-        // アライメント済みのため、シフトロジックを完全削除して単純コピー
+        
+        // ★ ページロックメモリ（Pinned Memory）を有効化して転送を高速化
+        auto options = torch::TensorOptions().dtype(torch::kFloat32).pinned_memory(true);
+        auto res_states = torch::empty({current_size, rows, cols}, options);
+        auto res_rewards = torch::empty({current_size}, options);
+        
         std::memcpy(res_states.data_ptr<float>(), states.data(), current_size * rows * cols * sizeof(float));
         std::memcpy(res_rewards.data_ptr<float>(), rewards.data(), current_size * sizeof(float));
         return {res_states, res_rewards};
@@ -1107,36 +1128,37 @@ public:
         bool* mask_ptrs[3] = { mask_tensor[0].data_ptr<bool>(), mask_tensor[1].data_ptr<bool>(), mask_tensor[2].data_ptr<bool>() };
 
         while (finished_games < target_games) {
+            int local_finished = 0;
+
+            // 1. 環境のステップ進行を OpenMP で全コア並列処理！
+            #pragma omp parallel for reduction(+:local_finished)
             for (int i = 0; i < num_envs; ++i) {
                 auto& env = envs[i];
                 while (!env.needs_action() && env.state != GameState::GAME_OVER) {
                     if (env.state == GameState::ROUND_OVER) {
                         process_round_over(i);
                         if (env.point[1] <= 0 || env.point[2] <= 0 || env.round_num == 8) {
-                            finished_games++;
-                            if (finished_games < target_games) { env.reset_game(); env.reset_round(); }
-                            else break;
+                            local_finished++;
+                            // ターゲット到達の判定は後で行うため、ここでは無条件でリセットする
+                            env.reset_game(); env.reset_round();
                         } else { env.round_num++; env.reset_round(); }
                     } else { env.step(-1); }
                 }
             }
 
+            finished_games += local_finished;
             if (finished_games >= target_games) break;
 
             // P1とP2の独立した推論ループ
             for (int p_id = 1; p_id <= 2; ++p_id) {
                 for(int i=0; i<3; ++i) req_env_idx[i].clear();
                 
+                // 2. 対象となる環境インデックスの収集 (非常に軽い処理なので直列)
                 for (int i = 0; i < num_envs; ++i) {
                     auto& env = envs[i];
                     if (env.needs_action() && env.turn_player() == p_id) {
                         int type = (env.state == GameState::DISCARD) ? 0 : (env.state == GameState::KOIKOI ? 2 : 1);
-                        int batch_idx = req_env_idx[type].size();
                         req_env_idx[type].push_back(i);
-                        int cols = (type == 2) ? 50 : 48;
-                        int m_cols = (type == 2) ? 2 : 48;
-                        build_feature_into(i, feat_ptrs[type] + batch_idx * 300 * cols, type);
-                        build_mask_into(i, mask_ptrs[type] + batch_idx * m_cols, type);
                     }
                 }
 
@@ -1145,6 +1167,17 @@ public:
                     int n = static_cast<int>(req_env_idx[type].size());
                     if (n == 0) continue;
 
+                    // 3. 重い特徴量・マスクの構築を OpenMP で全コア並列処理！
+                    #pragma omp parallel for
+                    for (int i = 0; i < n; ++i) {
+                        int env_idx = req_env_idx[type][i];
+                        int cols = (type == 2) ? 50 : 48;
+                        int m_cols = (type == 2) ? 2 : 48;
+                        build_feature_into(env_idx, feat_ptrs[type] + i * 300 * cols, type);
+                        build_mask_into(env_idx, mask_ptrs[type] + i * m_cols, type);
+                    }
+
+                    // 4. GPU推論はただ1つのスレッドがまとめて担当！ (通信ロック・競合ゼロ)
                     torch::Tensor f_gpu = feat_tensor[type].slice(0, 0, n).to(device, true).to(torch::kBFloat16);
                     torch::Tensor m_gpu = mask_tensor[type].slice(0, 0, n).to(device, true);
 
@@ -1156,6 +1189,8 @@ public:
                     output = output.masked_fill(~m_gpu, -1e9);
                     int64_t* act_ptr = output.argmax(1).cpu().data_ptr<int64_t>();
 
+                    // 5. アクションの適用と軌跡の記録 (std::vector への push_back があるため直列が安全)
+                    #pragma omp parallel for
                     for (int i = 0; i < n; ++i) {
                         int env_idx = req_env_idx[type][i];
                         int action = static_cast<int>(act_ptr[i]);
@@ -1243,11 +1278,11 @@ public:
     }
 
     float train_epoch(torch::Tensor states, torch::Tensor rewards, int batch_size) {
-        states = states.to(device, /*non_blocking=*/true);
-        rewards = rewards.to(device, /*non_blocking=*/true);
+        // states と rewards は CPU メモリに留めておく (to.deviceを削除)
         
         int64_t num_samples = states.size(0);
-        auto indices = torch::randperm(num_samples, torch::TensorOptions().device(device).dtype(torch::kLong));
+        // シャッフル用インデックスも CPU 上で生成
+        auto indices = torch::randperm(num_samples, torch::TensorOptions().dtype(torch::kLong));
         
         float total_loss = 0.0f;
         int num_batches = 0;
@@ -1258,16 +1293,20 @@ public:
             int64_t end = std::min(i + batch_size, num_samples);
             auto batch_indices = indices.slice(0, i, end);
             
+            // 1. CPU上でミニバッチを切り出す
             auto state_batch = states.index_select(0, batch_indices);
             auto reward_batch = rewards.index_select(0, batch_indices);
 
             optimizer->zero_grad();
 
             std::vector<torch::jit::IValue> inputs;
-            inputs.push_back(state_batch.to(torch::kBFloat16));
+            // 2. ★ ここで初めて GPU に転送し、bfloat16 にキャストする！
+            inputs.push_back(state_batch.to(device, /*non_blocking=*/true).to(torch::kBFloat16));
             
             torch::Tensor q_values = model.forward(inputs).toTensor().view({-1});
-            torch::Tensor reward_flat = reward_batch.view({-1});
+            
+            // reward もここで GPU に転送
+            torch::Tensor reward_flat = reward_batch.to(device, /*non_blocking=*/true).view({-1});
             
             auto loss = torch::nn::functional::smooth_l1_loss(
                 q_values.to(torch::kFloat32), 

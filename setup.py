@@ -4,7 +4,7 @@ from torch.utils.cpp_extension import BuildExtension, CppExtension
 
 if sys.platform == 'win32':
     # WindowsのMSVC向け最適化フラグ
-    cflags = ['/O2', '/utf-8', '/std:c++17', '/fp:fast', '/arch:AVX2']
+    cflags = ['/O2', '/utf-8', '/std:c++17', '/fp:fast', '/arch:AVX2', '/openmp:llvm']
 else:
     # Linux/macOS向け最適化フラグ
     cflags = ['-O3', '-std=c++17', '-ffast-math', '-march=native']

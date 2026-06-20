@@ -1,0 +1,8 @@
+LICENSE
+README.md
+koikoicore.cpp
+setup.py
+koikoicore.egg-info/PKG-INFO
+koikoicore.egg-info/SOURCES.txt
+koikoicore.egg-info/dependency_links.txt
+koikoicore.egg-info/top_level.txt

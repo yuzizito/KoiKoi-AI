@@ -12,6 +12,7 @@ import time
 import pickle
 import torch.multiprocessing as mp
 import threading
+import multiprocessing
 
 import koikoigame
 import koikoilearn
@@ -19,19 +20,22 @@ import koikoicore
 from koikoinet2L import DiscardModel, PickModel, KoiKoiModel, TargetQNet
 
 # --- 環境設定・スレッド制御 ---
-os.environ['OMP_NUM_THREADS'] = '1'
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
+#omp_threads = max(1, multiprocessing.cpu_count() // 2)
+os.environ['OMP_NUM_THREADS'] = str(multiprocessing.cpu_count())
 os.environ['MKL_NUM_THREADS'] = '1'
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 torch.set_num_threads(1)
+import torch.nn.modules.linear as my_linear
 
 # --- 定数定義（ファイル先頭へ集約） ---
 LOG_PATH = 'log_rl.txt'
 RL_FOLDER = 'model_rl'
 START_LOOP_NUM = 1
 LEARNING_RATE = 1e-4
-BATCH_SIZE = 512
-CPU_COUNT = 2
-LOOP_GAMES = 512
+BATCH_SIZE = 4096
+CPU_COUNT = 1
+LOOP_GAMES = 1024
 N_CORE_GAMES = LOOP_GAMES // CPU_COUNT
 CAP_D = LOOP_GAMES // CPU_COUNT * 72
 CAP_P = LOOP_GAMES // CPU_COUNT * 12
