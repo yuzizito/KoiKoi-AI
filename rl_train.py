@@ -13,6 +13,7 @@ import pickle
 import torch.multiprocessing as mp
 import threading
 import multiprocessing
+import concurrent.futures
 
 import koikoigame
 import koikoilearn
@@ -21,8 +22,8 @@ from koikoinet2L import DiscardModel, PickModel, KoiKoiModel, TargetQNet
 
 # --- 環境設定・スレッド制御 ---
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
-#omp_threads = max(1, multiprocessing.cpu_count() // 2)
-os.environ['OMP_NUM_THREADS'] = str(multiprocessing.cpu_count())
+omp_threads = max(1, multiprocessing.cpu_count() // 2)
+os.environ['OMP_NUM_THREADS'] = str(omp_threads + 3)
 os.environ['MKL_NUM_THREADS'] = '1'
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 torch.set_num_threads(1)
@@ -34,7 +35,7 @@ RL_FOLDER = 'model_rl'
 START_LOOP_NUM = 1
 LEARNING_RATE = 1e-4
 BATCH_SIZE = 4096
-CPU_COUNT = 1
+CPU_COUNT = 2
 LOOP_GAMES = 1024
 N_CORE_GAMES = LOOP_GAMES // CPU_COUNT
 CAP_D = LOOP_GAMES // CPU_COUNT * 72
@@ -51,9 +52,9 @@ SAVED_MODEL_PATH = {
 }
 
 ARENA_OPPONENT_PATHS = {
-    'discard': 'model_agent/discard_sl.pt',
-    'pick': 'model_agent/pick_sl.pt',
-    'koikoi': 'model_agent/koikoi_sl.pt'
+    'discard': 'model_agent/discard.pt',
+    'pick': 'model_agent/pick.pt',
+    'koikoi': 'model_agent/koikoi.pt'
 }
 
 DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -187,8 +188,7 @@ def test_result_analysis(result,loop):
     win_rate = win_num / np.sum(win_num)
     score = win_rate[0]*0.5 + win_rate[1]
     point = np.mean(result[:,3])
-    print_log(f'★arena {win_num[1]} wins, {win_num[2]} loses, {win_num[0]} draws {point:.1f} points', LOG_PATH)
-    print_log(f'Record,loop:{loop}, score:{score:.3f}, point:{point:.2f}', LOG_PATH)
+    print_log(f'■■■  arena   win {int(win_num[1])}   lose {int(win_num[2])}  draw {int(win_num[0])}   score {point:.1f}pt  ■■■', LOG_PATH)
     return score
 
 if __name__ == '__main__':
@@ -229,10 +229,10 @@ if __name__ == '__main__':
             torch.jit.trace(action_net['pick'], example_input_normal, check_trace=False).save("traced_pick.pt") # type: ignore
             torch.jit.trace(action_net['koikoi'], example_input_koikoi, check_trace=False).save("traced_koikoi.pt") # type: ignore
             
-            torch.jit.trace(value_net['discard'], example_input_normal, check_trace=False).save("traced_value_discard.pt") # type: ignore
-            torch.jit.trace(value_net['pick'], example_input_normal, check_trace=False).save("traced_value_pick.pt") # type: ignore
-            torch.jit.trace(value_net['koikoi'], example_input_koikoi, check_trace=False).save("traced_value_koikoi.pt") # type: ignore
-            
+        torch.jit.trace(value_net['discard'], example_input_normal, check_trace=False).save("traced_value_discard.pt") # type: ignore
+        torch.jit.trace(value_net['pick'], example_input_normal, check_trace=False).save("traced_value_pick.pt") # type: ignore
+        torch.jit.trace(value_net['koikoi'], example_input_koikoi, check_trace=False).save("traced_value_koikoi.pt") # type: ignore
+        
         for key in ['discard', 'pick', 'koikoi']:
             action_net[key].cpu()
             value_net[key].cpu()
@@ -263,50 +263,77 @@ if __name__ == '__main__':
     }
 
     score = [0.0]
-    print_log(f'\n{time_str()} start training on device: {DEVICE}')
     
     # ==========================================
-    # 5. 強化学習 メインループ
+    # 5. 強化学習 メインループ (非同期パイプライン版)
     # ==========================================
+    
+    # 最初の1回だけシミュレーションを事前に行い、初期データを生成（パイプラインの準備）
+    print_log(">>> パイプラインの準備中（初期データの生成）...", LOG_PATH)
+    wp_mat_np = win_prob_mat.astype(np.float32) if win_prob_mat is not None else np.zeros((2, 9, 61), dtype=np.float32)
+    
+    results = koikoicore.run_parallel_simulations(
+        CPU_COUNT, N_CORE_GAMES, N_CORE_GAMES,          
+        CAP_D, CAP_P, CAP_K, 1.0, wp_mat_np,
+        "traced_discard.pt", "traced_pick.pt", "traced_koikoi.pt", DEVICE_STR
+    )
+
+    # 非同期実行用のスレッドプールを用意
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+
+    def background_training(data):
+        """バックグラウンドで学習を実行し、サンプル数とロスを計算して返す"""
+        l_d = trainer['discard'].train_from_results(data, 'discard', BATCH_SIZE)
+        l_p = trainer['pick'].train_from_results(data, 'pick', BATCH_SIZE)
+        l_k = trainer['koikoi'].train_from_results(data, 'koikoi', BATCH_SIZE)
+        
+        # ★修正: Pythonの辞書/リスト展開負荷を減らし、テンソルのサイズ(shape)から直接取得する
+        s_d = sum(d.get('discard', {}).get('actions', torch.empty(0)).shape[0] for d in data if isinstance(d, dict))
+        s_p = sum(d.get('pick', {}).get('actions', torch.empty(0)).shape[0] for d in data if isinstance(d, dict))
+        s_k = sum(d.get('koikoi', {}).get('actions', torch.empty(0)).shape[0] for d in data if isinstance(d, dict))
+        return (s_d, l_d), (s_p, l_p), (s_k, l_k)
+        
     for loop in range(START_LOOP_NUM, 10000):
         loop_start_time = time.perf_counter()
         
         wp_mat_np = win_prob_mat.astype(np.float32) if win_prob_mat is not None else np.zeros((2, 9, 61), dtype=np.float32)
         sync_models = (loop % N_LOOP_ACTION_NET_UPDATE == 0)
         
-        losses = koikoicore.run_simulation_and_train(
+        # 1. 【非同期】前回のデータを使って、バックグラウンドで学習（GPU）を開始！
+        future = executor.submit(background_training, results)
+        
+        # 2. 【同期】同時に、フォアグラウンドで次回のシミュレーション（CPU+GPU推論）を実行！
+        next_results = koikoicore.run_parallel_simulations(
             CPU_COUNT, N_CORE_GAMES, N_CORE_GAMES,          
-            CAP_D, CAP_P, CAP_K,
-            1.0, wp_mat_np,
-            "traced_discard.pt", "traced_pick.pt", "traced_koikoi.pt", DEVICE_STR,
-            trainer['discard'], trainer['pick'], trainer['koikoi'],
-            BATCH_SIZE, sync_models
+            CAP_D, CAP_P, CAP_K, 1.0, wp_mat_np,
+            "traced_discard.pt", "traced_pick.pt", "traced_koikoi.pt", DEVICE_STR
         )
         
-        # C++側でJITモデルの同期と上書きが走った場合、Python側のネイティブモデルへ重みを回収する
+        # 3. 学習スレッドの完了を待ち、結果（ロス等）を受け取る
+        (s_d, l_d), (s_p, l_p), (s_k, l_k) = future.result()
+        
+        # 次のループのためにデータを入れ替え
+        results = next_results
+        
+        # 4. モデルの同期処理（シミュレーションも学習も終わった安全なタイミングで実行）
         if sync_models:
             for key in ['discard', 'pick', 'koikoi']:
-                updated_jit = torch.jit.load(f"traced_{key}.pt", map_location='cpu')
-                action_net[key].load_state_dict(updated_jit.state_dict())
-                value_net[key].load_state_dict(updated_jit.state_dict())
+                # ★CPU負荷削減の究極手: ファイル保存・ロードを完全に廃止し、
+                # C++内でGPUメモリ上の重みを推論用モデルへ直接コピー(0.01秒以下で完了)
+                trainer[key].sync_to_inference_model(key)
         
         elapsed_time = time.perf_counter() - loop_start_time
         
-        s_d = losses["samples_discard"]
-        s_p = losses["samples_pick"]
-        s_k = losses["samples_koikoi"]
-        l_d = losses["loss_discard"]
-        l_p = losses["loss_pick"]
-        l_k = losses["loss_koikoi"]
+        print_log(f'loop {loop:05}  time {elapsed_time:.1f}s  sample:loss discard {s_d:05}:{l_d:.2f}  pick {s_p:05}:{l_p:.2f}  koikoi {s_k:05}:{l_k:.2f}', LOG_PATH)
         
-        print_log(f'{time_str()} loop:{loop} (学習時間: {elapsed_time:.2f}s)', LOG_PATH)
-        print_log(f'[sample,loss] : discard [{s_d},{l_d:.2f}], pick [{s_p},{l_p:.2f}], koikoi [{s_k},{l_k:.2f}]', LOG_PATH)
-        
-        # 4. アリーナ評価
+        # 5. アリーナ評価
         if loop % N_LOOP_ARENA_TEST == 0:
             
             for key in ['discard', 'pick', 'koikoi']:
-                action_net[key].load_state_dict(torch.jit.load(f"traced_{key}.pt", map_location='cpu').state_dict())
+                # アリーナ評価の時「だけ」、Python側のNativeモデルに重みを同期するためファイルを介す
+                trainer[key].save_model(f"traced_{key}.pt")
+                updated_jit = torch.jit.load(f"traced_{key}.pt", map_location='cpu')
+                action_net[key].load_state_dict(updated_jit.state_dict())
             
             test_agent = koikoilearn.Agent(action_net['discard'], action_net['pick'], action_net['koikoi'])
             

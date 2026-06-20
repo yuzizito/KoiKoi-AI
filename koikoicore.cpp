@@ -88,6 +88,47 @@ struct KoiKoiMasks {
     }
 };
 
+template<typename T, int Capacity>
+struct FixedVec {
+    T data_[Capacity];
+    int size_ = 0;
+
+    void clear() { size_ = 0; }
+    void push_back(const T& val) { if (size_ < Capacity) data_[size_++] = val; }
+    void pop_back() { if (size_ > 0) size_--; }
+    T& back() { return data_[size_ - 1]; }
+    const T& back() const { return data_[size_ - 1]; }
+    int size() const { return size_; }
+    bool empty() const { return size_ == 0; }
+    T& operator[](int i) { return data_[i]; }
+    const T& operator[](int i) const { return data_[i]; }
+
+    T* begin() { return data_; }
+    T* end() { return data_ + size_; }
+    const T* begin() const { return data_; }
+    const T* end() const { return data_ + size_; }
+
+    void erase(T* it) {
+        int idx = it - data_;
+        for(int i = idx; i < size_ - 1; ++i) {
+            data_[i] = data_[i+1];
+        }
+        size_--;
+    }
+
+    void insert_end(const T* first, const T* last) {
+        int n = last - first;
+        for(int i = 0; i < n && size_ < Capacity; ++i) {
+            data_[size_++] = first[i];
+        }
+    }
+
+    bool contains(const T& val) const {
+        for(int i = 0; i < size_; ++i) if (data_[i] == val) return true;
+        return false;
+    }
+};
+
 static const KoiKoiMasks MASKS;
 
 inline int popcount(uint64_t bb) {
@@ -144,43 +185,6 @@ py::array_t<float> cards_to_multi_hot_np(const std::vector<std::vector<int>>& ca
     return result;
 }
 
-py::array_t<float> get_yaku_status_features_np(uint64_t mh, uint64_t b, uint64_t mc, uint64_t oc, uint64_t unseen) {
-    auto result = py::array_t<float>(65);
-    auto buf = result.mutable_unchecked<1>();
-
-    // 役を判定するためのマスクビットボード
-    const uint64_t m[13] = {
-        MASKS.crane, MASKS.curtain, MASKS.moon, MASKS.rainman, MASKS.phoenix, MASKS.sake,
-        MASKS.boar_deer_butterfly, MASKS.seed, MASKS.red_ribbon, MASKS.blue_ribbon,
-        MASKS.red_blue_ribbon, MASKS.ribbon, MASKS.dross
-    };
-
-    // 各役の popcount をバッファに格納
-    for (int i = 0; i < 13; ++i) {
-        buf(i)      = static_cast<float>(popcount(m[i] & mh)); // My Hand
-        buf(i + 13) = static_cast<float>(popcount(m[i] & b));  // Board
-        buf(i + 26) = static_cast<float>(popcount(m[i] & mc)); // My Collect
-        buf(i + 39) = static_cast<float>(popcount(m[i] & oc)); // Op Collect
-        buf(i + 52) = static_cast<float>(popcount(m[i] & unseen));  // Unseen
-    }
-    return result;
-}
-
-std::vector<int> card_to_multi_hot(const std::vector<std::vector<int>>& card_list) {
-    std::vector<int> multi_hot(48, 0);
-    for (const auto& card : card_list) {
-        if (card.size() == 2) {
-            int index = card_index(card[0], card[1]);
-            if (index >= 0 && index < 48) multi_hot[index] = 1;
-        }
-    }
-    return multi_hot;
-}
-
-int get_yaku_point(const std::vector<std::vector<int>>& pile_cards, int koikoi_num) {
-    return get_yaku_point_by_bitboard(cards_to_bitboard(pile_cards), koikoi_num);
-}
-
 std::vector<std::tuple<int, std::string, int>> evaluate_yaku_by_bitboard(uint64_t pile, int koikoi_num) {
     std::vector<std::tuple<int, std::string, int>> yaku_list;
     int num_light = popcount(pile & MASKS.light);
@@ -206,11 +210,6 @@ std::vector<std::tuple<int, std::string, int>> evaluate_yaku_by_bitboard(uint64_
     if (koikoi_num > 0) yaku_list.emplace_back(16, "Koi-Koi", koikoi_num);
 
     return yaku_list;
-}
-
-std::vector<std::tuple<int, std::string, int>> evaluate_yaku(
-    const std::vector<std::vector<int>>& pile_cards, int koikoi_num) {
-    return evaluate_yaku_by_bitboard(cards_to_bitboard(pile_cards), koikoi_num);
 }
 
 struct Snapshot {
@@ -557,35 +556,36 @@ public:
     int rows;
     int cols;
     int current_size;
-    int peak_size = 0; // 実行中に観測された最大サイズを記録
-    std::vector<float> states, rewards;
-    std::vector<int> actions;
+    
+    // std::vector を廃止し、最初から PyTorch テンソルとして保持する
+    torch::Tensor states_tensor;
+    torch::Tensor actions_tensor;
+    torch::Tensor rewards_tensor;
+
+    // 高速アクセス用の生ポインタ
+    float* states_ptr;
+    int64_t* actions_ptr;
+    float* rewards_ptr;
 
     KoiKoiTraceBuffer(int cap, int r, int c) : capacity(cap), rows(r), cols(c), current_size(0) {
-        states.resize(capacity * rows * cols);
-        actions.resize(capacity);
-        rewards.resize(capacity);
+        // ★ メモリ削減＆高速化の要：Pinned Memory でテンソルを1回だけ確保
+        auto opt_f32 = torch::TensorOptions().dtype(torch::kFloat32).pinned_memory(true);
+        auto opt_i64 = torch::TensorOptions().dtype(torch::kInt64).pinned_memory(true);
+        
+        states_tensor = torch::empty({capacity, rows, cols}, opt_f32);
+        actions_tensor = torch::empty({capacity}, opt_i64);
+        rewards_tensor = torch::empty({capacity}, opt_f32);
+
+        states_ptr = states_tensor.data_ptr<float>();
+        actions_ptr = actions_tensor.data_ptr<int64_t>();
+        rewards_ptr = rewards_tensor.data_ptr<float>();
     }
 
     void clear() { current_size = 0; }
 
-    // Python API向けのフォールバック（動作変更なし）
-    void push(py::array_t<float> state, int action, float reward) {
-        if (current_size >= capacity) return;
-        auto buf = state.unchecked<2>();
-        float* dest = &states[current_size * rows * cols];
-        std::memcpy(dest, state.data(), rows * cols * sizeof(float));
-        actions[current_size] = action; rewards[current_size] = reward; current_size++;
-        if (current_size > peak_size) {
-            peak_size = current_size;
-        }
-    }
-
-    // 遅延再構築用メソッド
     void push_reconstructed(const Snapshot& snap, int action, float reward,
                             const float* log_buf_ptr, const int* order, const float* cache_ptr) {
         int idx;
-        // ★ 1. アトミック操作で「書き込み先のインデックス」だけを一瞬で確保（スレッド間の競合ゼロ）
         #pragma omp atomic capture
         {
             idx = current_size;
@@ -598,63 +598,31 @@ public:
             return;
         }
 
-        // ピークサイズの更新のみロックする（一瞬で終わる）
-        #pragma omp critical
-        {
-            if (idx + 1 > peak_size) peak_size = idx + 1;
-        }
-
-        // ★ 2. 最も重い特徴量の構築処理を、ロックの外で完全並列に実行！
-        // idx は各スレッドで重複しないため、states への書き込みは完全に安全です。
-        float* dest = &states[idx * rows * cols];
-        actions[idx] = action;
-        rewards[idx] = reward;
+        // テンソルの生ポインタに直接特徴量を書き込む
+        float* dest = states_ptr + idx * rows * cols;
+        actions_ptr[idx] = action;
+        rewards_ptr[idx] = reward;
 
         write_feature_core(dest, cols, snap.state_type == 2 ? 2 : 0, snap,
                            log_buf_ptr, order, cache_ptr,
                            true, action);
     }
 
-    std::pair<torch::Tensor, torch::Tensor> get_tensors() {
-        if (current_size == 0) return {torch::empty({0}), torch::empty({0})};
-        
-        // ★ ページロックメモリ（Pinned Memory）を有効化して転送を高速化
-        auto options = torch::TensorOptions().dtype(torch::kFloat32).pinned_memory(true);
-        auto res_states = torch::empty({current_size, rows, cols}, options);
-        auto res_rewards = torch::empty({current_size}, options);
-        
-        std::memcpy(res_states.data_ptr<float>(), states.data(), current_size * rows * cols * sizeof(float));
-        std::memcpy(res_rewards.data_ptr<float>(), rewards.data(), current_size * sizeof(float));
-        return {res_states, res_rewards};
-    }
-
     py::dict finalize() {
-        auto res_states = py::array_t<float>({current_size, rows, cols});
-        auto res_actions = py::array_t<int>(current_size);
-        auto res_rewards = py::array_t<float>(current_size);
-        // シフトロジックを完全削除して単純コピー
-        std::memcpy(res_states.mutable_data(), states.data(), current_size * rows * cols * sizeof(float));
-        std::memcpy(res_actions.mutable_data(), actions.data(), current_size * sizeof(int));
-        std::memcpy(res_rewards.mutable_data(), rewards.data(), current_size * sizeof(float));
         py::dict result;
-        result["states"] = res_states; result["actions"] = res_actions; result["rewards"] = res_rewards;
+        if (current_size == 0) {
+            result["states"] = torch::empty({0, rows, cols});
+            result["actions"] = torch::empty({0});
+            result["rewards"] = torch::empty({0});
+        } else {
+            // ★ メモリ削減の究極手：Numpy配列を作ってコピーするのをやめ、
+            // テンソルの View (スライス) を返すだけにする。
+            // これにより、コピーにかかる時間と追加のメモリ消費が「ゼロ」になります。
+            result["states"] = states_tensor.slice(0, 0, current_size);
+            result["actions"] = actions_tensor.slice(0, 0, current_size);
+            result["rewards"] = rewards_tensor.slice(0, 0, current_size);
+        }
         return result;
-    }
-
-    size_t print_buffer_memory_report(const std::string& prefix) const {
-        size_t states_bytes  = states.capacity() * sizeof(float);
-        size_t rewards_bytes = rewards.capacity() * sizeof(float);
-        size_t actions_bytes = actions.capacity() * sizeof(int);
-
-        double states_mb  = static_cast<double>(states_bytes)  / (1024.0 * 1024.0);
-        double rewards_mb = static_cast<double>(rewards_bytes) / (1024.0 * 1024.0);
-        double actions_mb = static_cast<double>(actions_bytes) / (1024.0 * 1024.0);
-
-        std::cout << "  " << prefix << ".states  : " << std::fixed << std::setprecision(2) << states_mb << " MB\n"
-                  << "  " << prefix << ".rewards : " << std::fixed << std::setprecision(2) << rewards_mb << " MB\n"
-                  << "  " << prefix << ".actions : " << std::fixed << std::setprecision(2) << actions_mb << " MB\n";
-
-        return states_bytes + rewards_bytes + actions_bytes;
     }
 };
 
@@ -669,14 +637,21 @@ public:
     GameState state;
 
     KoiKoiStateManager state_manager;
-    std::vector<int> hand[3], field_slot, stock, pile[3], show, collect;
     std::mt19937 rng;
 
+    // 全ての std::vector を FixedVec に置き換え、クリティカルパス上のアロケーションをゼロ化
+    FixedVec<int, 48> hand[3];
+    FixedVec<int, 48> field_slot;
+    FixedVec<int, 48> stock;
+    FixedVec<int, 48> pile[3];
+    FixedVec<int, 4> show;
+    FixedVec<int, 8> collect;
+
     float card_log_buf[17][8][48];
-    std::vector<int> turn_pairCard[17], turn_pairCard2[17];
+    FixedVec<int, 4> turn_pairCard[17];
+    FixedVec<int, 4> turn_pairCard2[17];
 
     KoiKoiEnv(int seed = 42) : rng(seed) { reset_game(); }
-
 
     void reset_game() {
         round_num = 1; point[1] = 30; point[2] = 30;
@@ -698,10 +673,10 @@ public:
         deal_card();
 
         uint64_t bb_h1 = 0, bb_h2 = 0, bb_f = 0, bb_s = 0;
-        for(int c : hand[1]) bb_h1 |= (1ULL << c);
-        for(int c : hand[2]) bb_h2 |= (1ULL << c);
-        for(int c : field_slot) if (c != -1) bb_f |= (1ULL << c);
-        for(int c : stock) bb_s |= (1ULL << c);
+        for (int c : hand[1]) bb_h1 |= (1ULL << c);
+        for (int c : hand[2]) bb_h2 |= (1ULL << c);
+        for (int c : field_slot) if (c != -1) bb_f |= (1ULL << c);
+        for (int c : stock) bb_s |= (1ULL << c);
 
         state_manager.init_board(bb_h1, bb_h2, bb_f, bb_s);
         state = GameState::DISCARD; wait_action = true;
@@ -710,7 +685,7 @@ public:
     int turn_player() const { return ((turn_16 + dealer) % 2 == 0) ? 1 : 2; }
     int idle_player() const { return 3 - turn_player(); }
     int turn_8() const { return (turn_16 + 1) / 2; }
-    int koikoi_num(int p) const { int s=0; for(int i=0; i<8; ++i) s+=koikoi[p][i]; return s; }
+    int koikoi_num(int p) const { int s = 0; for (int i = 0; i < 8; ++i) s += koikoi[p][i]; return s; }
 
     int round_point(int p) {
         if (winner == 0) return 0;
@@ -724,51 +699,74 @@ public:
                                state == GameState::DRAW_PICK || state == GameState::KOIKOI);
     }
 
-    void set_log_buf(int t16, int idx, const std::vector<int>& cards) {
+    template<typename Container>
+    void set_log_buf(int t16, int idx, const Container& cards) {
         if (t16 < 1 || t16 > 16) return;
-        for(int c=0; c<48; ++c) card_log_buf[t16][idx][c] = 0.0f;
-        for(int c : cards) if(c >= 0 && c < 48) card_log_buf[t16][idx][c] = 1.0f;
+        std::memset(card_log_buf[t16][idx], 0, 48 * sizeof(float));
+        for (int c : cards) if (c >= 0 && c < 48) card_log_buf[t16][idx][c] = 1.0f;
     }
 
-    std::vector<int> get_pairing_cards() const {
-        std::vector<int> pairs;
+    FixedVec<int, 4> get_pairing_cards() const {
+        FixedVec<int, 4> pairs;
         if (show.empty()) return pairs;
         int target = show[0] / 4;
         for (int c : field_slot) if (c != -1 && c / 4 == target) pairs.push_back(c);
         return pairs;
     }
 
-    std::vector<int> field_collect() const {
-        std::vector<int> fc = collect;
-        auto it = std::find(fc.begin(), fc.end(), show[0]);
-        if (it != fc.end()) fc.erase(it);
+    FixedVec<int, 8> field_collect() const {
+        FixedVec<int, 8> fc = collect;
+        for (auto it = fc.begin(); it != fc.end(); ++it) {
+            if (*it == show[0]) {
+                fc.erase(it);
+                break;
+            }
+        }
         return fc;
     }
 
-    std::vector<int> get_uncollect(const std::vector<int>& pairing, const std::vector<int>& fc) const {
-        std::vector<int> un;
-        for(int c : pairing) if (std::find(fc.begin(), fc.end(), c) == fc.end()) un.push_back(c);
+    FixedVec<int, 4> get_uncollect(const FixedVec<int, 4>& pairing, const FixedVec<int, 8>& fc) const {
+        FixedVec<int, 4> un;
+        for (int c : pairing) {
+            if (!fc.contains(c)) un.push_back(c);
+        }
         return un;
     }
 
     void _collect_card(int card) {
-        std::vector<int> pairing = get_pairing_cards();
+        FixedVec<int, 4> pairing = get_pairing_cards();
         if (pairing.empty()) {
             collect.clear();
-            auto it = std::find(field_slot.begin(), field_slot.end(), -1);
-            if (it != field_slot.end()) *it = show[0];
-        } else if (pairing.size() == 1 || pairing.size() == 3) {
-            collect = show; collect.insert(collect.end(), pairing.begin(), pairing.end());
-            for (int p_card : pairing) {
-                auto it = std::find(field_slot.begin(), field_slot.end(), p_card);
-                if (it != field_slot.end()) *it = -1;
+            for (int i = 0; i < field_slot.size(); ++i) {
+                if (field_slot[i] == -1) {
+                    field_slot[i] = show[0];
+                    break;
+                }
             }
-            pile[turn_player()].insert(pile[turn_player()].end(), collect.begin(), collect.end());
+        } else if (pairing.size() == 1 || pairing.size() == 3) {
+            collect.clear();
+            collect.insert_end(show.begin(), show.end());
+            collect.insert_end(pairing.begin(), pairing.end());
+            for (int p_card : pairing) {
+                for (int i = 0; i < field_slot.size(); ++i) {
+                    if (field_slot[i] == p_card) {
+                        field_slot[i] = -1;
+                        break;
+                    }
+                }
+            }
+            pile[turn_player()].insert_end(collect.begin(), collect.end());
         } else {
-            collect = show; collect.push_back(card);
-            auto it = std::find(field_slot.begin(), field_slot.end(), card);
-            if (it != field_slot.end()) *it = -1;
-            pile[turn_player()].insert(pile[turn_player()].end(), collect.begin(), collect.end());
+            collect.clear();
+            collect.insert_end(show.begin(), show.end());
+            collect.push_back(card);
+            for (int i = 0; i < field_slot.size(); ++i) {
+                if (field_slot[i] == card) {
+                    field_slot[i] = -1;
+                    break;
+                }
+            }
+            pile[turn_player()].insert_end(collect.begin(), collect.end());
         }
     }
 
@@ -776,12 +774,17 @@ public:
         int p = turn_player();
         if (state == GameState::DISCARD) {
             turn_point = state_manager.get_yaku_point(p, koikoi_num(p));
-            auto it = std::find(hand[p].begin(), hand[p].end(), action);
-            if (it != hand[p].end()) hand[p].erase(it);
-            show = {action};
+            for (auto it = hand[p].begin(); it != hand[p].end(); ++it) {
+                if (*it == action) {
+                    hand[p].erase(it);
+                    break;
+                }
+            }
+            show.clear();
+            show.push_back(action);
 
-            std::vector<int> pairing = get_pairing_cards();
-            uint64_t pair_bb = 0; for(int c : pairing) pair_bb |= (1ULL<<c);
+            FixedVec<int, 4> pairing = get_pairing_cards();
+            uint64_t pair_bb = 0; for (int c : pairing) pair_bb |= (1ULL << c);
             state_manager.discard(p, action, pair_bb);
 
             set_log_buf(turn_16, pairing.empty() ? 1 : 0, show);
@@ -790,21 +793,24 @@ public:
         }
         else if (state == GameState::DISCARD_PICK) {
             _collect_card(action);
-            uint64_t coll_bb = 0; for(int c : collect) coll_bb |= (1ULL<<c);
-            uint64_t field_bb = 0; for(int c : field_slot) if(c != -1) field_bb |= (1ULL<<c);
+            uint64_t coll_bb = 0; for (int c : collect) coll_bb |= (1ULL << c);
+            uint64_t field_bb = 0; for (int c : field_slot) if (c != -1) field_bb |= (1ULL << c);
             state_manager.discard_pick(p, coll_bb, field_bb);
 
             if (!collect.empty()) {
-                auto fc = field_collect();
+                FixedVec<int, 8> fc = field_collect();
                 set_log_buf(turn_16, 2, fc);
                 set_log_buf(turn_16, 3, get_uncollect(turn_pairCard[turn_16], fc));
             }
             state = GameState::DRAW; wait_action = false;
         }
         else if (state == GameState::DRAW) {
-            int drawn = stock.back(); stock.pop_back(); show = {drawn};
-            std::vector<int> pairing = get_pairing_cards();
-            uint64_t pair_bb = 0; for(int c : pairing) pair_bb |= (1ULL<<c);
+            int drawn = stock.back(); stock.pop_back(); 
+            show.clear();
+            show.push_back(drawn);
+            
+            FixedVec<int, 4> pairing = get_pairing_cards();
+            uint64_t pair_bb = 0; for (int c : pairing) pair_bb |= (1ULL << c);
             state_manager.draw(drawn, pair_bb);
 
             set_log_buf(turn_16, pairing.empty() ? 5 : 4, show);
@@ -813,12 +819,12 @@ public:
         }
         else if (state == GameState::DRAW_PICK) {
             _collect_card(action);
-            uint64_t coll_bb = 0; for(int c : collect) coll_bb |= (1ULL<<c);
-            uint64_t field_bb = 0; for(int c : field_slot) if(c != -1) field_bb |= (1ULL<<c);
+            uint64_t coll_bb = 0; for (int c : collect) coll_bb |= (1ULL << c);
+            uint64_t field_bb = 0; for (int c : field_slot) if (c != -1) field_bb |= (1ULL << c);
             state_manager.draw_pick(p, coll_bb, field_bb);
 
             if (!collect.empty()) {
-                auto fc = field_collect();
+                FixedVec<int, 8> fc = field_collect();
                 set_log_buf(turn_16, 6, fc);
                 set_log_buf(turn_16, 7, get_uncollect(turn_pairCard2[turn_16], fc));
             }
@@ -840,23 +846,33 @@ public:
 
 private:
     void deal_card() {
-        std::vector<int> cards(48);
+        int cards[48]; // スタック確保
         while (true) {
             for (int i = 0; i < 48; ++i) cards[i] = i;
-            std::shuffle(cards.begin(), cards.end(), rng);
-            hand[1] = std::vector<int>(cards.begin(), cards.begin()+8); std::sort(hand[1].begin(), hand[1].end());
-            hand[2] = std::vector<int>(cards.begin()+8, cards.begin()+16); std::sort(hand[2].begin(), hand[2].end());
-            std::vector<int> init_f(cards.begin()+16, cards.begin()+24); std::sort(init_f.begin(), init_f.end());
-            field_slot = init_f; for (int i=0; i<8; ++i) field_slot.push_back(-1);
-            stock = std::vector<int>(cards.begin()+24, cards.end());
+            std::shuffle(cards, cards + 48, rng);
+            
+            hand[1].clear(); hand[2].clear(); field_slot.clear(); stock.clear();
+            for (int i = 0; i < 8; ++i) hand[1].push_back(cards[i]);
+            std::sort(hand[1].begin(), hand[1].end());
+            
+            for (int i = 8; i < 16; ++i) hand[2].push_back(cards[i]);
+            std::sort(hand[2].begin(), hand[2].end());
+            
+            int init_f[8];
+            for (int i = 16; i < 24; ++i) init_f[i - 16] = cards[i];
+            std::sort(init_f, init_f + 8);
+            for (int i = 0; i < 8; ++i) field_slot.push_back(init_f[i]);
+            for (int i = 0; i < 8; ++i) field_slot.push_back(-1); // -1で空きスロットを表現
+            
+            for (int i = 24; i < 48; ++i) stock.push_back(cards[i]);
 
             bool flag = true;
             for (int s = 0; s < 12; ++s) {
-                int c1=0, c2=0, cf=0;
-                for(int c : hand[1]) if(c/4 == s) c1++;
-                for(int c : hand[2]) if(c/4 == s) c2++;
-                for(int c : init_f) if(c/4 == s) cf++;
-                if (c1==4 || c2==4 || cf==4) { flag = false; break; }
+                int c1 = 0, c2 = 0, cf = 0;
+                for (int c : hand[1]) if (c / 4 == s) c1++;
+                for (int c : hand[2]) if (c / 4 == s) c2++;
+                for (int i = 0; i < 8; ++i) if (init_f[i] / 4 == s) cf++;
+                if (c1 == 4 || c2 == 4 || cf == 4) { flag = false; break; }
             }
             if (flag) break;
         }
@@ -868,7 +884,7 @@ public:
     int num_envs, target_games;
     float discount;
     std::vector<KoiKoiEnv> envs;
-    std::vector<std::vector<TraceSlot>> traces[3];
+    std::vector<FixedVec<TraceSlot, 64>> traces[3];
 
     KoiKoiTraceBuffer buf_discard, buf_pick, buf_koikoi;
     std::vector<float> win_prob_mat;
@@ -881,15 +897,6 @@ public:
     torch::Tensor feat_tensor[3];
     torch::Tensor mask_tensor[3];
 
-    // 【計測用変数】
-    double t_trace_alloc = 0;
-    double t_trace_memcpy = 0;
-    double t_trace_create = 0;
-    double t_trace_push = 0;
-
-    double t_ro_discount = 0;
-    double t_ro_push_call = 0;
-
     BatchSimulator(int n_envs, int target, int cap_d, int cap_p, int cap_k, float disc, py::array_t<float> wp_mat, std::string dev_str)
         : num_envs(n_envs), target_games(target), discount(disc),
           buf_discard(cap_d, 300, 48), buf_pick(cap_p, 300, 48), buf_koikoi(cap_k, 300, 50),
@@ -898,10 +905,6 @@ public:
         envs.resize(n_envs);
         for(int p=1; p<=2; ++p) {
             traces[p].resize(n_envs);
-            // 事前に各環境の軌跡用ベクターにメモリを割り当て、シミュレーション中の動的確保を防ぐ
-            for(auto& v : traces[p]) {
-                v.reserve(32);
-            }
         }
 
         auto wp = wp_mat.unchecked<3>();
@@ -954,9 +957,6 @@ public:
         buf_discard.clear();
         buf_pick.clear();
         buf_koikoi.clear();
-
-        t_trace_alloc = 0; t_trace_memcpy = 0; t_trace_create = 0; t_trace_push = 0;
-        t_ro_discount = 0; t_ro_push_call = 0;
     }
 
     py::dict finalize_buffers() {
@@ -1028,7 +1028,7 @@ public:
         }
         // cache_buf[r] からのコピーは std::copy_n の方が高速かつ安全です
         for(int r=0; r<25; ++r) {
-            std::copy_n(cache_buf[r], 48, feat + (137 + r) * cols + off);
+            std::memcpy(feat + (137 + r) * cols + off, cache_buf[r], 48 * sizeof(float));
         }
 
         // ラムダ式を排し、直接ポインタに書き込むマクロまたはインライン関数化
@@ -1055,8 +1055,8 @@ public:
         for(int j=0; j<16; ++j) {
             int t = order[t16][j];
             for(int sr=0; sr<8; ++sr) {
-                // 事前に全体が0初期化されているため、条件分岐を排して48要素をまとめて高速コピー
-                std::copy_n(&env.card_log_buf[t][sr][0], 48, feat + out_r * cols + off);
+                // 修正: ログバッファからの転写も std::memcpy に統一
+                std::memcpy(feat + out_r * cols + off, &env.card_log_buf[t][sr][0], 48 * sizeof(float));
                 out_r++;
             }
         }
@@ -1100,12 +1100,16 @@ public:
         int final_pt = env.point[1] + env.round_point(1);
         float final_potential = get_potential(1, env.round_num + 1, final_pt, env.dealer, env.winner, env.exhausted);
         
-        float next_potential = final_potential;
+        // 修正点: モンテカルロリターンとして最終ポテンシャルから開始
+        float mc_return = final_potential; 
         for (size_t rs = 0; rs < trace.size(); ++rs) {
             auto& slot = trace[trace.size() - 1 - rs];
             float current_potential = slot.snap.potential;
-            float pbrs_reward = (discount * next_potential - current_potential) * 10.0f;
+
+            // 修正点: 現在のポテンシャルから、最終結果（割引済み）への差分を報酬とする
+            float pbrs_reward = (mc_return - current_potential) * 10.0f;
             
+            // 削除してしまっていた変数の定義を復元
             int t16_limit = std::max<int>(1, std::min<int>(16, slot.snap.turn_16));
             const float* log_ptr = &env.card_log_buf[0][0][0];
             const float* cache_ptr = &cache_buf[0][0];
@@ -1114,7 +1118,8 @@ public:
             else if (slot.state_type == 1) buf_pick.push_reconstructed(slot.snap, slot.action, pbrs_reward, log_ptr, order[t16_limit], cache_ptr);
             else buf_koikoi.push_reconstructed(slot.snap, slot.action, pbrs_reward, log_ptr, order[t16_limit], cache_ptr);
             
-            next_potential = current_potential;
+            // 修正点: 時間を遡るごとに割引を適用
+            mc_return = discount * mc_return;
         }
         traces[1][i].clear();
         traces[2][i].clear(); // P2の経験は学習しないため捨てる
@@ -1177,17 +1182,61 @@ public:
                         build_mask_into(env_idx, mask_ptrs[type] + i * m_cols, type);
                     }
 
-                    // 4. GPU推論はただ1つのスレッドがまとめて担当！ (通信ロック・競合ゼロ)
-                    torch::Tensor f_gpu = feat_tensor[type].slice(0, 0, n).to(device, true).to(torch::kBFloat16);
-                    torch::Tensor m_gpu = mask_tensor[type].slice(0, 0, n).to(device, true);
-
+                    // 4. GPU推論はただ1つのスレッドがまとめて担当！
+                    torch::Tensor f_gpu = feat_tensor[type].slice(0, 0, n)
+                                            .to(torch::kBFloat16)
+                                            .to(device, /*non_blocking=*/true);
+                    
+                    // GPUにはモデルの forward のみを任せる
                     torch::Tensor output;
                     if (type == 0) output = g_models.discard.forward({f_gpu}).toTensor();
                     else if (type == 1) output = g_models.pick.forward({f_gpu}).toTensor();
                     else output = g_models.koikoi.forward({f_gpu}).toTensor();
 
-                    output = output.masked_fill(~m_gpu, -1e9);
-                    int64_t* act_ptr = output.argmax(1).cpu().data_ptr<int64_t>();
+                    // ★ CPU負荷削減の要: 推論結果を直ちにCPU(Float32)に持ってくる
+                    // これ以降の細かい分岐や乱数生成は、GPUカーネルを起動するよりCPUで行った方が圧倒的に速い
+                    torch::Tensor output_cpu = output.to(torch::kFloat32).cpu();
+                    float* out_ptr = output_cpu.data_ptr<float>();
+                    bool* mask_ptr = mask_tensor[type].data_ptr<bool>(); // すでにPinnedメモリ上にある
+
+                    // 結果を格納するスタック上の軽量配列
+                    int64_t act_ptr[8192]; 
+                    float epsilon = 0.1f;
+                    
+                    // 乱数生成器は環境0のものを借用 (CPU上で高速に乱数を生成)
+                    std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+
+                    for (int i = 0; i < n; ++i) {
+                        int cols = (type == 2) ? 2 : 48;
+                        
+                        if (dist(envs[0].rng) < epsilon) {
+                            // 探索 (Explore): 有効なアクションからランダム選択
+                            FixedVec<int, 48> valid_actions;
+                            for (int c = 0; c < cols; ++c) {
+                                if (mask_ptr[i * cols + c]) valid_actions.push_back(c);
+                            }
+                            if (!valid_actions.empty()) {
+                                std::uniform_int_distribution<int> action_dist(0, valid_actions.size() - 1);
+                                act_ptr[i] = valid_actions[action_dist(envs[0].rng)];
+                            } else {
+                                act_ptr[i] = 0; // フェールセーフ
+                            }
+                        } else {
+                            // 活用 (Exploit): Argmax
+                            float max_val = -1e9f;
+                            int best_a = 0;
+                            for (int c = 0; c < cols; ++c) {
+                                if (mask_ptr[i * cols + c]) {
+                                    float val = out_ptr[i * cols + c];
+                                    if (val > max_val) {
+                                        max_val = val;
+                                        best_a = c;
+                                    }
+                                }
+                            }
+                            act_ptr[i] = best_a;
+                        }
+                    }
 
                     // 5. アクションの適用と軌跡の記録 (std::vector への push_back があるため直列が安全)
                     #pragma omp parallel for
@@ -1230,23 +1279,6 @@ public:
             }
         }
     }
-
-    size_t get_pinned_tensors_bytes() const {
-        size_t total = 0;
-        for (int i = 0; i < 3; ++i) {
-            total += feat_tensor[i].nbytes();
-            total += mask_tensor[i].nbytes();
-        }
-        return total;
-    }
-
-    size_t print_simulator_memory_report() const {
-        size_t total_buf_bytes = 0;
-        total_buf_bytes += buf_discard.print_buffer_memory_report("discard");
-        total_buf_bytes += buf_pick.print_buffer_memory_report("pick");
-        total_buf_bytes += buf_koikoi.print_buffer_memory_report("koikoi");
-        return total_buf_bytes;
-    }
 };
 
 class KoiKoiTrainer {
@@ -1278,39 +1310,70 @@ public:
     }
 
     float train_epoch(torch::Tensor states, torch::Tensor rewards, int batch_size) {
-        // states と rewards は CPU メモリに留めておく (to.deviceを削除)
-        
         int64_t num_samples = states.size(0);
-        // シャッフル用インデックスも CPU 上で生成
+        int rows = states.size(1);
+        int cols = states.size(2);
+        
         auto indices = torch::randperm(num_samples, torch::TensorOptions().dtype(torch::kLong));
+        const int64_t* idx_ptr = indices.data_ptr<int64_t>();
         
         float total_loss = 0.0f;
         int num_batches = 0;
 
+        // ★ 通信効率化の要: ダブルバッファリング
+        // バッファを2セット用意し、CPUの構築とGPUの計算を完全に並行稼働（オーバーラップ）させる
+        auto opt_pinned = torch::TensorOptions().dtype(torch::kFloat32).pinned_memory(true);
+        torch::Tensor batch_states[2] = {
+            torch::empty({batch_size, rows, cols}, opt_pinned),
+            torch::empty({batch_size, rows, cols}, opt_pinned)
+        };
+        torch::Tensor batch_rewards[2] = {
+            torch::empty({batch_size}, opt_pinned),
+            torch::empty({batch_size}, opt_pinned)
+        };
+        
+        const float* src_states_ptr = states.data_ptr<float>();
+        const float* src_rewards_ptr = rewards.data_ptr<float>();
+
         py::gil_scoped_release release;
+        int buf_idx = 0; // バッファの切り替え用インデックス
 
         for (int64_t i = 0; i < num_samples; i += batch_size) {
-            int64_t end = std::min(i + batch_size, num_samples);
-            auto batch_indices = indices.slice(0, i, end);
+            int64_t current_batch_size = std::min(static_cast<int64_t>(batch_size), num_samples - i);
             
-            // 1. CPU上でミニバッチを切り出す
-            auto state_batch = states.index_select(0, batch_indices);
-            auto reward_batch = rewards.index_select(0, batch_indices);
+            float* dst_states_ptr = batch_states[buf_idx].data_ptr<float>();
+            float* dst_rewards_ptr = batch_rewards[buf_idx].data_ptr<float>();
+
+            // CPU 側での高速なミニバッチ組み立て
+            for (int64_t b = 0; b < current_batch_size; ++b) {
+                int64_t src_idx = idx_ptr[i + b];
+                std::memcpy(dst_states_ptr + b * rows * cols, 
+                            src_states_ptr + src_idx * rows * cols, 
+                            rows * cols * sizeof(float));
+                dst_rewards_ptr[b] = src_rewards_ptr[src_idx];
+            }
 
             optimizer->zero_grad();
 
+            // ★ 通信効率化の要: PCIe転送量の半減
+            // to(device) する「前」に to(torch::kBFloat16) を呼び、
+            // CPU側で2バイトに圧縮してからPCIeバスを通す。
+            auto state_gpu = batch_states[buf_idx].slice(0, 0, current_batch_size)
+                                         .to(torch::kBFloat16)
+                                         .to(device, /*non_blocking=*/true);
+                                         
+            auto reward_gpu = batch_rewards[buf_idx].slice(0, 0, current_batch_size)
+                                           .to(device, /*non_blocking=*/true);
+
             std::vector<torch::jit::IValue> inputs;
-            // 2. ★ ここで初めて GPU に転送し、bfloat16 にキャストする！
-            inputs.push_back(state_batch.to(device, /*non_blocking=*/true).to(torch::kBFloat16));
+            inputs.push_back(state_gpu);
             
             torch::Tensor q_values = model.forward(inputs).toTensor().view({-1});
-            
-            // reward もここで GPU に転送
-            torch::Tensor reward_flat = reward_batch.to(device, /*non_blocking=*/true).view({-1});
+            torch::Tensor reward_flat = reward_gpu.view({-1});
             
             auto loss = torch::nn::functional::smooth_l1_loss(
                 q_values.to(torch::kFloat32), 
-                reward_flat.to(torch::kFloat32), 
+                reward_flat, 
                 torch::nn::functional::SmoothL1LossFuncOptions().beta(30.0)
             );
 
@@ -1319,6 +1382,9 @@ public:
 
             total_loss += loss.item<float>();
             num_batches++;
+            
+            // バッファを切り替え（0 -> 1 -> 0 -> 1...）
+            buf_idx = 1 - buf_idx;
         }
         
         return num_batches > 0 ? total_loss / num_batches : 0.0f;
@@ -1337,12 +1403,13 @@ public:
             if (!res_dict.contains(key.c_str())) continue;
             
             py::dict data = res_dict[key.c_str()].cast<py::dict>();
-            py::array_t<float> s_arr = data["states"].cast<py::array_t<float>>();
-            py::array_t<float> r_arr = data["rewards"].cast<py::array_t<float>>();
             
-            if (s_arr.shape(0) > 0) {
-                auto s_tensor = torch::from_blob(s_arr.mutable_data(), {s_arr.shape(0), s_arr.shape(1), s_arr.shape(2)}, torch::kFloat32).clone();
-                auto r_tensor = torch::from_blob(r_arr.mutable_data(), {r_arr.shape(0)}, torch::kFloat32).clone();
+            // ★ 高速化: Numpy (py::array_t) を経由せず、最初から torch::Tensor として受け取る
+            torch::Tensor s_tensor = data["states"].cast<torch::Tensor>();
+            torch::Tensor r_tensor = data["rewards"].cast<torch::Tensor>();
+            
+            if (s_tensor.size(0) > 0) {
+                // clone() を削除。すでに Pinned Memory に乗っているテンソルをそのままリストに入れる
                 state_list.push_back(s_tensor);
                 reward_list.push_back(r_tensor);
             }
@@ -1350,6 +1417,8 @@ public:
         
         if (state_list.empty()) return 0.0f;
         
+        // 分割されている View を結合して1つの学習用バッチにする
+        // ここで初めて1回だけメモリ結合が走りますが、全体を通したピークメモリは圧倒的に下がります
         auto all_states = torch::cat(state_list, 0);
         auto all_rewards = torch::cat(reward_list, 0);
         
@@ -1376,6 +1445,30 @@ public:
         } catch (const c10::Error& e) {
             (void)e;
             std::cerr << "Error syncing weights to " << action_model_path << "\n";
+        }
+    }
+
+    void sync_to_inference_model(const std::string& type) {
+        torch::NoGradGuard no_grad;
+        // 推論用モデルのロックを取得
+        std::lock_guard<std::mutex> lock(g_models.mtx);
+        
+        torch::jit::script::Module* target_model = nullptr;
+        if (type == "discard") target_model = &g_models.discard;
+        else if (type == "pick") target_model = &g_models.pick;
+        else if (type == "koikoi") target_model = &g_models.koikoi;
+        
+        if (target_model && g_models.loaded) {
+            auto src_params = model.parameters();
+            auto dst_params = target_model->parameters();
+            auto src_it = src_params.begin();
+            auto dst_it = dst_params.begin();
+            while (src_it != src_params.end() && dst_it != dst_params.end()) {
+                // ★VRAM内での直接コピー。ディスクI/Oゼロで一瞬で終わります。
+                (*dst_it).copy_(*src_it);
+                ++src_it;
+                ++dst_it;
+            }
         }
     }
 };
@@ -1499,161 +1592,9 @@ public:
             }
         }
     }
-
-    void print_memory_report() const {
-        if (sims.empty()) return;
-
-        std::cout << "\n[Memory Report]\n";
-        
-        // 1. 各バッファの内訳 (全スレッドで容量設定は共通なため、sims[0]を代表値として出力)
-        size_t single_sim_buf_bytes = sims[0]->print_simulator_memory_report();
-
-        // 2. Pinned Tensor の集計 (全スレッド分)
-        size_t total_pinned_bytes = 0;
-        for (const auto& sim : sims) {
-            total_pinned_bytes += sim->get_pinned_tensors_bytes();
-        }
-
-        // 3. 全スレッドの合計
-        size_t total_sims_buf_bytes = single_sim_buf_bytes * sims.size();
-        size_t manager_total_bytes = total_sims_buf_bytes + total_pinned_bytes;
-
-        double single_sim_mb  = static_cast<double>(single_sim_buf_bytes) / (1024.0 * 1024.0);
-        double manager_total_mb = static_cast<double>(manager_total_bytes) / (1024.0 * 1024.0);
-        double pinned_total_mb  = static_cast<double>(total_pinned_bytes)  / (1024.0 * 1024.0);
-
-        std::cout << "  BatchSimulator Total    : " << std::fixed << std::setprecision(2) << single_sim_mb << " MB (per thread)\n"
-                  << "  Pinned Tensor Total     : " << std::fixed << std::setprecision(2) << pinned_total_mb << " MB (all threads)\n"
-                  << "  SimulationManager Total : " << std::fixed << std::setprecision(2) << manager_total_mb << " MB (Buffers + Pinned)\n"
-                  << "-------------------------------------\n\n";
-    }
-
-    void print_buffer_utilization_report() const {
-        if (sims.empty()) return;
-
-        // 全スレッドの現在のサイズとピークサイズを正確に合算するための変数
-        long long total_discard_cap = 0, total_discard_size = 0, total_discard_peak = 0;
-        long long total_pick_cap = 0, total_pick_size = 0, total_pick_peak = 0;
-        long long total_koikoi_cap = 0, total_koikoi_size = 0, total_koikoi_peak = 0;
-
-        for (const auto& sim : sims) {
-            total_discard_cap  += sim->buf_discard.capacity;
-            total_discard_size += sim->buf_discard.current_size;
-            total_discard_peak += sim->buf_discard.peak_size;
-
-            total_pick_cap  += sim->buf_pick.capacity;
-            total_pick_size += sim->buf_pick.current_size;
-            total_pick_peak += sim->buf_pick.peak_size;
-
-            total_koikoi_cap  += sim->buf_koikoi.capacity;
-            total_koikoi_size += sim->buf_koikoi.current_size;
-            total_koikoi_peak += sim->buf_koikoi.peak_size;
-        }
-
-        auto calc_pct = [](long long part, long long total) -> double {
-            return total > 0 ? (static_cast<double>(part) / static_cast<double>(total)) * 100.0 : 0.0;
-        };
-
-        std::cout << "\n[Replay Buffer Utilization Report (All Threads Summed)]\n";
-        std::cout << "  discard:\n"
-                  << "    - Capacity     : " << total_discard_cap << "\n"
-                  << "    - Current Size : " << total_discard_size << "\n"
-                  << "    - Peak Size    : " << total_discard_peak << "\n"
-                  << "    - Usage Rate   : " << std::fixed << std::setprecision(1) << calc_pct(total_discard_peak, total_discard_cap) << " %\n";
-                  
-        std::cout << "  pick:\n"
-                  << "    - Capacity     : " << total_pick_cap << "\n"
-                  << "    - Current Size : " << total_pick_size << "\n"
-                  << "    - Peak Size    : " << total_pick_peak << "\n"
-                  << "    - Usage Rate   : " << std::fixed << std::setprecision(1) << calc_pct(total_pick_peak, total_pick_cap) << " %\n";
-
-        std::cout << "  koikoi:\n"
-                  << "    - Capacity     : " << total_koikoi_cap << "\n"
-                  << "    - Current Size : " << total_koikoi_size << "\n"
-                  << "    - Peak Size    : " << total_koikoi_peak << "\n"
-                  << "    - Usage Rate   : " << std::fixed << std::setprecision(1) << calc_pct(total_koikoi_peak, total_koikoi_cap) << " %\n";
-        std::cout << "--------------------------------------------------------\n\n";
-    }
 };
 
 static std::unique_ptr<SimulationManager> g_sim_manager = nullptr;
-
-// ---------------------------------------------------------
-// 統合パイプライン
-// ---------------------------------------------------------
-
-py::dict run_simulation_and_train(
-    int num_threads, int n_envs_per_thread, int target_games_per_thread,
-    int cap_d, int cap_p, int cap_k, float disc, py::array_t<float> wp_mat,
-    std::string path_discard, std::string path_pick, std::string path_koikoi,
-    std::string dev_str,
-    KoiKoiTrainer& trainer_discard, KoiKoiTrainer& trainer_pick, KoiKoiTrainer& trainer_koikoi,
-    int batch_size, bool sync_models) 
-{
-    torch::Device device(dev_str);
-
-    {
-        std::lock_guard<std::mutex> lock(g_models.mtx);
-        if (!g_models.loaded) {
-            g_models.discard = torch::jit::load(path_discard, device);
-            g_models.pick = torch::jit::load(path_pick, device);
-            g_models.koikoi = torch::jit::load(path_koikoi, device);
-            g_models.discard.eval(); g_models.pick.eval(); g_models.koikoi.eval();
-            g_models.loaded = true;
-        }
-    }
-
-    SimConfig config = {num_threads, n_envs_per_thread, target_games_per_thread, cap_d, cap_p, cap_k, disc, dev_str};
-    
-    if (g_sim_manager && g_sim_manager->current_config != config) g_sim_manager.reset(); 
-    if (!g_sim_manager) g_sim_manager = std::make_unique<SimulationManager>(config, wp_mat);
-    else g_sim_manager->reset_all();
-
-    {
-        py::gil_scoped_release release; 
-        g_sim_manager->run_simulation_parallel();
-    }
-
-    std::vector<torch::Tensor> states_d, rewards_d;
-    std::vector<torch::Tensor> states_p, rewards_p;
-    std::vector<torch::Tensor> states_k, rewards_k;
-
-    for (int i = 0; i < num_threads; ++i) {
-        auto d = g_sim_manager->sims[i]->buf_discard.get_tensors();
-        if (d.first.size(0) > 0) { states_d.push_back(d.first); rewards_d.push_back(d.second); }
-        
-        auto p = g_sim_manager->sims[i]->buf_pick.get_tensors();
-        if (p.first.size(0) > 0) { states_p.push_back(p.first); rewards_p.push_back(p.second); }
-        
-        auto k = g_sim_manager->sims[i]->buf_koikoi.get_tensors();
-        if (k.first.size(0) > 0) { states_k.push_back(k.first); rewards_k.push_back(k.second); }
-    }
-
-    int64_t sample_count_d = 0; for (const auto& t : states_d) sample_count_d += t.size(0);
-    int64_t sample_count_p = 0; for (const auto& t : states_p) sample_count_p += t.size(0);
-    int64_t sample_count_k = 0; for (const auto& t : states_k) sample_count_k += t.size(0);
-
-    float loss_d = states_d.empty() ? 0.0f : trainer_discard.train_epoch(torch::cat(states_d, 0), torch::cat(rewards_d, 0), batch_size);
-    float loss_p = states_p.empty() ? 0.0f : trainer_pick.train_epoch(torch::cat(states_p, 0), torch::cat(rewards_p, 0), batch_size);
-    float loss_k = states_k.empty() ? 0.0f : trainer_koikoi.train_epoch(torch::cat(states_k, 0), torch::cat(rewards_k, 0), batch_size);
-
-    if (sync_models) {
-        trainer_discard.sync_and_save_action_model(path_discard);
-        trainer_pick.sync_and_save_action_model(path_pick);
-        trainer_koikoi.sync_and_save_action_model(path_koikoi);
-
-        std::lock_guard<std::mutex> lock(g_models.mtx);
-        g_models.discard = torch::jit::load(path_discard, device);
-        g_models.pick = torch::jit::load(path_pick, device);
-        g_models.koikoi = torch::jit::load(path_koikoi, device);
-        g_models.discard.eval(); g_models.pick.eval(); g_models.koikoi.eval();
-    }
-
-    py::dict out;
-    out["loss_discard"] = loss_d; out["loss_pick"] = loss_p; out["loss_koikoi"] = loss_k;
-    out["samples_discard"] = sample_count_d; out["samples_pick"] = sample_count_p; out["samples_koikoi"] = sample_count_k;
-    return out;
-}
 
 py::list run_parallel_simulations(
     int num_threads, int n_envs_per_thread, int target_games_per_thread,
@@ -1664,13 +1605,16 @@ py::list run_parallel_simulations(
 
     {
         std::lock_guard<std::mutex> lock(g_models.mtx);
-        g_models.discard = torch::jit::load(path_discard, device);
-        g_models.pick = torch::jit::load(path_pick, device);
-        g_models.koikoi = torch::jit::load(path_koikoi, device);
-        g_models.discard.eval(); 
-        g_models.pick.eval(); 
-        g_models.koikoi.eval();
-        g_models.loaded = true;
+        // ★修正: loaded が false の時（初回）だけロードするように変更
+        if (!g_models.loaded) {
+            g_models.discard = torch::jit::load(path_discard, device);
+            g_models.pick = torch::jit::load(path_pick, device);
+            g_models.koikoi = torch::jit::load(path_koikoi, device);
+            g_models.discard.eval(); 
+            g_models.pick.eval(); 
+            g_models.koikoi.eval();
+            g_models.loaded = true;
+        }
     }
 
     SimConfig config = {num_threads, n_envs_per_thread, target_games_per_thread, cap_d, cap_p, cap_k, disc, dev_str};
@@ -1685,21 +1629,9 @@ py::list run_parallel_simulations(
         g_sim_manager->reset_all();
     }
 
-    // ==========================================
-    // 実行前のメモリレポート
-    // ==========================================
-    std::cout << "\n>>> [Arena Simulation START] Current Component Memory Status:";
-    g_sim_manager->print_memory_report();
-    // ==========================================
-
     {
         py::gil_scoped_release release;
         g_sim_manager->run_simulation_parallel();
-
-        // ==========================================
-        std::cout << "\n>>> [Arena Simulation END] Final Component Memory Status:";
-        g_sim_manager->print_memory_report(); // --- メモリ使用量測定用
-        // g_sim_manager->print_buffer_utilization_report(); // --- メモリ使用量測定用
     }
 
     py::list results;
@@ -1712,17 +1644,12 @@ py::list run_parallel_simulations(
 PYBIND11_MODULE(koikoicore, m) {
     m.doc() = "C++ Core Engine with Bitboards for KoiKoi AI";
     
-    m.def("card_to_multi_hot", &card_to_multi_hot);
-    m.def("evaluate_yaku", &evaluate_yaku);
-    m.def("get_yaku_point", &get_yaku_point);
     m.def("cards_to_bitboard", &cards_to_bitboard);
     m.def("get_yaku_point_by_bitboard", &get_yaku_point_by_bitboard);
     m.def("evaluate_yaku_by_bitboard", &evaluate_yaku_by_bitboard);
     m.def("cards_to_multi_hot_np", &cards_to_multi_hot_np);
-    m.def("get_yaku_status_features_np", &get_yaku_status_features_np);
     m.def("build_feature_fast", &build_feature_fast);
     m.def("run_parallel_simulations", &run_parallel_simulations);
-    m.def("run_simulation_and_train", &run_simulation_and_train);
     m.def("destroy_sim_manager", []() {
         if (g_sim_manager) {
             g_sim_manager.reset();
@@ -1745,7 +1672,6 @@ PYBIND11_MODULE(koikoicore, m) {
     py::class_<KoiKoiTraceBuffer>(m, "KoiKoiTraceBuffer")
         .def(py::init<int, int, int>(), py::arg("capacity"), py::arg("rows"), py::arg("cols"))
         .def("clear", &KoiKoiTraceBuffer::clear)
-        .def("push", &KoiKoiTraceBuffer::push)
         .def("finalize", &KoiKoiTraceBuffer::finalize);
 
     py::class_<BatchSimulator>(m, "BatchSimulator")
@@ -1758,5 +1684,6 @@ PYBIND11_MODULE(koikoicore, m) {
         .def("train_epoch", &KoiKoiTrainer::train_epoch)
         .def("save_model", &KoiKoiTrainer::save_model)
         .def("train_from_results", &KoiKoiTrainer::train_from_results)
-        .def("sync_and_save_action_model", &KoiKoiTrainer::sync_and_save_action_model);
+        .def("sync_and_save_action_model", &KoiKoiTrainer::sync_and_save_action_model)
+        .def("sync_to_inference_model", &KoiKoiTrainer::sync_to_inference_model);
 }

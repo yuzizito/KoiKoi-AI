@@ -16,25 +16,18 @@ import torch
 from koikoinet2L import DiscardModel, PickModel, KoiKoiModel
 
 your_name = 'Player'
-ai_name = 'RL' # 'SL', 'RL'
+ai_name = 'Com'
 record_path = 'gamerecords_player/'
 
-# 
-assert ai_name in ['RL','SL']
-record_fold = record_path + ai_name + '/'
+record_fold = record_path + "rl" + '/'
 
 for path in [record_path, record_fold]:
     if not os.path.isdir(path):
         os.mkdir(path)
 
-if ai_name == 'SL':
-    discard_model_path = 'model_agent/discard_sl.pt'
-    pick_model_path = 'model_agent/pick_sl.pt'
-    koikoi_model_path = 'model_agent/koikoi_sl.pt'
-elif ai_name == 'RL':
-    discard_model_path = 'model_rl/discard_20_96.pt'
-    pick_model_path = 'model_rl/pick_20_96.pt'
-    koikoi_model_path = 'model_rl/koikoi_20_96.pt'
+discard_model_path = 'model_rl/discard_state.pt'
+pick_model_path = 'model_rl/pick_state.pt'
+koikoi_model_path = 'model_rl/koikoi_state.pt'
     
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 

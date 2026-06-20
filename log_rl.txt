@@ -5789,3 +5789,2319 @@ Record,loop:40, score:0.482, point:28.66
 [sample,loss] : discard [61273,0.01], pick [7186,0.00], koikoi [4168,0.00]
 260620 175700 loop:80 (学習時間: 7.64s)
 [sample,loss] : discard [56251,0.02], pick [4190,0.00], koikoi [5018,0.00]
+★arena 90.0 wins, 103.0 loses, 5.0 draws 29.4 points
+Record,loop:80, score:0.467, point:29.42
+260620 175730 loop:81 (学習時間: 7.62s)
+[sample,loss] : discard [56264,0.00], pick [6132,0.00], koikoi [1231,0.00]
+260620 175737 loop:82 (学習時間: 7.07s)
+[sample,loss] : discard [55308,0.01], pick [3198,0.01], koikoi [1186,0.01]
+260620 175745 loop:83 (学習時間: 8.19s)
+[sample,loss] : discard [61227,0.00], pick [6090,0.00], koikoi [5924,0.01]
+260620 175754 loop:84 (学習時間: 8.11s)
+[sample,loss] : discard [61223,0.00], pick [4195,0.00], koikoi [6026,0.00]
+260620 175802 loop:85 (学習時間: 8.50s)
+[sample,loss] : discard [61239,0.00], pick [9959,0.00], koikoi [6986,0.00]
+260620 175809 loop:86 (学習時間: 7.36s)
+[sample,loss] : discard [56444,0.00], pick [5193,0.00], koikoi [1262,0.00]
+260620 175817 loop:87 (学習時間: 7.37s)
+[sample,loss] : discard [56272,0.00], pick [8008,0.00], koikoi [3175,0.00]
+260620 175824 loop:88 (学習時間: 7.36s)
+[sample,loss] : discard [56289,0.00], pick [6145,0.00], koikoi [6012,0.00]
+260620 175831 loop:89 (学習時間: 7.09s)
+[sample,loss] : discard [57197,0.00], pick [4170,0.00], koikoi [5087,0.00]
+260620 175839 loop:90 (学習時間: 7.35s)
+[sample,loss] : discard [57324,0.00], pick [3216,0.00], koikoi [4153,0.00]
+260620 175846 loop:91 (学習時間: 7.74s)
+[sample,loss] : discard [58499,0.00], pick [8037,0.02], koikoi [6072,0.02]
+260620 175853 loop:92 (学習時間: 6.56s)
+[sample,loss] : discard [50530,0.00], pick [6098,0.00], koikoi [2267,0.00]
+260620 175900 loop:93 (学習時間: 7.38s)
+[sample,loss] : discard [57336,0.00], pick [7079,0.00], koikoi [3202,0.00]
+260620 175908 loop:94 (学習時間: 7.44s)
+[sample,loss] : discard [57346,0.00], pick [7113,0.01], koikoi [4120,0.00]
+260620 175915 loop:95 (学習時間: 7.24s)
+[sample,loss] : discard [54467,0.00], pick [6144,0.00], koikoi [4097,0.00]
+260620 175922 loop:96 (学習時間: 6.91s)
+[sample,loss] : discard [53271,0.00], pick [4196,0.00], koikoi [4098,0.03]
+260620 175929 loop:97 (学習時間: 7.33s)
+[sample,loss] : discard [57982,0.00], pick [5116,0.00], koikoi [5992,0.00]
+260620 175936 loop:98 (学習時間: 6.73s)
+[sample,loss] : discard [51578,0.00], pick [6144,0.00], koikoi [2186,0.00]
+260620 175944 loop:99 (学習時間: 7.57s)
+[sample,loss] : discard [58242,0.00], pick [7103,0.00], koikoi [5081,0.00]
+260620 175951 loop:100 (学習時間: 7.07s)
+[sample,loss] : discard [53435,0.01], pick [4202,0.00], koikoi [4105,0.00]
+260620 175957 loop:101 (学習時間: 6.87s)
+[sample,loss] : discard [54266,0.00], pick [7087,0.01], koikoi [2158,0.01]
+260620 180005 loop:102 (学習時間: 7.58s)
+[sample,loss] : discard [59194,0.00], pick [8058,0.00], koikoi [6999,0.00]
+260620 180012 loop:103 (学習時間: 6.65s)
+[sample,loss] : discard [53288,0.01], pick [4175,0.00], koikoi [4110,0.01]
+260620 180019 loop:104 (学習時間: 6.88s)
+[sample,loss] : discard [52527,0.00], pick [7101,0.00], koikoi [5065,0.00]
+260620 180026 loop:105 (学習時間: 7.15s)
+[sample,loss] : discard [56502,0.00], pick [5182,0.00], koikoi [4122,0.00]
+260620 180032 loop:106 (学習時間: 6.54s)
+[sample,loss] : discard [50500,0.00], pick [4200,0.01], koikoi [5094,0.01]
+260620 180039 loop:107 (学習時間: 6.65s)
+[sample,loss] : discard [57172,0.00], pick [1233,0.00], koikoi [1229,0.00]
+260620 180046 loop:108 (学習時間: 7.07s)
+[sample,loss] : discard [57473,0.00], pick [2278,0.00], koikoi [4133,0.01]
+260620 180053 loop:109 (学習時間: 7.41s)
+[sample,loss] : discard [60172,0.00], pick [5131,0.00], koikoi [6027,0.00]
+260620 180100 loop:110 (学習時間: 6.74s)
+[sample,loss] : discard [50542,0.00], pick [5118,0.00], koikoi [4109,0.00]
+260620 180107 loop:111 (学習時間: 7.07s)
+[sample,loss] : discard [57239,0.01], pick [4164,0.01], koikoi [5107,0.03]
+260620 180114 loop:112 (学習時間: 7.23s)
+[sample,loss] : discard [56526,0.00], pick [6114,0.00], koikoi [5131,0.00]
+260620 180122 loop:113 (学習時間: 7.09s)
+[sample,loss] : discard [53470,0.00], pick [7066,0.00], koikoi [5127,0.00]
+260620 180128 loop:114 (学習時間: 6.65s)
+[sample,loss] : discard [53134,0.00], pick [7046,0.00], koikoi [3176,0.00]
+260620 180135 loop:115 (学習時間: 7.23s)
+[sample,loss] : discard [56436,0.01], pick [6160,0.00], koikoi [5155,0.00]
+260620 180143 loop:116 (学習時間: 7.19s)
+[sample,loss] : discard [55250,0.00], pick [5183,0.00], koikoi [7008,0.01]
+260620 180150 loop:117 (学習時間: 7.61s)
+[sample,loss] : discard [60205,0.00], pick [6082,0.00], koikoi [6097,0.07]
+260620 180158 loop:118 (学習時間: 7.57s)
+[sample,loss] : discard [59381,0.00], pick [7130,0.00], koikoi [5166,0.00]
+260620 180204 loop:119 (学習時間: 6.39s)
+[sample,loss] : discard [49423,0.00], pick [5133,0.00], koikoi [1315,0.01]
+260620 180211 loop:120 (学習時間: 7.14s)
+[sample,loss] : discard [54466,0.01], pick [6079,0.01], koikoi [4188,0.01]
+★arena 70.0 wins, 115.0 loses, 13.0 draws 28.2 points
+Record,loop:120, score:0.386, point:28.20
+260620 180240 loop:121 (学習時間: 7.18s)
+[sample,loss] : discard [52430,0.00], pick [7986,0.00], koikoi [3199,0.05]
+260620 180247 loop:122 (学習時間: 7.37s)
+[sample,loss] : discard [61322,0.01], pick [2361,0.00], koikoi [3190,0.00]
+260620 180254 loop:123 (学習時間: 7.36s)
+[sample,loss] : discard [56449,0.00], pick [7994,0.00], koikoi [3148,0.00]
+260620 180303 loop:124 (学習時間: 8.20s)
+[sample,loss] : discard [63222,0.00], pick [8072,0.00], koikoi [6077,0.00]
+260620 180310 loop:125 (学習時間: 7.54s)
+[sample,loss] : discard [57269,0.00], pick [6107,0.02], koikoi [7006,0.03]
+260620 180318 loop:126 (学習時間: 7.47s)
+[sample,loss] : discard [57467,0.00], pick [5221,0.00], koikoi [5125,0.00]
+260620 180326 loop:127 (学習時間: 7.96s)
+[sample,loss] : discard [61227,0.00], pick [7147,0.00], koikoi [7031,0.03]
+260620 180333 loop:128 (学習時間: 7.06s)
+[sample,loss] : discard [49511,0.00], pick [9047,0.00], koikoi [6073,0.01]
+260620 180340 loop:129 (学習時間: 7.18s)
+[sample,loss] : discard [56255,0.01], pick [5201,0.00], koikoi [4180,0.00]
+260620 180347 loop:130 (学習時間: 7.11s)
+[sample,loss] : discard [56138,0.01], pick [6134,0.00], koikoi [4158,0.00]
+260620 180354 loop:131 (学習時間: 7.62s)
+[sample,loss] : discard [59311,0.00], pick [5217,0.00], koikoi [3225,0.00]
+260620 180402 loop:132 (学習時間: 7.38s)
+[sample,loss] : discard [61279,0.00], pick [3258,0.00], koikoi [3205,0.00]
+260620 180409 loop:133 (学習時間: 7.12s)
+[sample,loss] : discard [55308,0.00], pick [4159,0.01], koikoi [7041,0.00]
+260620 180417 loop:134 (学習時間: 7.60s)
+[sample,loss] : discard [56501,0.00], pick [6126,0.00], koikoi [8048,0.00]
+260620 180424 loop:135 (学習時間: 6.96s)
+[sample,loss] : discard [53570,0.00], pick [4188,0.00], koikoi [3224,0.00]
+260620 180430 loop:136 (学習時間: 6.87s)
+[sample,loss] : discard [59071,0.00], pick [3173,0.00], koikoi [1231,0.00]
+260620 180438 loop:137 (学習時間: 7.22s)
+[sample,loss] : discard [54531,0.00], pick [6065,0.00], koikoi [4111,0.00]
+260620 180445 loop:138 (学習時間: 7.12s)
+[sample,loss] : discard [57247,0.00], pick [4185,0.00], koikoi [5092,0.00]
+260620 180452 loop:139 (学習時間: 7.12s)
+[sample,loss] : discard [52430,0.00], pick [7015,0.01], koikoi [6022,0.00]
+260620 180459 loop:140 (学習時間: 7.04s)
+[sample,loss] : discard [56245,0.01], pick [3206,0.00], koikoi [2205,0.00]
+260620 180507 loop:141 (学習時間: 8.00s)
+[sample,loss] : discard [60283,0.00], pick [8941,0.00], koikoi [7036,0.00]
+260620 180514 loop:142 (学習時間: 7.17s)
+[sample,loss] : discard [57326,0.00], pick [3230,0.00], koikoi [5122,0.00]
+260620 180522 loop:143 (学習時間: 7.42s)
+[sample,loss] : discard [56370,0.00], pick [7045,0.00], koikoi [4159,0.00]
+260620 180528 loop:144 (学習時間: 6.97s)
+[sample,loss] : discard [54454,0.00], pick [4213,0.00], koikoi [4130,0.00]
+260620 180536 loop:145 (学習時間: 7.02s)
+[sample,loss] : discard [50532,0.00], pick [10936,0.01], koikoi [4129,0.00]
+
+260620 180536 チェックポイントを保存中...
+260620 180536 プログラムを安全に終了しました。
+>>> パイプラインの準備中（初期データの生成）...
+260620 180557 loop:1 (学習時間: 6.63s)
+[sample,loss] : discard [47106,0.00], pick [3078,0.00], koikoi [2054,0.00]
+260620 180604 loop:2 (学習時間: 6.93s)
+[sample,loss] : discard [56273,0.00], pick [6132,0.00], koikoi [5119,0.00]
+260620 180610 loop:3 (学習時間: 6.86s)
+[sample,loss] : discard [54265,0.00], pick [8129,0.01], koikoi [7131,0.02]
+260620 180617 loop:4 (学習時間: 6.69s)
+[sample,loss] : discard [60333,0.00], pick [6151,0.01], koikoi [3053,0.01]
+260620 180624 loop:5 (学習時間: 6.79s)
+[sample,loss] : discard [58298,0.00], pick [3102,0.00], koikoi [5094,0.02]
+260620 180631 loop:6 (学習時間: 6.88s)
+[sample,loss] : discard [54343,0.00], pick [8175,0.00], koikoi [7130,0.01]
+260620 180637 loop:7 (学習時間: 6.52s)
+[sample,loss] : discard [56290,0.00], pick [3180,0.00], koikoi [8113,0.00]
+260620 180644 loop:8 (学習時間: 6.48s)
+[sample,loss] : discard [55253,0.00], pick [2117,0.00], koikoi [4153,0.00]
+260620 180650 loop:9 (学習時間: 6.73s)
+[sample,loss] : discard [56353,0.00], pick [3142,0.00], koikoi [3091,0.00]
+260620 180657 loop:10 (学習時間: 6.83s)
+[sample,loss] : discard [55305,0.00], pick [6106,0.00], koikoi [4099,0.00]
+260620 180704 loop:11 (学習時間: 6.74s)
+[sample,loss] : discard [59290,0.00], pick [5119,0.00], koikoi [7078,0.00]
+260620 180711 loop:12 (学習時間: 6.88s)
+[sample,loss] : discard [54276,0.00], pick [6145,0.00], koikoi [8090,0.00]
+260620 180718 loop:13 (学習時間: 6.89s)
+[sample,loss] : discard [58336,0.00], pick [6136,0.00], koikoi [5122,0.00]
+260620 180725 loop:14 (学習時間: 6.88s)
+[sample,loss] : discard [55270,0.00], pick [6157,0.00], koikoi [3122,0.01]
+260620 180732 loop:15 (学習時間: 7.26s)
+[sample,loss] : discard [57430,0.02], pick [7167,0.00], koikoi [4089,0.00]
+260620 180739 loop:16 (学習時間: 6.76s)
+[sample,loss] : discard [57326,0.00], pick [5142,0.00], koikoi [6066,0.00]
+260620 180746 loop:17 (学習時間: 6.78s)
+[sample,loss] : discard [56293,0.00], pick [6107,0.00], koikoi [8108,0.00]
+260620 180752 loop:18 (学習時間: 6.24s)
+[sample,loss] : discard [52379,0.00], pick [1148,0.00], koikoi [3224,0.00]
+260620 180759 loop:19 (学習時間: 6.88s)
+[sample,loss] : discard [54279,0.01], pick [5155,0.00], koikoi [3107,0.00]
+260620 180806 loop:20 (学習時間: 7.36s)
+[sample,loss] : discard [59412,0.00], pick [7104,0.00], koikoi [6010,0.02]
+260620 180813 loop:21 (学習時間: 6.74s)
+[sample,loss] : discard [51248,0.00], pick [6142,0.00], koikoi [3134,0.00]
+260620 180820 loop:22 (学習時間: 7.44s)
+[sample,loss] : discard [58252,0.00], pick [7107,0.00], koikoi [5098,0.00]
+260620 180828 loop:23 (学習時間: 7.34s)
+[sample,loss] : discard [58328,0.01], pick [4171,0.00], koikoi [7051,0.00]
+260620 180835 loop:24 (学習時間: 7.10s)
+[sample,loss] : discard [56398,0.00], pick [9085,0.00], koikoi [8100,0.00]
+260620 180842 loop:25 (学習時間: 7.03s)
+[sample,loss] : discard [58275,0.01], pick [3211,0.00], koikoi [4144,0.01]
+260620 180849 loop:26 (学習時間: 6.91s)
+[sample,loss] : discard [52470,0.01], pick [8091,0.00], koikoi [4123,0.00]
+260620 180855 loop:27 (学習時間: 6.67s)
+[sample,loss] : discard [58378,0.01], pick [3202,0.02], koikoi [1147,0.00]
+260620 180902 loop:28 (学習時間: 6.83s)
+[sample,loss] : discard [55319,0.00], pick [6086,0.00], koikoi [3088,0.00]
+260620 180909 loop:29 (学習時間: 6.86s)
+[sample,loss] : discard [57349,0.00], pick [5118,0.00], koikoi [3110,0.01]
+260620 180916 loop:30 (学習時間: 7.49s)
+[sample,loss] : discard [60328,0.00], pick [5099,0.00], koikoi [6042,0.00]
+260620 180924 loop:31 (学習時間: 7.30s)
+[sample,loss] : discard [61380,0.00], pick [7057,0.00], koikoi [8094,0.00]
+260620 180931 loop:32 (学習時間: 6.83s)
+[sample,loss] : discard [55344,0.02], pick [7145,0.00], koikoi [7119,0.00]
+260620 180937 loop:33 (学習時間: 6.73s)
+[sample,loss] : discard [56353,0.00], pick [3161,0.00], koikoi [3161,0.00]
+260620 180944 loop:34 (学習時間: 6.74s)
+[sample,loss] : discard [55365,0.00], pick [4095,0.00], koikoi [4113,0.00]
+260620 180951 loop:35 (学習時間: 6.89s)
+[sample,loss] : discard [56324,0.01], pick [6090,0.00], koikoi [4083,0.01]
+260620 180958 loop:36 (学習時間: 7.10s)
+[sample,loss] : discard [59287,0.00], pick [6086,0.00], koikoi [8045,0.00]
+260620 181005 loop:37 (学習時間: 6.83s)
+[sample,loss] : discard [55453,0.00], pick [4149,0.01], koikoi [4146,0.01]
+260620 181012 loop:38 (学習時間: 7.02s)
+[sample,loss] : discard [58305,0.01], pick [6077,0.00], koikoi [5100,0.00]
+260620 181019 loop:39 (学習時間: 7.13s)
+[sample,loss] : discard [55288,0.00], pick [9076,0.00], koikoi [6092,0.00]
+260620 181026 loop:40 (学習時間: 7.05s)
+[sample,loss] : discard [55355,0.00], pick [7142,0.00], koikoi [4125,0.00]
+★arena 93.0 wins, 92.0 loses, 13.0 draws 29.8 points
+Record,loop:40, score:0.503, point:29.78
+260620 181058 loop:41 (学習時間: 6.93s)
+[sample,loss] : discard [56258,0.00], pick [4179,0.00], koikoi [3113,0.00]
+260620 181104 loop:42 (学習時間: 6.84s)
+[sample,loss] : discard [57321,0.00], pick [4098,0.00], koikoi [4133,0.04]
+260620 181111 loop:43 (学習時間: 6.80s)
+[sample,loss] : discard [54319,0.01], pick [3188,0.00], koikoi [6102,0.00]
+260620 181118 loop:44 (学習時間: 6.79s)
+[sample,loss] : discard [56343,0.00], pick [1253,0.00], koikoi [2193,0.00]
+260620 181125 loop:45 (学習時間: 7.24s)
+[sample,loss] : discard [62201,0.00], pick [3140,0.00], koikoi [2136,0.00]
+260620 181133 loop:46 (学習時間: 7.27s)
+[sample,loss] : discard [60475,0.00], pick [5075,0.00], koikoi [7021,0.00]
+260620 181139 loop:47 (学習時間: 6.79s)
+[sample,loss] : discard [51535,0.00], pick [10950,0.00], koikoi [3123,0.00]
+260620 181147 loop:48 (学習時間: 7.23s)
+[sample,loss] : discard [57233,0.00], pick [4194,0.00], koikoi [4043,0.00]
+260620 181154 loop:49 (学習時間: 7.61s)
+[sample,loss] : discard [62347,0.00], pick [5147,0.00], koikoi [5989,0.00]
+260620 181202 loop:50 (学習時間: 7.48s)
+[sample,loss] : discard [62348,0.00], pick [6114,0.00], koikoi [5034,0.01]
+260620 181209 loop:51 (学習時間: 6.85s)
+[sample,loss] : discard [56328,0.00], pick [3168,0.00], koikoi [2164,0.00]
+260620 181215 loop:52 (学習時間: 6.91s)
+[sample,loss] : discard [58421,0.01], pick [3185,0.00], koikoi [3136,0.00]
+260620 181222 loop:53 (学習時間: 6.81s)
+[sample,loss] : discard [55511,0.00], pick [6951,0.03], koikoi [1209,0.03]
+260620 181229 loop:54 (学習時間: 7.01s)
+[sample,loss] : discard [58243,0.00], pick [5098,0.00], koikoi [4090,0.00]
+260620 181237 loop:55 (学習時間: 7.24s)
+[sample,loss] : discard [57417,0.01], pick [6062,0.00], koikoi [5090,0.00]
+260620 181244 loop:56 (学習時間: 7.34s)
+[sample,loss] : discard [58387,0.00], pick [9012,0.00], koikoi [6060,0.00]
+260620 181251 loop:57 (学習時間: 6.88s)
+[sample,loss] : discard [56459,0.02], pick [6149,0.00], koikoi [6075,0.00]
+260620 181257 loop:58 (学習時間: 6.47s)
+[sample,loss] : discard [49564,0.00], pick [4194,0.00], koikoi [1238,0.00]
+260620 181304 loop:59 (学習時間: 6.84s)
+[sample,loss] : discard [56289,0.00], pick [3240,0.00], koikoi [5068,0.00]
+260620 181311 loop:60 (学習時間: 6.74s)
+[sample,loss] : discard [53424,0.00], pick [4134,0.00], koikoi [4115,0.00]
+260620 181318 loop:61 (学習時間: 6.94s)
+[sample,loss] : discard [54252,0.01], pick [9991,0.00], koikoi [3139,0.00]
+260620 181325 loop:62 (学習時間: 6.95s)
+[sample,loss] : discard [54342,0.01], pick [7128,0.00], koikoi [3098,0.06]
+260620 181332 loop:63 (学習時間: 7.11s)
+[sample,loss] : discard [57454,0.00], pick [3309,0.00], koikoi [4089,0.00]
+260620 181339 loop:64 (学習時間: 7.14s)
+[sample,loss] : discard [58383,0.00], pick [6116,0.00], koikoi [6022,0.00]
+260620 181346 loop:65 (学習時間: 6.94s)
+[sample,loss] : discard [52526,0.00], pick [8028,0.00], koikoi [4116,0.01]
+260620 181353 loop:66 (学習時間: 6.96s)
+[sample,loss] : discard [55468,0.00], pick [4211,0.00], koikoi [6060,0.00]
+260620 181400 loop:67 (学習時間: 7.08s)
+[sample,loss] : discard [56331,0.00], pick [6164,0.00], koikoi [8192,0.02]
+260620 181407 loop:68 (学習時間: 6.60s)
+[sample,loss] : discard [49549,0.00], pick [6132,0.00], koikoi [4171,0.00]
+260620 181414 loop:69 (学習時間: 7.01s)
+[sample,loss] : discard [57294,0.00], pick [3218,0.00], koikoi [4200,0.00]
+260620 181420 loop:70 (学習時間: 6.78s)
+[sample,loss] : discard [55514,0.00], pick [4171,0.00], koikoi [4191,0.01]
+260620 181427 loop:71 (学習時間: 7.08s)
+[sample,loss] : discard [57268,0.00], pick [4171,0.00], koikoi [5100,0.00]
+260620 181434 loop:72 (学習時間: 6.81s)
+[sample,loss] : discard [52488,0.01], pick [5147,0.00], koikoi [4141,0.00]
+260620 181441 loop:73 (学習時間: 7.08s)
+[sample,loss] : discard [60252,0.00], pick [4178,0.00], koikoi [4121,0.00]
+260620 181448 loop:74 (学習時間: 6.60s)
+[sample,loss] : discard [54466,0.00], pick [6104,0.00], koikoi [3130,0.00]
+260620 181455 loop:75 (学習時間: 6.84s)
+[sample,loss] : discard [53266,0.00], pick [2224,0.00], koikoi [4064,0.00]
+260620 181502 loop:76 (学習時間: 7.26s)
+[sample,loss] : discard [59464,0.00], pick [8047,0.00], koikoi [6044,0.01]
+260620 181509 loop:77 (学習時間: 6.95s)
+[sample,loss] : discard [56338,0.01], pick [8081,0.00], koikoi [4096,0.00]
+260620 181516 loop:78 (学習時間: 6.68s)
+[sample,loss] : discard [58274,0.00], pick [3227,0.00], koikoi [192,0.01]
+260620 181523 loop:79 (学習時間: 7.06s)
+[sample,loss] : discard [54411,0.01], pick [6167,0.00], koikoi [6041,0.00]
+260620 181530 loop:80 (学習時間: 6.91s)
+[sample,loss] : discard [60277,0.00], pick [3228,0.00], koikoi [1182,0.00]
+★arena 79.0 wins, 105.0 loses, 14.0 draws 28.3 points
+Record,loop:80, score:0.434, point:28.31
+260620 181557 loop:81 (学習時間: 6.85s)
+[sample,loss] : discard [55326,0.00], pick [5116,0.00], koikoi [1144,0.01]
+260620 181604 loop:82 (学習時間: 7.23s)
+[sample,loss] : discard [59217,0.00], pick [5103,0.00], koikoi [5020,0.00]
+260620 181611 loop:83 (学習時間: 7.01s)
+[sample,loss] : discard [57377,0.01], pick [6102,0.00], koikoi [3113,0.00]
+260620 181618 loop:84 (学習時間: 6.89s)
+[sample,loss] : discard [55324,0.00], pick [6146,0.00], koikoi [2176,0.02]
+260620 181625 loop:85 (学習時間: 6.85s)
+[sample,loss] : discard [54433,0.00], pick [5130,0.00], koikoi [4105,0.01]
+260620 181632 loop:86 (学習時間: 7.02s)
+[sample,loss] : discard [54325,0.00], pick [8088,0.00], koikoi [4087,0.00]
+260620 181639 loop:87 (学習時間: 7.11s)
+[sample,loss] : discard [58207,0.00], pick [5141,0.00], koikoi [6014,0.00]
+260620 181646 loop:88 (学習時間: 6.85s)
+[sample,loss] : discard [54430,0.00], pick [4156,0.00], koikoi [2182,0.00]
+260620 181653 loop:89 (学習時間: 7.20s)
+[sample,loss] : discard [60424,0.00], pick [4184,0.00], koikoi [4116,0.00]
+260620 181700 loop:90 (学習時間: 7.20s)
+[sample,loss] : discard [61265,0.00], pick [7085,0.00], koikoi [5120,0.00]
+260620 181707 loop:91 (学習時間: 6.90s)
+[sample,loss] : discard [51488,0.01], pick [4188,0.00], koikoi [4116,0.00]
+260620 181714 loop:92 (学習時間: 7.01s)
+[sample,loss] : discard [58385,0.00], pick [7143,0.00], koikoi [4092,0.00]
+260620 181721 loop:93 (学習時間: 6.68s)
+[sample,loss] : discard [54288,0.00], pick [6116,0.03], koikoi [5099,0.00]
+260620 181728 loop:94 (学習時間: 6.70s)
+[sample,loss] : discard [50231,0.01], pick [5136,0.00], koikoi [6001,0.00]
+260620 181735 loop:95 (学習時間: 7.08s)
+[sample,loss] : discard [58264,0.01], pick [7110,0.00], koikoi [4103,0.00]
+260620 181741 loop:96 (学習時間: 6.61s)
+[sample,loss] : discard [50383,0.01], pick [7087,0.00], koikoi [1203,0.00]
+260620 181749 loop:97 (学習時間: 7.19s)
+[sample,loss] : discard [57279,0.01], pick [8096,0.00], koikoi [5062,0.05]
+260620 181756 loop:98 (学習時間: 7.03s)
+[sample,loss] : discard [57415,0.01], pick [4213,0.00], koikoi [3172,0.00]
+260620 181802 loop:99 (学習時間: 6.84s)
+[sample,loss] : discard [54498,0.01], pick [7131,0.00], koikoi [4110,0.00]
+260620 181809 loop:100 (学習時間: 6.73s)
+[sample,loss] : discard [51360,0.00], pick [4192,0.00], koikoi [2160,0.00]
+260620 181816 loop:101 (学習時間: 6.96s)
+[sample,loss] : discard [56404,0.00], pick [5157,0.00], koikoi [5096,0.00]
+260620 181823 loop:102 (学習時間: 6.97s)
+[sample,loss] : discard [58247,0.00], pick [8041,0.00], koikoi [4096,0.00]
+260620 181830 loop:103 (学習時間: 6.54s)
+[sample,loss] : discard [53416,0.00], pick [3160,0.00], koikoi [4106,0.00]
+260620 181836 loop:104 (学習時間: 6.57s)
+[sample,loss] : discard [49449,0.00], pick [7065,0.01], koikoi [2167,0.00]
+260620 181843 loop:105 (学習時間: 6.67s)
+[sample,loss] : discard [59246,0.00], pick [1232,0.00], koikoi [2158,0.00]
+260620 181850 loop:106 (学習時間: 7.07s)
+[sample,loss] : discard [56316,0.01], pick [7058,0.00], koikoi [3113,0.00]
+260620 181857 loop:107 (学習時間: 7.07s)
+[sample,loss] : discard [56333,0.00], pick [7099,0.00], koikoi [6030,0.01]
+260620 181904 loop:108 (学習時間: 6.86s)
+[sample,loss] : discard [54380,0.01], pick [5123,0.00], koikoi [6035,0.00]
+260620 181911 loop:109 (学習時間: 6.73s)
+[sample,loss] : discard [53220,0.00], pick [3176,0.00], koikoi [4109,0.01]
+260620 181918 loop:110 (学習時間: 7.32s)
+[sample,loss] : discard [60187,0.00], pick [5142,0.00], koikoi [6036,0.00]
+260620 181925 loop:111 (学習時間: 7.36s)
+[sample,loss] : discard [57290,0.00], pick [9025,0.00], koikoi [5122,0.00]
+260620 181933 loop:112 (学習時間: 7.20s)
+[sample,loss] : discard [58382,0.00], pick [9093,0.00], koikoi [4146,0.02]
+260620 181939 loop:113 (学習時間: 6.87s)
+[sample,loss] : discard [54301,0.00], pick [7087,0.01], koikoi [6064,0.00]
+260620 181946 loop:114 (学習時間: 6.85s)
+[sample,loss] : discard [53336,0.00], pick [5181,0.00], koikoi [4139,0.00]
+260620 181953 loop:115 (学習時間: 7.18s)
+[sample,loss] : discard [61304,0.00], pick [2262,0.00], koikoi [5100,0.01]
+260620 182000 loop:116 (学習時間: 7.04s)
+[sample,loss] : discard [58310,0.00], pick [9036,0.00], koikoi [6083,0.00]
+260620 182007 loop:117 (学習時間: 6.70s)
+[sample,loss] : discard [50429,0.00], pick [6159,0.00], koikoi [2196,0.00]
+260620 182014 loop:118 (学習時間: 6.92s)
+[sample,loss] : discard [57397,0.00], pick [5175,0.00], koikoi [4131,0.00]
+260620 182021 loop:119 (学習時間: 7.19s)
+[sample,loss] : discard [58149,0.00], pick [3195,0.00], koikoi [5075,0.01]
+260620 182029 loop:120 (学習時間: 7.42s)
+[sample,loss] : discard [59251,0.00], pick [7139,0.00], koikoi [5079,0.00]
+★arena 87.0 wins, 101.0 loses, 10.0 draws 29.1 points
+Record,loop:120, score:0.465, point:29.10
+260620 182056 loop:121 (学習時間: 7.11s)
+[sample,loss] : discard [58264,0.00], pick [6089,0.01], koikoi [1201,0.00]
+260620 182103 loop:122 (学習時間: 6.88s)
+[sample,loss] : discard [55482,0.01], pick [8074,0.00], koikoi [3126,0.00]
+260620 182110 loop:123 (学習時間: 6.97s)
+[sample,loss] : discard [56193,0.00], pick [6104,0.00], koikoi [6043,0.00]
+260620 182117 loop:124 (学習時間: 6.89s)
+[sample,loss] : discard [55252,0.00], pick [4183,0.00], koikoi [6034,0.01]
+260620 182124 loop:125 (学習時間: 7.01s)
+[sample,loss] : discard [55302,0.00], pick [5146,0.00], koikoi [4104,0.00]
+260620 182131 loop:126 (学習時間: 7.07s)
+[sample,loss] : discard [57332,0.00], pick [9097,0.00], koikoi [4116,0.00]
+260620 182138 loop:127 (学習時間: 6.83s)
+[sample,loss] : discard [52402,0.00], pick [7159,0.00], koikoi [4143,0.00]
+260620 182145 loop:128 (学習時間: 7.26s)
+[sample,loss] : discard [59189,0.02], pick [5183,0.00], koikoi [6068,0.00]
+260620 182152 loop:129 (学習時間: 6.98s)
+[sample,loss] : discard [54385,0.00], pick [9088,0.00], koikoi [6073,0.00]
+260620 182159 loop:130 (学習時間: 6.61s)
+[sample,loss] : discard [55212,0.02], pick [4187,0.00], koikoi [4151,0.00]
+260620 182205 loop:131 (学習時間: 6.82s)
+[sample,loss] : discard [52362,0.01], pick [4194,0.00], koikoi [3155,0.00]
+260620 182213 loop:132 (学習時間: 7.46s)
+[sample,loss] : discard [61352,0.00], pick [4191,0.00], koikoi [7056,0.00]
+260620 182220 loop:133 (学習時間: 7.13s)
+[sample,loss] : discard [60186,0.00], pick [7090,0.00], koikoi [5137,0.00]
+260620 182226 loop:134 (学習時間: 6.47s)
+[sample,loss] : discard [48633,0.00], pick [6071,0.00], koikoi [2195,0.00]
+260620 182233 loop:135 (学習時間: 7.07s)
+[sample,loss] : discard [61146,0.00], pick [3172,0.01], koikoi [2165,0.02]
+260620 182241 loop:136 (学習時間: 7.32s)
+[sample,loss] : discard [59266,0.00], pick [6100,0.00], koikoi [8015,0.00]
+260620 182248 loop:137 (学習時間: 7.17s)
+[sample,loss] : discard [60169,0.00], pick [5130,0.00], koikoi [5118,0.00]
+260620 182255 loop:138 (学習時間: 7.19s)
+[sample,loss] : discard [54282,0.00], pick [8953,0.01], koikoi [5089,0.00]
+260620 182303 loop:139 (学習時間: 7.42s)
+[sample,loss] : discard [60251,0.00], pick [4143,0.00], koikoi [7033,0.00]
+260620 182310 loop:140 (学習時間: 7.46s)
+[sample,loss] : discard [59430,0.01], pick [7055,0.00], koikoi [6135,0.00]
+260620 182317 loop:141 (学習時間: 7.04s)
+[sample,loss] : discard [59197,0.01], pick [6090,0.00], koikoi [6081,0.00]
+260620 182324 loop:142 (学習時間: 6.89s)
+[sample,loss] : discard [55290,0.01], pick [6113,0.00], koikoi [3174,0.00]
+260620 182331 loop:143 (学習時間: 6.98s)
+[sample,loss] : discard [55315,0.01], pick [6128,0.00], koikoi [2161,0.00]
+260620 182338 loop:144 (学習時間: 7.11s)
+[sample,loss] : discard [56397,0.00], pick [9075,0.01], koikoi [4140,0.00]
+260620 182345 loop:145 (学習時間: 7.04s)
+[sample,loss] : discard [54243,0.00], pick [8000,0.00], koikoi [8192,0.00]
+260620 182352 loop:146 (学習時間: 6.47s)
+[sample,loss] : discard [51473,0.01], pick [5136,0.00], koikoi [3211,0.00]
+260620 182358 loop:147 (学習時間: 6.74s)
+[sample,loss] : discard [55019,0.00], pick [2229,0.00], koikoi [5064,0.00]
+260620 182405 loop:148 (学習時間: 7.13s)
+[sample,loss] : discard [59150,0.00], pick [7044,0.00], koikoi [6057,0.01]
+260620 182413 loop:149 (学習時間: 7.03s)
+[sample,loss] : discard [54269,0.00], pick [6109,0.00], koikoi [4125,0.00]
+260620 182420 loop:150 (学習時間: 7.01s)
+[sample,loss] : discard [59292,0.01], pick [2223,0.00], koikoi [7040,0.00]
+260620 182426 loop:151 (学習時間: 6.87s)
+[sample,loss] : discard [54447,0.00], pick [4074,0.00], koikoi [3258,0.00]
+260620 182433 loop:152 (学習時間: 7.05s)
+[sample,loss] : discard [61329,0.00], pick [4135,0.00], koikoi [3204,0.00]
+260620 182440 loop:153 (学習時間: 6.54s)
+[sample,loss] : discard [51521,0.02], pick [5095,0.00], koikoi [3240,0.00]
+260620 182447 loop:154 (学習時間: 6.67s)
+[sample,loss] : discard [51555,0.00], pick [7043,0.00], koikoi [1250,0.00]
+260620 182454 loop:155 (学習時間: 6.93s)
+[sample,loss] : discard [54278,0.01], pick [7023,0.00], koikoi [5984,0.00]
+260620 182501 loop:156 (学習時間: 7.09s)
+[sample,loss] : discard [61949,0.00], pick [2223,0.00], koikoi [4110,0.00]
+260620 182508 loop:157 (学習時間: 6.97s)
+[sample,loss] : discard [56420,0.01], pick [6085,0.00], koikoi [4118,0.00]
+260620 182514 loop:158 (学習時間: 6.77s)
+[sample,loss] : discard [57270,0.00], pick [4146,0.00], koikoi [2158,0.00]
+260620 182521 loop:159 (学習時間: 7.04s)
+[sample,loss] : discard [52293,0.00], pick [8950,0.00], koikoi [5998,0.00]
+260620 182528 loop:160 (学習時間: 6.94s)
+[sample,loss] : discard [54539,0.00], pick [6155,0.00], koikoi [3174,0.00]
+★arena 95.0 wins, 95.0 loses, 8.0 draws 28.9 points
+Record,loop:160, score:0.500, point:28.89
+260620 182556 loop:161 (学習時間: 7.12s)
+[sample,loss] : discard [55266,0.00], pick [7044,0.00], koikoi [5973,0.00]
+260620 182603 loop:162 (学習時間: 7.02s)
+[sample,loss] : discard [54388,0.00], pick [8083,0.01], koikoi [3107,0.00]
+260620 182610 loop:163 (学習時間: 6.83s)
+[sample,loss] : discard [53534,0.00], pick [6208,0.00], koikoi [6013,0.01]
+260620 182616 loop:164 (学習時間: 6.53s)
+[sample,loss] : discard [52381,0.00], pick [5193,0.00], koikoi [4090,0.00]
+260620 182623 loop:165 (学習時間: 6.79s)
+[sample,loss] : discard [52417,0.01], pick [2312,0.00], koikoi [4116,0.00]
+260620 182630 loop:166 (学習時間: 7.19s)
+[sample,loss] : discard [59370,0.00], pick [5204,0.00], koikoi [4175,0.01]
+260620 182638 loop:167 (学習時間: 7.43s)
+[sample,loss] : discard [61221,0.00], pick [7103,0.01], koikoi [5083,0.00]
+260620 182645 loop:168 (学習時間: 6.92s)
+[sample,loss] : discard [56364,0.00], pick [4202,0.00], koikoi [5117,0.00]
+260620 182651 loop:169 (学習時間: 6.92s)
+[sample,loss] : discard [60101,0.01], pick [4178,0.00], koikoi [2202,0.00]
+260620 182659 loop:170 (学習時間: 7.04s)
+[sample,loss] : discard [55424,0.00], pick [8004,0.00], koikoi [4131,0.00]
+260620 182706 loop:171 (学習時間: 7.13s)
+[sample,loss] : discard [55456,0.00], pick [4232,0.01], koikoi [5137,0.03]
+260620 182713 loop:172 (学習時間: 6.90s)
+[sample,loss] : discard [57568,0.01], pick [3291,0.00], koikoi [3239,0.00]
+260620 182720 loop:173 (学習時間: 7.15s)
+[sample,loss] : discard [57350,0.00], pick [6096,0.00], koikoi [3142,0.00]
+260620 182727 loop:174 (学習時間: 7.04s)
+[sample,loss] : discard [58200,0.00], pick [3226,0.00], koikoi [5079,0.01]
+260620 182734 loop:175 (学習時間: 6.80s)
+[sample,loss] : discard [55351,0.00], pick [5134,0.00], koikoi [6016,0.00]
+260620 182740 loop:176 (学習時間: 6.89s)
+[sample,loss] : discard [59212,0.00], pick [2232,0.00], koikoi [4130,0.00]
+260620 182748 loop:177 (学習時間: 7.40s)
+[sample,loss] : discard [59170,0.00], pick [6017,0.00], koikoi [7973,0.00]
+260620 182755 loop:178 (学習時間: 7.18s)
+[sample,loss] : discard [52567,0.00], pick [9953,0.00], koikoi [6065,0.00]
+260620 182802 loop:179 (学習時間: 6.90s)
+[sample,loss] : discard [56446,0.00], pick [2305,0.00], koikoi [2241,0.00]
+260620 182809 loop:180 (学習時間: 7.08s)
+[sample,loss] : discard [58465,0.00], pick [5116,0.00], koikoi [3188,0.00]
+260620 182816 loop:181 (学習時間: 6.61s)
+[sample,loss] : discard [55446,0.00], pick [3206,0.00], koikoi [5078,0.00]
+260620 182823 loop:182 (学習時間: 7.05s)
+[sample,loss] : discard [56121,0.01], pick [5096,0.00], koikoi [6039,0.00]
+260620 182829 loop:183 (学習時間: 6.83s)
+[sample,loss] : discard [54422,0.00], pick [6073,0.00], koikoi [6024,0.00]
+260620 182836 loop:184 (学習時間: 6.92s)
+[sample,loss] : discard [58137,0.00], pick [5106,0.04], koikoi [4101,0.00]
+260620 182843 loop:185 (学習時間: 7.00s)
+[sample,loss] : discard [56243,0.01], pick [10928,0.00], koikoi [3151,0.00]
+260620 182851 loop:186 (学習時間: 7.46s)
+[sample,loss] : discard [61058,0.00], pick [5179,0.00], koikoi [6021,0.00]
+260620 182858 loop:187 (学習時間: 7.25s)
+[sample,loss] : discard [59276,0.02], pick [6105,0.00], koikoi [7018,0.00]
+260620 182905 loop:188 (学習時間: 6.73s)
+[sample,loss] : discard [57328,0.00], pick [7117,0.00], koikoi [2218,0.00]
+260620 182911 loop:189 (学習時間: 6.41s)
+[sample,loss] : discard [51428,0.00], pick [3225,0.01], koikoi [3108,0.00]
+260620 182918 loop:190 (学習時間: 6.83s)
+[sample,loss] : discard [52451,0.00], pick [8013,0.00], koikoi [2180,0.00]
+260620 182925 loop:191 (学習時間: 7.07s)
+[sample,loss] : discard [56442,0.00], pick [5137,0.00], koikoi [6010,0.01]
+260620 182933 loop:192 (学習時間: 7.49s)
+[sample,loss] : discard [63982,0.00], pick [2271,0.00], koikoi [8192,0.00]
+260620 182940 loop:193 (学習時間: 7.38s)
+[sample,loss] : discard [60207,0.01], pick [6090,0.00], koikoi [5119,0.00]
+260620 182947 loop:194 (学習時間: 7.17s)
+[sample,loss] : discard [59222,0.00], pick [8023,0.04], koikoi [5103,0.00]
+260620 182954 loop:195 (学習時間: 6.90s)
+[sample,loss] : discard [56311,0.00], pick [5202,0.00], koikoi [2218,0.00]
+260620 183001 loop:196 (学習時間: 7.25s)
+[sample,loss] : discard [62200,0.00], pick [3299,0.00], koikoi [6992,0.00]
+260620 183008 loop:197 (学習時間: 7.01s)
+[sample,loss] : discard [57391,0.00], pick [6049,0.00], koikoi [4157,0.00]
+260620 183015 loop:198 (学習時間: 6.67s)
+[sample,loss] : discard [56392,0.00], pick [5141,0.00], koikoi [3210,0.00]
+260620 183022 loop:199 (学習時間: 6.65s)
+[sample,loss] : discard [55416,0.00], pick [1346,0.00], koikoi [1276,0.00]
+260620 183029 loop:200 (学習時間: 7.72s)
+[sample,loss] : discard [60189,0.00], pick [8894,0.00], koikoi [6025,0.00]
+★arena 86.0 wins, 104.0 loses, 8.0 draws 28.3 points
+Record,loop:200, score:0.455, point:28.33
+260620 183058 loop:201 (学習時間: 7.60s)
+[sample,loss] : discard [60333,0.00], pick [7998,0.01], koikoi [5093,0.00]
+260620 183105 loop:202 (学習時間: 7.41s)
+[sample,loss] : discard [62265,0.00], pick [7120,0.00], koikoi [6059,0.00]
+260620 183112 loop:203 (学習時間: 6.97s)
+[sample,loss] : discard [60201,0.00], pick [6145,0.00], koikoi [5097,0.00]
+260620 183118 loop:204 (学習時間: 6.46s)
+[sample,loss] : discard [49538,0.02], pick [5130,0.00], koikoi [3221,0.00]
+260620 183125 loop:205 (学習時間: 6.79s)
+[sample,loss] : discard [53590,0.01], pick [5159,0.00], koikoi [4167,0.00]
+260620 183132 loop:206 (学習時間: 6.95s)
+[sample,loss] : discard [57238,0.00], pick [3183,0.00], koikoi [2186,0.00]
+260620 183139 loop:207 (学習時間: 7.19s)
+[sample,loss] : discard [60243,0.00], pick [7953,0.00], koikoi [7876,0.00]
+260620 183146 loop:208 (学習時間: 6.35s)
+[sample,loss] : discard [52596,0.00], pick [2338,0.00], koikoi [1300,0.00]
+260620 183153 loop:209 (学習時間: 6.95s)
+[sample,loss] : discard [56082,0.00], pick [3232,0.02], koikoi [5031,0.00]
+260620 183159 loop:210 (学習時間: 6.83s)
+[sample,loss] : discard [55541,0.00], pick [6127,0.00], koikoi [3175,0.00]
+260620 183207 loop:211 (学習時間: 7.10s)
+[sample,loss] : discard [58265,0.00], pick [7029,0.00], koikoi [5061,0.00]
+260620 183213 loop:212 (学習時間: 6.39s)
+[sample,loss] : discard [50745,0.00], pick [6128,0.00], koikoi [3191,0.00]
+260620 183220 loop:213 (学習時間: 6.87s)
+[sample,loss] : discard [52406,0.00], pick [5136,0.00], koikoi [6031,0.00]
+260620 183227 loop:214 (学習時間: 6.92s)
+[sample,loss] : discard [59235,0.00], pick [1309,0.00], koikoi [5046,0.01]
+260620 183234 loop:215 (学習時間: 6.85s)
+[sample,loss] : discard [55408,0.00], pick [5107,0.00], koikoi [6049,0.00]
+260620 183241 loop:216 (学習時間: 7.03s)
+[sample,loss] : discard [56289,0.01], pick [6050,0.00], koikoi [3127,0.00]
+260620 183248 loop:217 (学習時間: 7.08s)
+[sample,loss] : discard [57383,0.00], pick [6133,0.01], koikoi [4109,0.00]
+260620 183255 loop:218 (学習時間: 7.31s)
+[sample,loss] : discard [57279,0.00], pick [6127,0.00], koikoi [6963,0.00]
+260620 183302 loop:219 (学習時間: 7.18s)
+[sample,loss] : discard [61256,0.00], pick [4159,0.00], koikoi [4173,0.00]
+260620 183310 loop:220 (学習時間: 7.36s)
+[sample,loss] : discard [60160,0.00], pick [7035,0.00], koikoi [5125,0.01]
+260620 183316 loop:221 (学習時間: 6.54s)
+[sample,loss] : discard [54538,0.00], pick [4166,0.00], koikoi [4148,0.00]
+260620 183323 loop:222 (学習時間: 6.89s)
+[sample,loss] : discard [54315,0.01], pick [5097,0.00], koikoi [4086,0.00]
+260620 183330 loop:223 (学習時間: 7.11s)
+[sample,loss] : discard [60280,0.00], pick [5151,0.00], koikoi [5040,0.00]
+260620 183337 loop:224 (学習時間: 7.25s)
+[sample,loss] : discard [56495,0.00], pick [7056,0.01], koikoi [3091,0.00]
+260620 183344 loop:225 (学習時間: 6.68s)
+[sample,loss] : discard [58574,0.00], pick [3251,0.00], koikoi [1275,0.00]
+260620 183351 loop:226 (学習時間: 6.70s)
+[sample,loss] : discard [53511,0.00], pick [3185,0.00], koikoi [4081,0.00]
+260620 183358 loop:227 (学習時間: 7.27s)
+[sample,loss] : discard [58310,0.00], pick [7937,0.00], koikoi [4088,0.00]
+260620 183405 loop:228 (学習時間: 7.32s)
+[sample,loss] : discard [62131,0.00], pick [6031,0.00], koikoi [6914,0.00]
+260620 183412 loop:229 (学習時間: 6.60s)
+[sample,loss] : discard [52621,0.00], pick [6965,0.00], koikoi [4105,0.00]
+260620 183419 loop:230 (学習時間: 6.77s)
+[sample,loss] : discard [55231,0.00], pick [4227,0.00], koikoi [3103,0.00]
+260620 183426 loop:231 (学習時間: 7.07s)
+[sample,loss] : discard [56271,0.00], pick [7982,0.00], koikoi [5949,0.00]
+260620 183433 loop:232 (学習時間: 7.19s)
+[sample,loss] : discard [55361,0.00], pick [7051,0.00], koikoi [5935,0.00]
+260620 183440 loop:233 (学習時間: 6.97s)
+[sample,loss] : discard [60284,0.00], pick [3297,0.00], koikoi [3132,0.00]
+260620 183447 loop:234 (学習時間: 7.23s)
+[sample,loss] : discard [61041,0.00], pick [3275,0.00], koikoi [6879,0.00]
+260620 183455 loop:235 (学習時間: 7.39s)
+[sample,loss] : discard [59202,0.00], pick [6131,0.00], koikoi [4150,0.00]
+260620 183502 loop:236 (学習時間: 7.42s)
+[sample,loss] : discard [64999,0.00], pick [7986,0.00], koikoi [6011,0.00]
+260620 183508 loop:237 (学習時間: 6.38s)
+[sample,loss] : discard [51588,0.00], pick [3302,0.00], koikoi [3182,0.00]
+260620 183515 loop:238 (学習時間: 6.87s)
+[sample,loss] : discard [56402,0.01], pick [4193,0.00], koikoi [1310,0.00]
+260620 183523 loop:239 (学習時間: 7.28s)
+[sample,loss] : discard [61261,0.00], pick [8914,0.00], koikoi [6021,0.00]
+260620 183530 loop:240 (学習時間: 7.00s)
+[sample,loss] : discard [55212,0.00], pick [5165,0.00], koikoi [3169,0.00]
+★arena 82.0 wins, 105.0 loses, 11.0 draws 28.4 points
+Record,loop:240, score:0.442, point:28.40
+260620 183557 loop:241 (学習時間: 7.15s)
+[sample,loss] : discard [59325,0.01], pick [6147,0.00], koikoi [5066,0.00]
+260620 183604 loop:242 (学習時間: 6.67s)
+[sample,loss] : discard [58266,0.00], pick [2438,0.00], koikoi [2276,0.00]
+260620 183611 loop:243 (学習時間: 6.84s)
+[sample,loss] : discard [51614,0.00], pick [9872,0.00], koikoi [3180,0.00]
+260620 183618 loop:244 (学習時間: 6.98s)
+[sample,loss] : discard [58069,0.00], pick [3283,0.00], koikoi [5005,0.00]
+260620 183625 loop:245 (学習時間: 7.04s)
+[sample,loss] : discard [55490,0.00], pick [5959,0.01], koikoi [4992,0.00]
+260620 183632 loop:246 (学習時間: 7.26s)
+[sample,loss] : discard [60431,0.01], pick [6029,0.00], koikoi [5056,0.00]
+260620 183639 loop:247 (学習時間: 6.94s)
+[sample,loss] : discard [57303,0.00], pick [8890,0.01], koikoi [4138,0.00]
+260620 183646 loop:248 (学習時間: 7.24s)
+[sample,loss] : discard [54198,0.00], pick [5239,0.00], koikoi [1277,0.00]
+260620 183654 loop:249 (学習時間: 7.68s)
+[sample,loss] : discard [61199,0.01], pick [8095,0.00], koikoi [5920,0.00]
+260620 183701 loop:250 (学習時間: 7.19s)
+[sample,loss] : discard [59270,0.00], pick [4225,0.00], koikoi [6877,0.00]
+260620 183708 loop:251 (学習時間: 6.97s)
+[sample,loss] : discard [55190,0.00], pick [3261,0.00], koikoi [6864,0.00]
+260620 183715 loop:252 (学習時間: 7.19s)
+[sample,loss] : discard [56242,0.00], pick [6046,0.01], koikoi [2261,0.00]
+260620 183723 loop:253 (学習時間: 7.30s)
+[sample,loss] : discard [61224,0.00], pick [3256,0.00], koikoi [7872,0.00]
+260620 183730 loop:254 (学習時間: 7.11s)
+[sample,loss] : discard [59340,0.00], pick [3152,0.00], koikoi [5098,0.00]
+260620 183737 loop:255 (学習時間: 6.89s)
+[sample,loss] : discard [55589,0.00], pick [4162,0.01], koikoi [3161,0.00]
+260620 183743 loop:256 (学習時間: 6.89s)
+[sample,loss] : discard [54747,0.00], pick [6953,0.00], koikoi [4142,0.00]
+260620 183750 loop:257 (学習時間: 6.83s)
+[sample,loss] : discard [53560,0.00], pick [7999,0.00], koikoi [1331,0.00]
+
+260620 183750 チェックポイントを保存中...
+260620 183751 プログラムを安全に終了しました。
+>>> パイプラインの準備中（初期データの生成）...
+260620 184504 loop:1 (学習時間: 7.13s)
+[sample,loss] : discard [45044,0.00], pick [3077,0.00], koikoi [3066,0.00]
+260620 184511 loop:2 (学習時間: 7.25s)
+[sample,loss] : discard [60350,0.00], pick [7156,0.00], koikoi [8183,0.00]
+
+260620 184511 チェックポイントを保存中...
+260620 184511 プログラムを安全に終了しました。
+>>> パイプラインの準備中（初期データの生成）...
+260620 184647 loop:1 (学習時間: 6.43s)
+[sample,loss] : discard [45047,0.00], pick [3078,0.00], koikoi [3070,0.00]
+
+260620 184647 チェックポイントを保存中...
+260620 184647 プログラムを安全に終了しました。
+>>> パイプラインの準備中（初期データの生成）...
+260620 184734 loop:1 (学習時間: 7.64s)
+[sample,loss] : discard [54232,0.00], pick [4090,0.00], koikoi [5107,0.00]
+260620 184741 loop:2 (学習時間: 7.10s)
+[sample,loss] : discard [58320,0.00], pick [8165,0.00], koikoi [7151,0.00]
+260620 184748 loop:3 (学習時間: 7.30s)
+[sample,loss] : discard [58351,0.00], pick [5148,0.00], koikoi [5141,0.00]
+260620 184755 loop:4 (学習時間: 6.55s)
+[sample,loss] : discard [49214,0.00], pick [8185,0.01], koikoi [5090,0.00]
+260620 184802 loop:5 (学習時間: 6.87s)
+[sample,loss] : discard [55365,0.01], pick [6133,0.00], koikoi [5143,0.06]
+260620 184809 loop:6 (学習時間: 6.77s)
+[sample,loss] : discard [58306,0.00], pick [10157,0.00], koikoi [8127,0.00]
+260620 184815 loop:7 (学習時間: 6.45s)
+[sample,loss] : discard [49229,0.00], pick [3155,0.00], koikoi [3150,0.00]
+260620 184822 loop:8 (学習時間: 6.64s)
+[sample,loss] : discard [58437,0.00], pick [4176,0.00], koikoi [8149,0.00]
+260620 184828 loop:9 (学習時間: 6.40s)
+[sample,loss] : discard [53325,0.01], pick [3101,0.00], koikoi [4100,0.00]
+260620 184835 loop:10 (学習時間: 6.61s)
+[sample,loss] : discard [53216,0.00], pick [3132,0.00], koikoi [2074,0.00]
+260620 184842 loop:11 (学習時間: 6.93s)
+[sample,loss] : discard [58339,0.00], pick [6111,0.00], koikoi [5086,0.01]
+260620 184848 loop:12 (学習時間: 6.68s)
+[sample,loss] : discard [59239,0.00], pick [6155,0.00], koikoi [6140,0.00]
+260620 184855 loop:13 (学習時間: 6.74s)
+[sample,loss] : discard [51356,0.00], pick [8101,0.00], koikoi [5111,0.00]
+260620 184902 loop:14 (学習時間: 6.67s)
+[sample,loss] : discard [54340,0.00], pick [5162,0.00], koikoi [4110,0.00]
+260620 184909 loop:15 (学習時間: 7.19s)
+[sample,loss] : discard [61309,0.00], pick [6174,0.00], koikoi [5065,0.00]
+260620 184916 loop:16 (学習時間: 7.05s)
+[sample,loss] : discard [60285,0.00], pick [6146,0.00], koikoi [4079,0.00]
+260620 184922 loop:17 (学習時間: 6.55s)
+[sample,loss] : discard [54393,0.00], pick [5103,0.01], koikoi [3099,0.00]
+260620 184929 loop:18 (学習時間: 6.84s)
+[sample,loss] : discard [61212,0.00], pick [4095,0.00], koikoi [6111,0.00]
+260620 184936 loop:19 (学習時間: 6.65s)
+[sample,loss] : discard [53229,0.00], pick [4160,0.00], koikoi [4086,0.00]
+260620 184943 loop:20 (学習時間: 6.56s)
+[sample,loss] : discard [50347,0.00], pick [5121,0.00], koikoi [4033,0.00]
+
+260620 184943 チェックポイントを保存中...
+260620 184943 プログラムを安全に終了しました。
+>>> パイプラインの準備中（初期データの生成）...
+260620 185032 loop:1 (学習時間: 6.78s)
+[sample,loss] : discard [46128,0.00], pick [4099,0.00], koikoi [5112,0.01]
+260620 185039 loop:2 (学習時間: 6.50s)
+[sample,loss] : discard [54272,0.00], pick [5133,0.00], koikoi [6145,0.00]
+260620 185045 loop:3 (学習時間: 6.85s)
+[sample,loss] : discard [55257,0.00], pick [6139,0.00], koikoi [6117,0.00]
+260620 185051 loop:4 (学習時間: 5.97s)
+[sample,loss] : discard [50211,0.00], pick [7163,0.00], koikoi [4087,0.00]
+260620 185058 loop:5 (学習時間: 6.20s)
+[sample,loss] : discard [53226,0.01], pick [2091,0.00], koikoi [3089,0.00]
+260620 185104 loop:6 (学習時間: 6.56s)
+[sample,loss] : discard [53292,0.01], pick [5150,0.00], koikoi [5122,0.00]
+260620 185111 loop:7 (学習時間: 6.61s)
+[sample,loss] : discard [56195,0.00], pick [6171,0.00], koikoi [6118,0.00]
+260620 185118 loop:8 (学習時間: 6.68s)
+[sample,loss] : discard [58294,0.00], pick [6132,0.00], koikoi [8192,0.00]
+260620 185124 loop:9 (学習時間: 6.45s)
+[sample,loss] : discard [53341,0.00], pick [3142,0.00], koikoi [4142,0.00]
+260620 185131 loop:10 (学習時間: 7.14s)
+[sample,loss] : discard [56210,0.01], pick [6096,0.00], koikoi [7033,0.00]
+260620 185138 loop:11 (学習時間: 6.82s)
+[sample,loss] : discard [61361,0.00], pick [6125,0.00], koikoi [5096,0.00]
+260620 185144 loop:12 (学習時間: 6.28s)
+[sample,loss] : discard [55330,0.00], pick [3159,0.00], koikoi [2146,0.00]
+260620 185151 loop:13 (学習時間: 6.64s)
+[sample,loss] : discard [54226,0.00], pick [7097,0.00], koikoi [4098,0.01]
+260620 185157 loop:14 (学習時間: 6.64s)
+[sample,loss] : discard [54274,0.00], pick [7144,0.00], koikoi [5121,0.00]
+260620 185204 loop:15 (学習時間: 6.60s)
+[sample,loss] : discard [56239,0.00], pick [2194,0.00], koikoi [5091,0.00]
+260620 185211 loop:16 (学習時間: 6.60s)
+[sample,loss] : discard [54349,0.00], pick [3141,0.00], koikoi [3094,0.00]
+260620 185218 loop:17 (学習時間: 7.34s)
+[sample,loss] : discard [60292,0.00], pick [8071,0.00], koikoi [5081,0.01]
+260620 185225 loop:18 (学習時間: 6.66s)
+[sample,loss] : discard [60306,0.00], pick [3148,0.00], koikoi [6099,0.00]
+260620 185231 loop:19 (学習時間: 6.27s)
+[sample,loss] : discard [50110,0.00], pick [7096,0.00], koikoi [4106,0.00]
+
+260620 185231 チェックポイントを保存中...
+260620 185231 プログラムを安全に終了しました。
+>>> パイプラインの準備中（初期データの生成）...
+260620 185259 loop:1 (学習時間: 6.54s)
+[sample,loss] : discard [44057,0.01], pick [3077,0.00], koikoi [4088,0.00]
+260620 185306 loop:2 (学習時間: 6.90s)
+[sample,loss] : discard [56322,0.00], pick [7151,0.00], koikoi [7152,0.00]
+260620 185314 loop:3 (学習時間: 7.20s)
+[sample,loss] : discard [59311,0.00], pick [4099,0.00], koikoi [5117,0.00]
+260620 185320 loop:4 (学習時間: 6.71s)
+[sample,loss] : discard [55291,0.00], pick [8146,0.00], koikoi [5060,0.00]
+260620 185327 loop:5 (学習時間: 6.43s)
+[sample,loss] : discard [54361,0.01], pick [5130,0.00], koikoi [4097,0.00]
+260620 185334 loop:6 (学習時間: 7.28s)
+[sample,loss] : discard [57287,0.00], pick [10153,0.00], koikoi [8123,0.01]
+260620 185341 loop:7 (学習時間: 6.65s)
+[sample,loss] : discard [54361,0.00], pick [3179,0.00], koikoi [7143,0.00]
+260620 185347 loop:8 (学習時間: 6.36s)
+[sample,loss] : discard [56409,0.00], pick [5114,0.00], koikoi [6151,0.00]
+
+260620 185347 チェックポイントを保存中...
+260620 185347 プログラムを安全に終了しました。
+>>> パイプラインの準備中（初期データの生成）...
+260620 192434 loop:1 (学習時間: 7.81s)
+[sample,loss] : discard [51986,0.07], pick [4070,0.10], koikoi [4653,0.01]
+260620 192441 loop:2 (学習時間: 7.68s)
+[sample,loss] : discard [59090,0.02], pick [6657,0.03], koikoi [5993,0.00]
+260620 192449 loop:3 (学習時間: 7.59s)
+[sample,loss] : discard [59558,0.05], pick [6269,0.05], koikoi [6334,0.01]
+260620 192457 loop:4 (学習時間: 7.49s)
+[sample,loss] : discard [61346,0.06], pick [6827,0.06], koikoi [4559,0.03]
+260620 192504 loop:5 (学習時間: 7.46s)
+[sample,loss] : discard [59644,0.05], pick [5821,0.06], koikoi [4399,0.01]
+260620 192512 loop:6 (学習時間: 7.55s)
+[sample,loss] : discard [58989,0.05], pick [8796,0.05], koikoi [6204,0.02]
+260620 192519 loop:7 (学習時間: 7.52s)
+[sample,loss] : discard [62196,0.04], pick [5135,0.03], koikoi [7081,0.02]
+260620 192526 loop:8 (学習時間: 7.27s)
+[sample,loss] : discard [59406,0.05], pick [4050,0.05], koikoi [5662,0.02]
+260620 192533 loop:9 (学習時間: 7.11s)
+[sample,loss] : discard [57921,0.04], pick [5088,0.05], koikoi [4023,0.02]
+260620 192541 loop:10 (学習時間: 7.48s)
+[sample,loss] : discard [61464,0.05], pick [4711,0.08], koikoi [4853,0.02]
+260620 192548 loop:11 (学習時間: 7.53s)
+[sample,loss] : discard [62776,0.04], pick [6834,0.04], koikoi [6667,0.01]
+260620 192556 loop:12 (学習時間: 7.25s)
+[sample,loss] : discard [58426,0.04], pick [6166,0.05], koikoi [5118,0.01]
+260620 192603 loop:13 (学習時間: 7.38s)
+[sample,loss] : discard [60720,0.04], pick [8528,0.06], koikoi [4911,0.01]
+260620 192610 loop:14 (学習時間: 7.25s)
+[sample,loss] : discard [59824,0.05], pick [6342,0.03], koikoi [4490,0.01]
+260620 192618 loop:15 (学習時間: 7.36s)
+[sample,loss] : discard [59734,0.03], pick [5162,0.04], koikoi [4405,0.01]
+260620 192625 loop:16 (学習時間: 7.57s)
+[sample,loss] : discard [65014,0.04], pick [6061,0.05], koikoi [5948,0.01]
+260620 192633 loop:17 (学習時間: 7.39s)
+[sample,loss] : discard [60965,0.04], pick [5757,0.05], koikoi [5282,0.03]
+260620 192640 loop:18 (学習時間: 7.27s)
+[sample,loss] : discard [61288,0.03], pick [5087,0.05], koikoi [3715,0.02]
+260620 192647 loop:19 (学習時間: 7.28s)
+[sample,loss] : discard [60012,0.05], pick [7173,0.05], koikoi [5070,0.04]
+260620 192655 loop:20 (学習時間: 7.46s)
+[sample,loss] : discard [60107,0.05], pick [6221,0.05], koikoi [5265,0.01]
+260620 192702 loop:21 (学習時間: 7.21s)
+[sample,loss] : discard [61289,0.04], pick [5791,0.05], koikoi [4398,0.02]
+260620 192709 loop:22 (学習時間: 7.48s)
+[sample,loss] : discard [60422,0.03], pick [6488,0.04], koikoi [5756,0.01]
+260620 192717 loop:23 (学習時間: 7.74s)
+[sample,loss] : discard [64386,0.04], pick [6308,0.06], koikoi [5828,0.01]
+260620 192725 loop:24 (学習時間: 7.57s)
+[sample,loss] : discard [64653,0.03], pick [7376,0.04], koikoi [5295,0.01]
+260620 192732 loop:25 (学習時間: 7.20s)
+[sample,loss] : discard [61704,0.04], pick [4203,0.04], koikoi [3931,0.01]
+260620 192739 loop:26 (学習時間: 7.40s)
+[sample,loss] : discard [62371,0.04], pick [5576,0.04], koikoi [4633,0.01]
+260620 192747 loop:27 (学習時間: 7.23s)
+[sample,loss] : discard [61172,0.05], pick [4436,0.05], koikoi [3921,0.01]
+260620 192754 loop:28 (学習時間: 7.47s)
+[sample,loss] : discard [64429,0.04], pick [4858,0.04], koikoi [6119,0.01]
+260620 192801 loop:29 (学習時間: 7.43s)
+[sample,loss] : discard [61495,0.03], pick [7376,0.04], koikoi [5845,0.01]
+260620 192809 loop:30 (学習時間: 7.37s)
+[sample,loss] : discard [61144,0.04], pick [6208,0.04], koikoi [4980,0.02]
+260620 192816 loop:31 (学習時間: 7.29s)
+[sample,loss] : discard [64110,0.04], pick [4567,0.04], koikoi [4053,0.01]
+260620 192823 loop:32 (学習時間: 7.18s)
+[sample,loss] : discard [59550,0.05], pick [5308,0.06], koikoi [4264,0.02]
+260620 192831 loop:33 (学習時間: 7.34s)
+[sample,loss] : discard [60986,0.04], pick [4405,0.04], koikoi [6127,0.01]
+260620 192838 loop:34 (学習時間: 7.27s)
+[sample,loss] : discard [61993,0.05], pick [5936,0.05], koikoi [4710,0.01]
+260620 192845 loop:35 (学習時間: 7.32s)
+[sample,loss] : discard [60484,0.04], pick [6018,0.04], koikoi [4963,0.01]
+260620 192853 loop:36 (学習時間: 7.45s)
+[sample,loss] : discard [62204,0.04], pick [7671,0.04], koikoi [4563,0.01]
+260620 192900 loop:37 (学習時間: 7.25s)
+[sample,loss] : discard [62864,0.04], pick [6267,0.04], koikoi [4229,0.01]
+260620 192907 loop:38 (学習時間: 7.22s)
+[sample,loss] : discard [59293,0.03], pick [5541,0.03], koikoi [4283,0.01]
+260620 192915 loop:39 (学習時間: 7.47s)
+[sample,loss] : discard [61842,0.04], pick [5157,0.04], koikoi [5603,0.01]
+260620 192922 loop:40 (学習時間: 7.47s)
+[sample,loss] : discard [62805,0.04], pick [6876,0.04], koikoi [6166,0.01]
+★arena 85.0 wins, 101.0 loses, 12.0 draws 29.6 points
+Record,loop:40, score:0.460, point:29.61
+260620 192949 loop:41 (学習時間: 7.04s)
+[sample,loss] : discard [58697,0.04], pick [4170,0.05], koikoi [3661,0.01]
+260620 192957 loop:42 (学習時間: 7.20s)
+[sample,loss] : discard [62571,0.04], pick [3974,0.05], koikoi [5052,0.01]
+260620 193004 loop:43 (学習時間: 7.02s)
+[sample,loss] : discard [59138,0.03], pick [5326,0.04], koikoi [5121,0.01]
+260620 193011 loop:44 (学習時間: 7.04s)
+[sample,loss] : discard [58176,0.04], pick [6034,0.03], koikoi [3728,0.01]
+260620 193018 loop:45 (学習時間: 7.24s)
+[sample,loss] : discard [62598,0.04], pick [4833,0.03], koikoi [3938,0.01]
+260620 193025 loop:46 (学習時間: 7.11s)
+[sample,loss] : discard [60608,0.04], pick [5018,0.04], koikoi [4217,0.01]
+260620 193032 loop:47 (学習時間: 7.10s)
+[sample,loss] : discard [59314,0.04], pick [4988,0.04], koikoi [3926,0.01]
+260620 193040 loop:48 (学習時間: 7.39s)
+[sample,loss] : discard [62570,0.04], pick [4719,0.04], koikoi [4124,0.01]
+260620 193047 loop:49 (学習時間: 7.50s)
+[sample,loss] : discard [65701,0.04], pick [3725,0.04], koikoi [5036,0.01]
+260620 193054 loop:50 (学習時間: 7.30s)
+[sample,loss] : discard [62396,0.04], pick [5752,0.05], koikoi [4598,0.01]
+260620 193102 loop:51 (学習時間: 7.48s)
+[sample,loss] : discard [62654,0.04], pick [5789,0.05], koikoi [4831,0.01]
+260620 193110 loop:52 (学習時間: 7.71s)
+[sample,loss] : discard [64937,0.03], pick [7129,0.03], koikoi [5586,0.01]
+260620 193117 loop:53 (学習時間: 7.14s)
+[sample,loss] : discard [61473,0.04], pick [6051,0.04], koikoi [4825,0.01]
+260620 193124 loop:54 (学習時間: 6.94s)
+[sample,loss] : discard [59415,0.05], pick [5212,0.04], koikoi [4349,0.01]
+260620 193131 loop:55 (学習時間: 6.95s)
+[sample,loss] : discard [58705,0.04], pick [4594,0.05], koikoi [4631,0.01]
+260620 193138 loop:56 (学習時間: 7.25s)
+[sample,loss] : discard [59198,0.04], pick [6814,0.05], koikoi [4811,0.01]
+260620 193145 loop:57 (学習時間: 7.35s)
+[sample,loss] : discard [62033,0.04], pick [9240,0.05], koikoi [5165,0.01]
+260620 193152 loop:58 (学習時間: 7.16s)
+[sample,loss] : discard [59132,0.05], pick [6025,0.05], koikoi [4995,0.02]
+260620 193159 loop:59 (学習時間: 7.15s)
+[sample,loss] : discard [60894,0.04], pick [5212,0.05], koikoi [4851,0.01]
+260620 193207 loop:60 (学習時間: 7.26s)
+[sample,loss] : discard [61462,0.03], pick [6011,0.04], koikoi [4778,0.01]
+260620 193214 loop:61 (学習時間: 6.85s)
+[sample,loss] : discard [58463,0.04], pick [5662,0.05], koikoi [4667,0.01]
+260620 193221 loop:62 (学習時間: 7.11s)
+[sample,loss] : discard [58057,0.05], pick [5619,0.05], koikoi [5528,0.02]
+260620 193228 loop:63 (学習時間: 7.15s)
+[sample,loss] : discard [59275,0.04], pick [5345,0.04], koikoi [5835,0.02]
+260620 193235 loop:64 (学習時間: 7.12s)
+[sample,loss] : discard [61697,0.04], pick [4141,0.04], koikoi [5753,0.01]
+260620 193242 loop:65 (学習時間: 7.24s)
+[sample,loss] : discard [59948,0.04], pick [4633,0.04], koikoi [4893,0.02]
+260620 193249 loop:66 (学習時間: 7.27s)
+[sample,loss] : discard [61132,0.04], pick [5557,0.05], koikoi [4385,0.03]
+260620 193257 loop:67 (学習時間: 7.24s)
+[sample,loss] : discard [61277,0.03], pick [5745,0.04], koikoi [4365,0.02]
+260620 193304 loop:68 (学習時間: 7.42s)
+[sample,loss] : discard [62103,0.04], pick [6129,0.05], koikoi [5149,0.02]
+260620 193311 loop:69 (学習時間: 7.24s)
+[sample,loss] : discard [62489,0.03], pick [6167,0.03], koikoi [4995,0.01]
+260620 193318 loop:70 (学習時間: 7.10s)
+[sample,loss] : discard [58953,0.04], pick [5858,0.05], koikoi [4730,0.02]
+260620 193326 loop:71 (学習時間: 7.34s)
+[sample,loss] : discard [60905,0.04], pick [6843,0.05], koikoi [4505,0.02]
+260620 193333 loop:72 (学習時間: 7.28s)
+[sample,loss] : discard [60909,0.04], pick [5770,0.05], koikoi [3978,0.02]
+260620 193340 loop:73 (学習時間: 7.06s)
+[sample,loss] : discard [61031,0.04], pick [5382,0.05], koikoi [3657,0.02]
+260620 193347 loop:74 (学習時間: 6.99s)
+[sample,loss] : discard [59816,0.04], pick [4084,0.04], koikoi [2913,0.02]
+260620 193354 loop:75 (学習時間: 7.19s)
+[sample,loss] : discard [60650,0.04], pick [4600,0.04], koikoi [3834,0.02]
+260620 193401 loop:76 (学習時間: 7.04s)
+[sample,loss] : discard [59489,0.04], pick [5141,0.04], koikoi [4311,0.02]
+260620 193409 loop:77 (学習時間: 7.13s)
+[sample,loss] : discard [58299,0.03], pick [6488,0.04], koikoi [4309,0.03]
+260620 193416 loop:78 (学習時間: 7.26s)
+[sample,loss] : discard [60532,0.03], pick [5919,0.03], koikoi [4408,0.02]
+260620 193423 loop:79 (学習時間: 7.41s)
+[sample,loss] : discard [61612,0.04], pick [6974,0.05], koikoi [4792,0.02]
+260620 193431 loop:80 (学習時間: 7.46s)
+[sample,loss] : discard [62493,0.04], pick [5935,0.05], koikoi [5336,0.02]
+★arena 74.0 wins, 112.0 loses, 12.0 draws 28.6 points
+Record,loop:80, score:0.404, point:28.63
+260620 193457 loop:81 (学習時間: 7.38s)
+[sample,loss] : discard [61989,0.04], pick [4535,0.04], koikoi [4773,0.02]
+260620 193504 loop:82 (学習時間: 7.37s)
+[sample,loss] : discard [61046,0.04], pick [5389,0.04], koikoi [5195,0.01]
+260620 193512 loop:83 (学習時間: 7.66s)
+[sample,loss] : discard [63697,0.04], pick [6305,0.05], koikoi [6027,0.01]
+260620 193520 loop:84 (学習時間: 7.40s)
+[sample,loss] : discard [62245,0.03], pick [6828,0.04], koikoi [4438,0.01]
+260620 193527 loop:85 (学習時間: 7.55s)
+[sample,loss] : discard [62873,0.03], pick [7165,0.03], koikoi [4560,0.01]
+260620 193535 loop:86 (学習時間: 7.62s)
+[sample,loss] : discard [64402,0.03], pick [7347,0.04], koikoi [5394,0.01]
+260620 193542 loop:87 (学習時間: 7.46s)
+[sample,loss] : discard [62128,0.04], pick [5803,0.04], koikoi [5492,0.01]
+260620 193550 loop:88 (学習時間: 7.59s)
+[sample,loss] : discard [61818,0.03], pick [6585,0.03], koikoi [5329,0.01]
+260620 193557 loop:89 (学習時間: 7.66s)
+[sample,loss] : discard [63228,0.03], pick [7318,0.03], koikoi [5196,0.01]
+260620 193605 loop:90 (学習時間: 7.32s)
+[sample,loss] : discard [62796,0.03], pick [5782,0.04], koikoi [5074,0.01]
+260620 193612 loop:91 (学習時間: 7.28s)
+[sample,loss] : discard [60131,0.04], pick [6150,0.04], koikoi [4545,0.01]
+260620 193620 loop:92 (学習時間: 7.54s)
+[sample,loss] : discard [62092,0.03], pick [5685,0.03], koikoi [5090,0.01]
+260620 193627 loop:93 (学習時間: 7.15s)
+[sample,loss] : discard [59985,0.03], pick [5114,0.03], koikoi [4885,0.01]
+260620 193634 loop:94 (学習時間: 7.20s)
+[sample,loss] : discard [60852,0.03], pick [5478,0.03], koikoi [4793,0.01]
+260620 193641 loop:95 (学習時間: 7.17s)
+[sample,loss] : discard [57562,0.04], pick [5248,0.04], koikoi [4287,0.01]
+260620 193648 loop:96 (学習時間: 7.07s)
+[sample,loss] : discard [60603,0.03], pick [3850,0.03], koikoi [3949,0.01]
+260620 193655 loop:97 (学習時間: 7.04s)
+[sample,loss] : discard [59523,0.04], pick [4366,0.04], koikoi [4021,0.01]
+260620 193702 loop:98 (学習時間: 7.28s)
+[sample,loss] : discard [58332,0.04], pick [5894,0.05], koikoi [4784,0.01]
+260620 193710 loop:99 (学習時間: 7.50s)
+[sample,loss] : discard [60889,0.04], pick [6233,0.04], koikoi [5959,0.01]
+260620 193717 loop:100 (学習時間: 7.45s)
+[sample,loss] : discard [61019,0.03], pick [6218,0.03], koikoi [5940,0.01]
+260620 193725 loop:101 (学習時間: 7.23s)
+[sample,loss] : discard [59634,0.03], pick [6401,0.02], koikoi [6278,0.01]
+260620 193732 loop:102 (学習時間: 7.29s)
+[sample,loss] : discard [57187,0.04], pick [7115,0.04], koikoi [6246,0.01]
+260620 193739 loop:103 (学習時間: 7.52s)
+[sample,loss] : discard [59163,0.04], pick [7549,0.04], koikoi [6103,0.02]
+260620 193747 loop:104 (学習時間: 7.34s)
+[sample,loss] : discard [60816,0.04], pick [7244,0.04], koikoi [5783,0.01]
+260620 193754 loop:105 (学習時間: 7.37s)
+[sample,loss] : discard [60580,0.04], pick [5925,0.05], koikoi [5763,0.01]
+260620 193802 loop:106 (学習時間: 7.64s)
+[sample,loss] : discard [62881,0.05], pick [6056,0.06], koikoi [6528,0.01]
+260620 193810 loop:107 (学習時間: 7.83s)
+[sample,loss] : discard [62762,0.04], pick [7152,0.05], koikoi [6544,0.01]
+260620 193818 loop:108 (学習時間: 7.86s)
+[sample,loss] : discard [64091,0.04], pick [6328,0.05], koikoi [5530,0.02]
+260620 193825 loop:109 (学習時間: 7.59s)
+[sample,loss] : discard [65353,0.04], pick [6125,0.04], koikoi [5493,0.01]
+260620 193833 loop:110 (学習時間: 7.76s)
+[sample,loss] : discard [58527,0.04], pick [5955,0.03], koikoi [4797,0.01]
+260620 193840 loop:111 (学習時間: 7.52s)
+[sample,loss] : discard [64322,0.04], pick [6597,0.04], koikoi [4849,0.01]
+260620 193848 loop:112 (学習時間: 7.54s)
+[sample,loss] : discard [60839,0.04], pick [6653,0.04], koikoi [5310,0.01]
+260620 193856 loop:113 (学習時間: 7.71s)
+[sample,loss] : discard [63132,0.04], pick [6544,0.04], koikoi [6744,0.01]
+260620 193903 loop:114 (学習時間: 7.46s)
+[sample,loss] : discard [61862,0.05], pick [7210,0.05], koikoi [6002,0.02]
+260620 193911 loop:115 (学習時間: 7.61s)
+[sample,loss] : discard [60689,0.04], pick [8104,0.04], koikoi [5043,0.02]
+260620 193918 loop:116 (学習時間: 7.39s)
+[sample,loss] : discard [60458,0.04], pick [7663,0.04], koikoi [5104,0.02]
+260620 193925 loop:117 (学習時間: 7.12s)
+[sample,loss] : discard [59067,0.05], pick [5952,0.04], koikoi [5052,0.03]
+260620 193933 loop:118 (学習時間: 7.32s)
+[sample,loss] : discard [59595,0.05], pick [6008,0.04], koikoi [5234,0.02]
+260620 193940 loop:119 (学習時間: 7.30s)
+[sample,loss] : discard [60913,0.04], pick [5175,0.04], koikoi [5306,0.02]
+260620 193947 loop:120 (学習時間: 7.41s)
+[sample,loss] : discard [61720,0.04], pick [4547,0.04], koikoi [5743,0.02]
+★arena 85.0 wins, 104.0 loses, 9.0 draws 29.3 points
+Record,loop:120, score:0.452, point:29.34
+260620 194016 loop:121 (学習時間: 7.55s)
+[sample,loss] : discard [61990,0.04], pick [5224,0.04], koikoi [6284,0.01]
+260620 194023 loop:122 (学習時間: 7.45s)
+[sample,loss] : discard [61537,0.04], pick [5639,0.03], koikoi [5591,0.01]
+260620 194031 loop:123 (学習時間: 7.78s)
+[sample,loss] : discard [61096,0.04], pick [5213,0.03], koikoi [3952,0.03]
+260620 194039 loop:124 (学習時間: 7.35s)
+[sample,loss] : discard [61518,0.04], pick [5339,0.04], koikoi [4729,0.02]
+260620 194046 loop:125 (学習時間: 7.50s)
+[sample,loss] : discard [60988,0.04], pick [5731,0.05], koikoi [5612,0.01]
+260620 194054 loop:126 (学習時間: 7.55s)
+[sample,loss] : discard [61642,0.04], pick [5709,0.04], koikoi [5451,0.02]
+260620 194101 loop:127 (学習時間: 7.64s)
+[sample,loss] : discard [65052,0.04], pick [5909,0.04], koikoi [5719,0.02]
+260620 194109 loop:128 (学習時間: 7.49s)
+[sample,loss] : discard [60653,0.04], pick [5612,0.05], koikoi [5628,0.02]
+260620 194116 loop:129 (学習時間: 7.43s)
+[sample,loss] : discard [62725,0.05], pick [6091,0.06], koikoi [5698,0.01]
+260620 194124 loop:130 (学習時間: 7.31s)
+[sample,loss] : discard [60738,0.05], pick [6507,0.05], koikoi [5100,0.02]
+260620 194131 loop:131 (学習時間: 6.99s)
+[sample,loss] : discard [57655,0.05], pick [7566,0.06], koikoi [4764,0.03]
+260620 194138 loop:132 (学習時間: 7.08s)
+[sample,loss] : discard [55221,0.05], pick [7420,0.05], koikoi [4597,0.02]
+260620 194145 loop:133 (学習時間: 7.51s)
+[sample,loss] : discard [61612,0.04], pick [6625,0.04], koikoi [5538,0.01]
+260620 194153 loop:134 (学習時間: 7.73s)
+[sample,loss] : discard [65914,0.04], pick [6221,0.04], koikoi [6629,0.01]
+260620 194200 loop:135 (学習時間: 7.31s)
+[sample,loss] : discard [62700,0.04], pick [6317,0.04], koikoi [5298,0.01]
+260620 194207 loop:136 (学習時間: 7.11s)
+[sample,loss] : discard [60317,0.04], pick [6336,0.04], koikoi [4465,0.02]
+260620 194215 loop:137 (学習時間: 7.24s)
+[sample,loss] : discard [59659,0.05], pick [4346,0.05], koikoi [5430,0.02]
+260620 194222 loop:138 (学習時間: 7.24s)
+[sample,loss] : discard [63093,0.04], pick [3289,0.04], koikoi [6174,0.01]
+260620 194229 loop:139 (学習時間: 7.27s)
+[sample,loss] : discard [61093,0.04], pick [4249,0.03], koikoi [5605,0.01]
+260620 194236 loop:140 (学習時間: 7.29s)
+[sample,loss] : discard [61843,0.03], pick [5584,0.04], koikoi [5180,0.02]
+260620 194243 loop:141 (学習時間: 6.86s)
+[sample,loss] : discard [57761,0.04], pick [5784,0.04], koikoi [4103,0.01]
+260620 194250 loop:142 (学習時間: 7.14s)
+[sample,loss] : discard [58683,0.04], pick [5256,0.04], koikoi [4065,0.02]
+260620 194258 loop:143 (学習時間: 7.33s)
+[sample,loss] : discard [63380,0.03], pick [4686,0.03], koikoi [4683,0.01]
+260620 194305 loop:144 (学習時間: 7.23s)
+[sample,loss] : discard [61269,0.04], pick [4952,0.03], koikoi [4103,0.01]
+260620 194312 loop:145 (学習時間: 7.32s)
+[sample,loss] : discard [62367,0.04], pick [6646,0.04], koikoi [4486,0.01]
+260620 194320 loop:146 (学習時間: 7.41s)
+[sample,loss] : discard [60379,0.04], pick [6782,0.04], koikoi [4518,0.01]
+260620 194327 loop:147 (学習時間: 7.01s)
+[sample,loss] : discard [59079,0.04], pick [6296,0.04], koikoi [4089,0.02]
+260620 194334 loop:148 (学習時間: 7.49s)
+[sample,loss] : discard [56984,0.04], pick [6916,0.04], koikoi [4187,0.03]
+260620 194342 loop:149 (学習時間: 7.47s)
+[sample,loss] : discard [61266,0.04], pick [7976,0.04], koikoi [4651,0.01]
+260620 194349 loop:150 (学習時間: 7.38s)
+[sample,loss] : discard [59238,0.04], pick [7286,0.04], koikoi [4838,0.02]
+260620 194356 loop:151 (学習時間: 7.28s)
+[sample,loss] : discard [61411,0.04], pick [6450,0.03], koikoi [5562,0.01]
+260620 194404 loop:152 (学習時間: 7.39s)
+[sample,loss] : discard [59036,0.04], pick [5409,0.04], koikoi [5581,0.01]
+260620 194411 loop:153 (学習時間: 7.76s)
+[sample,loss] : discard [63231,0.03], pick [5771,0.04], koikoi [5859,0.01]
+260620 194419 loop:154 (学習時間: 7.68s)
+[sample,loss] : discard [67223,0.03], pick [5823,0.03], koikoi [5770,0.01]
+260620 194427 loop:155 (学習時間: 7.44s)
+[sample,loss] : discard [60364,0.04], pick [5489,0.04], koikoi [4923,0.01]
+260620 194434 loop:156 (学習時間: 7.07s)
+[sample,loss] : discard [60624,0.04], pick [6262,0.04], koikoi [5330,0.01]
+260620 194441 loop:157 (学習時間: 7.15s)
+[sample,loss] : discard [59305,0.04], pick [6425,0.04], koikoi [5805,0.01]
+260620 194448 loop:158 (学習時間: 7.25s)
+[sample,loss] : discard [61219,0.04], pick [5632,0.05], koikoi [4863,0.01]
+260620 194455 loop:159 (学習時間: 7.23s)
+[sample,loss] : discard [62318,0.04], pick [5389,0.04], koikoi [4643,0.02]
+260620 194503 loop:160 (学習時間: 7.41s)
+[sample,loss] : discard [63110,0.04], pick [5262,0.04], koikoi [5183,0.01]
+★arena 93.0 wins, 91.0 loses, 14.0 draws 29.4 points
+Record,loop:160, score:0.505, point:29.36
+260620 194534 loop:161 (学習時間: 7.31s)
+[sample,loss] : discard [61947,0.04], pick [4751,0.05], koikoi [5129,0.01]
+260620 194542 loop:162 (学習時間: 7.21s)
+[sample,loss] : discard [61613,0.05], pick [5165,0.05], koikoi [5820,0.02]
+260620 194549 loop:163 (学習時間: 7.32s)
+[sample,loss] : discard [60308,0.04], pick [6502,0.05], koikoi [5724,0.02]
+260620 194556 loop:164 (学習時間: 7.29s)
+[sample,loss] : discard [59858,0.04], pick [6210,0.05], koikoi [4978,0.02]
+260620 194603 loop:165 (学習時間: 7.09s)
+[sample,loss] : discard [60993,0.04], pick [5494,0.05], koikoi [4450,0.03]
+260620 194610 loop:166 (学習時間: 7.11s)
+[sample,loss] : discard [59692,0.04], pick [5556,0.05], koikoi [4418,0.02]
+260620 194618 loop:167 (学習時間: 7.29s)
+[sample,loss] : discard [59336,0.04], pick [5615,0.04], koikoi [4661,0.02]
+260620 194625 loop:168 (学習時間: 7.58s)
+[sample,loss] : discard [62702,0.04], pick [6674,0.04], koikoi [5100,0.02]
+260620 194633 loop:169 (学習時間: 7.80s)
+[sample,loss] : discard [65363,0.04], pick [7723,0.04], koikoi [5556,0.02]
+260620 194641 loop:170 (学習時間: 7.51s)
+[sample,loss] : discard [62672,0.04], pick [7091,0.05], koikoi [5438,0.02]
+260620 194648 loop:171 (学習時間: 7.32s)
+[sample,loss] : discard [61410,0.05], pick [6063,0.05], koikoi [5381,0.02]
+260620 194655 loop:172 (学習時間: 7.59s)
+[sample,loss] : discard [60975,0.04], pick [6819,0.05], koikoi [4916,0.01]
+260620 194703 loop:173 (学習時間: 7.40s)
+[sample,loss] : discard [63895,0.04], pick [6806,0.05], koikoi [4233,0.01]
+260620 194710 loop:174 (学習時間: 7.12s)
+[sample,loss] : discard [58548,0.04], pick [5150,0.05], koikoi [3499,0.02]
+260620 194717 loop:175 (学習時間: 7.09s)
+[sample,loss] : discard [59503,0.04], pick [5197,0.04], koikoi [4037,0.01]
+260620 194725 loop:176 (学習時間: 7.63s)
+[sample,loss] : discard [59763,0.04], pick [5224,0.05], koikoi [4721,0.01]
+260620 194732 loop:177 (学習時間: 7.72s)
+[sample,loss] : discard [59947,0.04], pick [5871,0.05], koikoi [4972,0.02]
+260620 194740 loop:178 (学習時間: 7.79s)
+[sample,loss] : discard [63534,0.05], pick [6888,0.06], koikoi [5637,0.03]
+260620 194748 loop:179 (学習時間: 7.53s)
+[sample,loss] : discard [61390,0.05], pick [6131,0.06], koikoi [5690,0.02]
+260620 194756 loop:180 (学習時間: 7.96s)
+[sample,loss] : discard [62224,0.04], pick [5252,0.05], koikoi [5310,0.02]
+260620 194803 loop:181 (学習時間: 7.58s)
+[sample,loss] : discard [63369,0.04], pick [5212,0.05], koikoi [4899,0.02]
+260620 194811 loop:182 (学習時間: 7.45s)
+[sample,loss] : discard [62306,0.04], pick [5462,0.05], koikoi [4533,0.02]
+260620 194818 loop:183 (学習時間: 7.53s)
+[sample,loss] : discard [61916,0.04], pick [5198,0.05], koikoi [5080,0.01]
+260620 194826 loop:184 (学習時間: 7.89s)
+[sample,loss] : discard [65193,0.04], pick [6412,0.04], koikoi [5766,0.02]
+260620 194834 loop:185 (学習時間: 7.63s)
+[sample,loss] : discard [61708,0.04], pick [7429,0.04], koikoi [5273,0.02]
+260620 194842 loop:186 (学習時間: 7.75s)
+[sample,loss] : discard [62379,0.04], pick [7683,0.04], koikoi [5125,0.02]
+260620 194849 loop:187 (学習時間: 7.71s)
+[sample,loss] : discard [63923,0.04], pick [6703,0.04], koikoi [5027,0.02]
+260620 194857 loop:188 (学習時間: 7.50s)
+[sample,loss] : discard [63452,0.04], pick [5876,0.05], koikoi [4137,0.01]
+260620 194904 loop:189 (学習時間: 7.56s)
+[sample,loss] : discard [60835,0.04], pick [5459,0.04], koikoi [3852,0.02]
+260620 194912 loop:190 (学習時間: 7.34s)
+[sample,loss] : discard [62573,0.04], pick [6546,0.05], koikoi [4516,0.01]
+260620 194919 loop:191 (学習時間: 7.34s)
+[sample,loss] : discard [61630,0.04], pick [6779,0.05], koikoi [4755,0.01]
+260620 194926 loop:192 (学習時間: 7.43s)
+[sample,loss] : discard [61907,0.04], pick [6483,0.05], koikoi [4812,0.02]
+260620 194934 loop:193 (学習時間: 7.23s)
+[sample,loss] : discard [61794,0.05], pick [7045,0.04], koikoi [4835,0.02]
+260620 194941 loop:194 (学習時間: 7.28s)
+[sample,loss] : discard [58820,0.04], pick [7050,0.03], koikoi [4800,0.01]
+260620 194948 loop:195 (学習時間: 7.30s)
+[sample,loss] : discard [61746,0.03], pick [6640,0.03], koikoi [5270,0.01]
+260620 194955 loop:196 (学習時間: 7.18s)
+[sample,loss] : discard [59726,0.04], pick [5487,0.04], koikoi [4977,0.02]
+260620 195003 loop:197 (学習時間: 7.44s)
+[sample,loss] : discard [62550,0.04], pick [5381,0.05], koikoi [4726,0.01]
+260620 195010 loop:198 (学習時間: 7.56s)
+[sample,loss] : discard [64497,0.04], pick [6396,0.05], koikoi [4744,0.02]
+260620 195018 loop:199 (学習時間: 7.38s)
+[sample,loss] : discard [62459,0.04], pick [6464,0.05], koikoi [5398,0.02]
+260620 195026 loop:200 (学習時間: 7.81s)
+[sample,loss] : discard [62398,0.04], pick [6036,0.05], koikoi [6282,0.02]
+★arena 97.0 wins, 92.0 loses, 9.0 draws 29.0 points
+Record,loop:200, score:0.513, point:29.04
+260620 195056 loop:201 (学習時間: 7.91s)
+[sample,loss] : discard [64686,0.05], pick [5622,0.05], koikoi [6294,0.02]
+260620 195104 loop:202 (学習時間: 7.47s)
+[sample,loss] : discard [63536,0.05], pick [5409,0.05], koikoi [5498,0.02]
+260620 195111 loop:203 (学習時間: 7.33s)
+[sample,loss] : discard [62578,0.05], pick [5271,0.04], koikoi [5358,0.01]
+260620 195118 loop:204 (学習時間: 7.27s)
+[sample,loss] : discard [60821,0.05], pick [5280,0.05], koikoi [4809,0.02]
+260620 195126 loop:205 (学習時間: 7.35s)
+[sample,loss] : discard [61987,0.04], pick [5249,0.05], koikoi [4810,0.02]
+260620 195133 loop:206 (学習時間: 7.53s)
+[sample,loss] : discard [63421,0.04], pick [5108,0.04], koikoi [5495,0.02]
+260620 195141 loop:207 (学習時間: 7.43s)
+[sample,loss] : discard [63870,0.04], pick [5371,0.04], koikoi [5908,0.02]
+260620 195148 loop:208 (学習時間: 7.36s)
+[sample,loss] : discard [60587,0.04], pick [5982,0.05], koikoi [5606,0.02]
+260620 195156 loop:209 (学習時間: 7.65s)
+[sample,loss] : discard [63531,0.04], pick [6652,0.04], koikoi [5449,0.02]
+260620 195203 loop:210 (学習時間: 7.53s)
+[sample,loss] : discard [64648,0.05], pick [6037,0.05], koikoi [4729,0.02]
+260620 195210 loop:211 (学習時間: 7.21s)
+[sample,loss] : discard [61126,0.05], pick [6387,0.05], koikoi [4377,0.02]
+260620 195218 loop:212 (学習時間: 7.33s)
+[sample,loss] : discard [59715,0.04], pick [7358,0.05], koikoi [4483,0.02]
+260620 195225 loop:213 (学習時間: 7.38s)
+[sample,loss] : discard [61333,0.04], pick [7303,0.04], koikoi [4662,0.02]
+260620 195233 loop:214 (学習時間: 7.51s)
+[sample,loss] : discard [61809,0.04], pick [5901,0.04], koikoi [5065,0.02]
+260620 195240 loop:215 (学習時間: 7.57s)
+[sample,loss] : discard [64328,0.04], pick [5866,0.04], koikoi [6005,0.02]
+260620 195248 loop:216 (学習時間: 7.41s)
+[sample,loss] : discard [62354,0.04], pick [5953,0.04], koikoi [5928,0.02]
+260620 195255 loop:217 (学習時間: 7.37s)
+[sample,loss] : discard [61903,0.04], pick [5311,0.05], koikoi [5364,0.02]
+260620 195302 loop:218 (学習時間: 7.56s)
+[sample,loss] : discard [64324,0.04], pick [5574,0.05], koikoi [5703,0.02]
+260620 195310 loop:219 (学習時間: 7.69s)
+[sample,loss] : discard [62459,0.04], pick [6151,0.05], koikoi [6151,0.02]
+260620 195318 loop:220 (学習時間: 7.77s)
+[sample,loss] : discard [65077,0.04], pick [6551,0.04], koikoi [6416,0.02]
+260620 195326 loop:221 (学習時間: 7.65s)
+[sample,loss] : discard [63495,0.04], pick [6042,0.05], koikoi [5954,0.02]
+260620 195333 loop:222 (学習時間: 7.47s)
+[sample,loss] : discard [63234,0.04], pick [6128,0.05], koikoi [5428,0.02]
+260620 195340 loop:223 (学習時間: 7.09s)
+[sample,loss] : discard [59643,0.04], pick [5559,0.04], koikoi [4630,0.02]
+260620 195347 loop:224 (学習時間: 7.30s)
+[sample,loss] : discard [60212,0.04], pick [4818,0.04], koikoi [4529,0.02]
+260620 195355 loop:225 (学習時間: 7.41s)
+[sample,loss] : discard [60905,0.04], pick [5086,0.04], koikoi [4809,0.02]
+260620 195402 loop:226 (学習時間: 7.37s)
+[sample,loss] : discard [62588,0.04], pick [6578,0.04], koikoi [5193,0.02]
+260620 195410 loop:227 (学習時間: 7.34s)
+[sample,loss] : discard [59584,0.04], pick [6924,0.05], koikoi [4933,0.03]
+260620 195417 loop:228 (学習時間: 7.60s)
+[sample,loss] : discard [60548,0.04], pick [6916,0.05], koikoi [4973,0.04]
+260620 195425 loop:229 (学習時間: 7.40s)
+[sample,loss] : discard [63697,0.04], pick [6354,0.04], koikoi [5430,0.02]
+260620 195432 loop:230 (学習時間: 7.31s)
+[sample,loss] : discard [60136,0.04], pick [5344,0.04], koikoi [5309,0.02]
+260620 195439 loop:231 (学習時間: 7.42s)
+[sample,loss] : discard [60754,0.04], pick [4927,0.04], koikoi [5534,0.02]
+260620 195447 loop:232 (学習時間: 7.46s)
+[sample,loss] : discard [65013,0.05], pick [4612,0.04], koikoi [5742,0.02]
+260620 195454 loop:233 (学習時間: 7.54s)
+[sample,loss] : discard [63395,0.05], pick [4267,0.04], koikoi [5369,0.02]
+260620 195502 loop:234 (学習時間: 7.43s)
+[sample,loss] : discard [63626,0.05], pick [5112,0.04], koikoi [5140,0.02]
+260620 195509 loop:235 (学習時間: 7.30s)
+[sample,loss] : discard [62859,0.04], pick [6105,0.04], koikoi [4629,0.02]
+260620 195516 loop:236 (学習時間: 7.16s)
+[sample,loss] : discard [59368,0.05], pick [6028,0.05], koikoi [4151,0.03]
+260620 195524 loop:237 (学習時間: 7.28s)
+[sample,loss] : discard [60335,0.05], pick [5788,0.05], koikoi [4164,0.03]
+260620 195531 loop:238 (学習時間: 7.33s)
+[sample,loss] : discard [62626,0.05], pick [6178,0.05], koikoi [4486,0.02]
+260620 195538 loop:239 (学習時間: 7.45s)
+[sample,loss] : discard [64599,0.05], pick [6842,0.05], koikoi [4788,0.02]
+260620 195546 loop:240 (学習時間: 7.55s)
+[sample,loss] : discard [61086,0.04], pick [5768,0.04], koikoi [4760,0.02]
+★arena 90.0 wins, 99.0 loses, 9.0 draws 28.9 points
+Record,loop:240, score:0.477, point:28.89
+260620 195617 loop:241 (学習時間: 7.66s)
+[sample,loss] : discard [65014,0.04], pick [5198,0.04], koikoi [5273,0.02]
+260620 195625 loop:242 (学習時間: 7.20s)
+[sample,loss] : discard [62345,0.05], pick [4918,0.05], koikoi [4915,0.02]
+260620 195632 loop:243 (学習時間: 7.10s)
+[sample,loss] : discard [59859,0.05], pick [4873,0.06], koikoi [5056,0.03]
+260620 195639 loop:244 (学習時間: 7.41s)
+[sample,loss] : discard [61293,0.06], pick [5009,0.07], koikoi [5518,0.04]
+260620 195646 loop:245 (学習時間: 7.33s)
+[sample,loss] : discard [61490,0.06], pick [5049,0.05], koikoi [5555,0.03]
+260620 195654 loop:246 (学習時間: 7.50s)
+[sample,loss] : discard [61975,0.05], pick [5601,0.05], koikoi [5602,0.03]
+260620 195702 loop:247 (学習時間: 7.56s)
+[sample,loss] : discard [63699,0.04], pick [6100,0.04], koikoi [5422,0.02]
+260620 195709 loop:248 (学習時間: 7.41s)
+[sample,loss] : discard [61987,0.04], pick [6117,0.04], koikoi [4851,0.02]
+260620 195716 loop:249 (学習時間: 7.53s)
+[sample,loss] : discard [65154,0.04], pick [6734,0.04], koikoi [5267,0.02]
+260620 195724 loop:250 (学習時間: 7.47s)
+[sample,loss] : discard [63817,0.04], pick [6883,0.04], koikoi [5313,0.02]
+260620 195731 loop:251 (学習時間: 7.23s)
+[sample,loss] : discard [60167,0.04], pick [6338,0.04], koikoi [5347,0.02]
+260620 195738 loop:252 (学習時間: 7.25s)
+[sample,loss] : discard [61257,0.04], pick [5899,0.04], koikoi [5338,0.02]
+260620 195746 loop:253 (学習時間: 7.18s)
+[sample,loss] : discard [59258,0.04], pick [5617,0.04], koikoi [4908,0.02]
+260620 195753 loop:254 (学習時間: 7.06s)
+[sample,loss] : discard [60503,0.04], pick [6151,0.04], koikoi [4818,0.02]
+260620 195800 loop:255 (学習時間: 7.01s)
+[sample,loss] : discard [57682,0.05], pick [6327,0.05], koikoi [4932,0.02]
+260620 195807 loop:256 (学習時間: 7.23s)
+[sample,loss] : discard [57772,0.05], pick [6657,0.05], koikoi [5371,0.02]
+260620 195814 loop:257 (学習時間: 7.57s)
+[sample,loss] : discard [61318,0.05], pick [6963,0.06], koikoi [6018,0.02]
+260620 195822 loop:258 (学習時間: 7.54s)
+[sample,loss] : discard [63802,0.05], pick [6767,0.05], koikoi [6278,0.02]
+260620 195830 loop:259 (学習時間: 7.48s)
+[sample,loss] : discard [61090,0.04], pick [5477,0.05], koikoi [5697,0.02]
+260620 195837 loop:260 (学習時間: 7.57s)
+[sample,loss] : discard [63293,0.04], pick [4804,0.04], koikoi [5496,0.02]
+260620 195845 loop:261 (学習時間: 7.49s)
+[sample,loss] : discard [62092,0.04], pick [4690,0.05], koikoi [5617,0.02]
+260620 195852 loop:262 (学習時間: 7.85s)
+[sample,loss] : discard [63698,0.05], pick [5539,0.05], koikoi [6594,0.03]
+260620 195900 loop:263 (学習時間: 7.85s)
+[sample,loss] : discard [65022,0.04], pick [6419,0.04], koikoi [6996,0.02]
+260620 195908 loop:264 (学習時間: 7.68s)
+[sample,loss] : discard [63139,0.04], pick [6660,0.04], koikoi [6689,0.02]
+260620 195916 loop:265 (学習時間: 7.76s)
+[sample,loss] : discard [64673,0.04], pick [7156,0.05], koikoi [6489,0.02]
+260620 195923 loop:266 (学習時間: 7.33s)
+[sample,loss] : discard [61604,0.05], pick [6736,0.05], koikoi [5799,0.03]
+260620 195931 loop:267 (学習時間: 7.58s)
+[sample,loss] : discard [62086,0.05], pick [6517,0.06], koikoi [5704,0.03]
+260620 195938 loop:268 (学習時間: 7.63s)
+[sample,loss] : discard [63613,0.05], pick [5939,0.07], koikoi [5888,0.03]
+260620 195946 loop:269 (学習時間: 7.43s)
+[sample,loss] : discard [63771,0.05], pick [5646,0.07], koikoi [5895,0.03]
+260620 195953 loop:270 (学習時間: 7.52s)
+[sample,loss] : discard [62992,0.05], pick [5618,0.06], koikoi [5781,0.03]
+260620 200001 loop:271 (学習時間: 7.45s)
+[sample,loss] : discard [60896,0.05], pick [5722,0.05], koikoi [5597,0.03]
+260620 200008 loop:272 (学習時間: 7.49s)
+[sample,loss] : discard [64486,0.05], pick [5911,0.04], koikoi [6104,0.03]
+260620 200016 loop:273 (学習時間: 7.64s)
+[sample,loss] : discard [63359,0.04], pick [5540,0.05], koikoi [5909,0.03]
+260620 200024 loop:274 (学習時間: 7.76s)
+[sample,loss] : discard [63371,0.05], pick [5742,0.05], koikoi [5888,0.03]
+260620 200031 loop:275 (学習時間: 7.90s)
+[sample,loss] : discard [66807,0.05], pick [6491,0.06], koikoi [6126,0.03]
+260620 200039 loop:276 (学習時間: 7.83s)
+[sample,loss] : discard [64737,0.05], pick [6553,0.06], koikoi [6046,0.03]
+260620 200047 loop:277 (学習時間: 7.48s)
+[sample,loss] : discard [64710,0.06], pick [7026,0.06], koikoi [6158,0.03]
+260620 200054 loop:278 (学習時間: 7.45s)
+[sample,loss] : discard [59757,0.06], pick [6959,0.06], koikoi [5576,0.04]
+260620 200102 loop:279 (学習時間: 7.49s)
+[sample,loss] : discard [62129,0.05], pick [7336,0.05], koikoi [5851,0.03]
+260620 200109 loop:280 (学習時間: 7.49s)
+[sample,loss] : discard [61509,0.05], pick [7239,0.05], koikoi [5509,0.03]
+★arena 108.0 wins, 82.0 loses, 8.0 draws 31.1 points
+Record,loop:280, score:0.566, point:31.07
+260620 200142 loop:281 (学習時間: 7.71s)
+[sample,loss] : discard [63070,0.05], pick [7275,0.05], koikoi [5303,0.03]
+260620 200149 loop:282 (学習時間: 7.60s)
+[sample,loss] : discard [63905,0.05], pick [6823,0.05], koikoi [4530,0.02]
+260620 200157 loop:283 (学習時間: 7.50s)
+[sample,loss] : discard [62015,0.05], pick [6260,0.05], koikoi [4536,0.04]
+260620 200204 loop:284 (学習時間: 7.59s)
+[sample,loss] : discard [63115,0.05], pick [5862,0.06], koikoi [4855,0.03]
+260620 200212 loop:285 (学習時間: 7.40s)
+[sample,loss] : discard [60734,0.05], pick [5166,0.06], koikoi [4755,0.03]
+260620 200219 loop:286 (学習時間: 7.47s)
+[sample,loss] : discard [63930,0.04], pick [4922,0.05], koikoi [5239,0.02]
+260620 200227 loop:287 (学習時間: 7.54s)
+[sample,loss] : discard [64163,0.04], pick [4933,0.04], koikoi [5532,0.02]
+260620 200234 loop:288 (学習時間: 7.50s)
+[sample,loss] : discard [63543,0.04], pick [5142,0.04], koikoi [5945,0.02]
+260620 200242 loop:289 (学習時間: 7.49s)
+[sample,loss] : discard [63167,0.03], pick [5094,0.04], koikoi [6220,0.02]
+260620 200250 loop:290 (学習時間: 7.67s)
+[sample,loss] : discard [64189,0.04], pick [4952,0.04], koikoi [6456,0.02]
+260620 200257 loop:291 (学習時間: 7.74s)
+[sample,loss] : discard [64704,0.04], pick [4974,0.04], koikoi [6332,0.02]
+260620 200305 loop:292 (学習時間: 7.78s)
+[sample,loss] : discard [64921,0.05], pick [5441,0.05], koikoi [6046,0.03]
+260620 200313 loop:293 (学習時間: 7.77s)
+[sample,loss] : discard [65376,0.05], pick [6008,0.05], koikoi [6062,0.03]
+260620 200320 loop:294 (学習時間: 7.23s)
+[sample,loss] : discard [61802,0.05], pick [5597,0.06], koikoi [5604,0.03]
+260620 200327 loop:295 (学習時間: 7.22s)
+[sample,loss] : discard [59367,0.05], pick [4944,0.06], koikoi [5395,0.03]
+260620 200335 loop:296 (学習時間: 7.48s)
+[sample,loss] : discard [63821,0.05], pick [4834,0.06], koikoi [5736,0.03]
+260620 200342 loop:297 (学習時間: 7.45s)
+[sample,loss] : discard [60658,0.05], pick [4354,0.06], koikoi [5168,0.03]
+260620 200350 loop:298 (学習時間: 7.47s)
+[sample,loss] : discard [62564,0.05], pick [4510,0.05], koikoi [4997,0.03]
+260620 200357 loop:299 (学習時間: 7.70s)
+[sample,loss] : discard [63164,0.05], pick [4895,0.06], koikoi [5176,0.02]
+260620 200405 loop:300 (学習時間: 7.66s)
+[sample,loss] : discard [59712,0.05], pick [5039,0.06], koikoi [5117,0.02]
+260620 200413 loop:301 (学習時間: 7.50s)
+[sample,loss] : discard [63189,0.04], pick [5813,0.05], koikoi [5303,0.03]
+260620 200420 loop:302 (学習時間: 7.65s)
+[sample,loss] : discard [62081,0.04], pick [5722,0.04], koikoi [5505,0.03]
+260620 200428 loop:303 (学習時間: 7.48s)
+[sample,loss] : discard [63194,0.05], pick [5866,0.05], koikoi [5767,0.03]
+260620 200435 loop:304 (学習時間: 7.38s)
+[sample,loss] : discard [62040,0.05], pick [5818,0.06], koikoi [5977,0.03]
+260620 200443 loop:305 (学習時間: 7.52s)
+[sample,loss] : discard [62736,0.06], pick [5865,0.06], koikoi [6287,0.03]
+260620 200450 loop:306 (学習時間: 7.33s)
+[sample,loss] : discard [60859,0.06], pick [5225,0.06], koikoi [5821,0.03]
+260620 200458 loop:307 (学習時間: 7.67s)
+[sample,loss] : discard [64241,0.06], pick [5263,0.06], koikoi [5937,0.04]
+260620 200505 loop:308 (学習時間: 7.53s)
+[sample,loss] : discard [65374,0.05], pick [5030,0.06], koikoi [5988,0.03]
+260620 200513 loop:309 (学習時間: 7.46s)
+[sample,loss] : discard [62529,0.05], pick [4783,0.06], koikoi [5578,0.04]
+260620 200520 loop:310 (学習時間: 7.48s)
+[sample,loss] : discard [64562,0.05], pick [5246,0.06], koikoi [5783,0.03]
+260620 200528 loop:311 (学習時間: 7.46s)
+[sample,loss] : discard [62278,0.05], pick [5149,0.05], koikoi [5535,0.03]
+260620 200535 loop:312 (学習時間: 7.65s)
+[sample,loss] : discard [64931,0.05], pick [5481,0.06], koikoi [5782,0.03]
+260620 200543 loop:313 (学習時間: 7.76s)
+[sample,loss] : discard [66379,0.05], pick [6018,0.06], koikoi [6149,0.03]
+260620 200550 loop:314 (学習時間: 7.47s)
+[sample,loss] : discard [63854,0.05], pick [6199,0.06], koikoi [5896,0.03]
+260620 200558 loop:315 (学習時間: 7.56s)
+[sample,loss] : discard [60968,0.05], pick [6138,0.06], koikoi [5432,0.03]
+260620 200606 loop:316 (学習時間: 7.82s)
+[sample,loss] : discard [65328,0.05], pick [6445,0.05], koikoi [5801,0.03]
+260620 200613 loop:317 (学習時間: 7.46s)
+[sample,loss] : discard [64208,0.05], pick [6111,0.04], koikoi [5467,0.03]
+260620 200621 loop:318 (学習時間: 7.48s)
+[sample,loss] : discard [62659,0.05], pick [6271,0.05], koikoi [5294,0.03]
+260620 200628 loop:319 (学習時間: 7.65s)
+[sample,loss] : discard [62927,0.05], pick [6541,0.06], koikoi [5561,0.04]
+260620 200636 loop:320 (学習時間: 7.81s)
+[sample,loss] : discard [64352,0.05], pick [6720,0.06], koikoi [5695,0.04]
+★arena 114.0 wins, 80.0 loses, 4.0 draws 30.9 points
+Record,loop:320, score:0.586, point:30.86
+260620 200709 loop:321 (学習時間: 7.71s)
+[sample,loss] : discard [64965,0.05], pick [6538,0.05], koikoi [5907,0.03]
+260620 200716 loop:322 (学習時間: 7.67s)
+[sample,loss] : discard [64260,0.05], pick [6503,0.05], koikoi [5545,0.03]
+260620 200724 loop:323 (学習時間: 7.52s)
+[sample,loss] : discard [62202,0.05], pick [6713,0.06], koikoi [5630,0.03]
+260620 200732 loop:324 (学習時間: 7.64s)
+[sample,loss] : discard [64448,0.05], pick [7751,0.06], koikoi [6042,0.03]
+260620 200739 loop:325 (学習時間: 7.50s)
+[sample,loss] : discard [61797,0.06], pick [7822,0.06], koikoi [5909,0.03]
+260620 200747 loop:326 (学習時間: 7.52s)
+[sample,loss] : discard [61051,0.05], pick [7568,0.06], koikoi [5540,0.03]
+260620 200754 loop:327 (学習時間: 7.52s)
+[sample,loss] : discard [63935,0.06], pick [7429,0.06], koikoi [5743,0.03]
+260620 200801 loop:328 (学習時間: 7.31s)
+[sample,loss] : discard [60237,0.06], pick [6695,0.05], koikoi [5568,0.03]
+260620 200809 loop:329 (学習時間: 7.71s)
+[sample,loss] : discard [60806,0.06], pick [6617,0.06], koikoi [5920,0.03]
+260620 200817 loop:330 (学習時間: 8.03s)
+[sample,loss] : discard [61957,0.05], pick [6636,0.05], koikoi [6265,0.03]
+260620 200825 loop:331 (学習時間: 7.93s)
+[sample,loss] : discard [61775,0.05], pick [6495,0.05], koikoi [6320,0.03]
+260620 200833 loop:332 (学習時間: 7.62s)
+[sample,loss] : discard [61742,0.05], pick [6386,0.05], koikoi [6105,0.03]
+260620 200840 loop:333 (学習時間: 7.62s)
+[sample,loss] : discard [61807,0.05], pick [6890,0.05], koikoi [6088,0.03]
+260620 200848 loop:334 (学習時間: 7.47s)
+[sample,loss] : discard [61569,0.05], pick [7415,0.05], koikoi [6092,0.04]
+260620 200855 loop:335 (学習時間: 7.38s)
+[sample,loss] : discard [62396,0.05], pick [7400,0.05], koikoi [6351,0.03]
+260620 200903 loop:336 (学習時間: 7.39s)
+[sample,loss] : discard [59542,0.05], pick [6619,0.05], koikoi [6033,0.03]
+260620 200910 loop:337 (学習時間: 7.24s)
+[sample,loss] : discard [61960,0.04], pick [6395,0.05], koikoi [6176,0.02]
+260620 200917 loop:338 (学習時間: 7.38s)
+[sample,loss] : discard [60006,0.04], pick [6061,0.04], koikoi [6129,0.02]
+260620 200925 loop:339 (学習時間: 7.37s)
+[sample,loss] : discard [62690,0.05], pick [6462,0.05], koikoi [6786,0.03]
+260620 200932 loop:340 (学習時間: 7.31s)
+[sample,loss] : discard [58175,0.05], pick [5982,0.06], koikoi [6222,0.03]
+260620 200939 loop:341 (学習時間: 7.29s)
+[sample,loss] : discard [61045,0.05], pick [6331,0.06], koikoi [6463,0.04]
+260620 200947 loop:342 (学習時間: 7.47s)
+[sample,loss] : discard [61046,0.05], pick [6626,0.05], koikoi [6583,0.03]
+260620 200954 loop:343 (学習時間: 7.47s)
+[sample,loss] : discard [61641,0.05], pick [6853,0.05], koikoi [6393,0.03]
+260620 201002 loop:344 (学習時間: 7.64s)
+[sample,loss] : discard [63723,0.05], pick [7224,0.05], koikoi [6292,0.03]
+260620 201009 loop:345 (学習時間: 7.60s)
+[sample,loss] : discard [61359,0.05], pick [6765,0.05], koikoi [5936,0.03]
+260620 201017 loop:346 (学習時間: 7.34s)
+[sample,loss] : discard [62878,0.05], pick [7053,0.05], koikoi [5904,0.03]
+260620 201024 loop:347 (学習時間: 7.39s)
+[sample,loss] : discard [59431,0.05], pick [6638,0.06], koikoi [5458,0.03]
+260620 201032 loop:348 (学習時間: 7.45s)
+[sample,loss] : discard [61957,0.05], pick [6573,0.05], koikoi [5669,0.04]
+260620 201039 loop:349 (学習時間: 7.31s)
+[sample,loss] : discard [59719,0.06], pick [6201,0.06], koikoi [5755,0.03]
+260620 201046 loop:350 (学習時間: 7.47s)
+[sample,loss] : discard [62484,0.05], pick [6564,0.06], koikoi [6782,0.03]
+260620 201054 loop:351 (学習時間: 7.55s)
+[sample,loss] : discard [61596,0.06], pick [6935,0.06], koikoi [7177,0.03]
+260620 201101 loop:352 (学習時間: 7.46s)
+[sample,loss] : discard [61613,0.05], pick [7202,0.05], koikoi [7166,0.03]
+260620 201109 loop:353 (学習時間: 7.47s)
+[sample,loss] : discard [59795,0.05], pick [6959,0.05], koikoi [6577,0.03]
+260620 201117 loop:354 (学習時間: 7.68s)
+[sample,loss] : discard [60841,0.05], pick [6917,0.05], koikoi [6383,0.03]
+260620 201124 loop:355 (学習時間: 7.71s)
+[sample,loss] : discard [64673,0.05], pick [6991,0.05], koikoi [6804,0.03]
+260620 201132 loop:356 (学習時間: 7.66s)
+[sample,loss] : discard [62422,0.05], pick [6379,0.05], koikoi [6698,0.03]
+260620 201140 loop:357 (学習時間: 7.69s)
+[sample,loss] : discard [62179,0.06], pick [5929,0.05], koikoi [6769,0.03]
+260620 201147 loop:358 (学習時間: 7.53s)
+[sample,loss] : discard [60806,0.06], pick [5875,0.05], koikoi [6473,0.03]
+260620 201155 loop:359 (学習時間: 7.74s)
+[sample,loss] : discard [62871,0.05], pick [6306,0.05], koikoi [6806,0.04]
+260620 201203 loop:360 (学習時間: 7.84s)
+[sample,loss] : discard [62537,0.05], pick [6765,0.05], koikoi [6769,0.03]
+★arena 124.0 wins, 64.0 loses, 10.0 draws 33.0 points
+Record,loop:360, score:0.652, point:33.03
+260620 201236 loop:361 (学習時間: 7.97s)
+[sample,loss] : discard [63960,0.05], pick [7485,0.05], koikoi [6920,0.03]
+260620 201244 loop:362 (学習時間: 8.13s)
+[sample,loss] : discard [63477,0.05], pick [7283,0.04], koikoi [6932,0.03]
+260620 201252 loop:363 (学習時間: 7.72s)
+[sample,loss] : discard [61096,0.05], pick [6631,0.05], koikoi [6139,0.03]
+260620 201300 loop:364 (学習時間: 7.59s)
+[sample,loss] : discard [62720,0.04], pick [6541,0.04], koikoi [6035,0.03]
+260620 201307 loop:365 (学習時間: 7.34s)
+[sample,loss] : discard [62193,0.04], pick [6152,0.04], koikoi [6006,0.02]
+260620 201314 loop:366 (学習時間: 7.22s)
+[sample,loss] : discard [59849,0.04], pick [5732,0.05], koikoi [5794,0.03]
+260620 201321 loop:367 (学習時間: 7.35s)
+[sample,loss] : discard [61002,0.04], pick [5509,0.05], koikoi [6032,0.03]
+260620 201329 loop:368 (学習時間: 7.49s)
+[sample,loss] : discard [61535,0.04], pick [5704,0.05], koikoi [5810,0.03]
+260620 201336 loop:369 (学習時間: 7.52s)
+[sample,loss] : discard [61588,0.05], pick [5885,0.05], koikoi [5772,0.03]
+260620 201344 loop:370 (学習時間: 7.72s)
+[sample,loss] : discard [61208,0.04], pick [5891,0.05], koikoi [5618,0.02]
+260620 201352 loop:371 (学習時間: 7.74s)
+[sample,loss] : discard [63876,0.04], pick [5872,0.05], koikoi [5942,0.03]
+260620 201400 loop:372 (学習時間: 7.70s)
+[sample,loss] : discard [63246,0.04], pick [5713,0.04], koikoi [5835,0.03]
+260620 201407 loop:373 (学習時間: 7.66s)
+[sample,loss] : discard [62094,0.04], pick [5890,0.05], koikoi [5813,0.03]
+260620 201415 loop:374 (学習時間: 7.78s)
+[sample,loss] : discard [61533,0.05], pick [6585,0.05], koikoi [6138,0.03]
+260620 201423 loop:375 (学習時間: 7.81s)
+[sample,loss] : discard [62072,0.05], pick [7125,0.05], koikoi [6224,0.03]
+260620 201431 loop:376 (学習時間: 7.98s)
+[sample,loss] : discard [61400,0.05], pick [7034,0.04], koikoi [6409,0.03]
+260620 201439 loop:377 (学習時間: 8.18s)
+[sample,loss] : discard [61398,0.05], pick [6285,0.05], koikoi [6627,0.03]
+260620 201447 loop:378 (学習時間: 8.05s)
+[sample,loss] : discard [64580,0.05], pick [6082,0.05], koikoi [6715,0.04]
+260620 201455 loop:379 (学習時間: 7.66s)
+[sample,loss] : discard [60956,0.05], pick [5480,0.06], koikoi [6269,0.04]
+260620 201503 loop:380 (学習時間: 7.82s)
+[sample,loss] : discard [62113,0.05], pick [5941,0.05], koikoi [5786,0.04]
+260620 201510 loop:381 (学習時間: 7.52s)
+[sample,loss] : discard [60851,0.05], pick [5984,0.06], koikoi [5312,0.04]
+260620 201518 loop:382 (学習時間: 7.61s)
+[sample,loss] : discard [61614,0.06], pick [5959,0.06], koikoi [4900,0.04]
+260620 201526 loop:383 (学習時間: 7.90s)
+[sample,loss] : discard [63343,0.06], pick [6284,0.06], koikoi [5171,0.03]
+260620 201534 loop:384 (学習時間: 7.85s)
+[sample,loss] : discard [61861,0.06], pick [5818,0.07], koikoi [5405,0.04]
+260620 201541 loop:385 (学習時間: 7.85s)
+[sample,loss] : discard [65203,0.06], pick [5965,0.07], koikoi [5648,0.04]
+260620 201549 loop:386 (学習時間: 7.62s)
+[sample,loss] : discard [61326,0.06], pick [5683,0.07], koikoi [5334,0.03]
+260620 201557 loop:387 (学習時間: 7.79s)
+[sample,loss] : discard [62216,0.06], pick [6242,0.06], koikoi [5594,0.03]
+260620 201605 loop:388 (学習時間: 7.81s)
+[sample,loss] : discard [62727,0.05], pick [6564,0.06], koikoi [5755,0.03]
+260620 201612 loop:389 (学習時間: 7.75s)
+[sample,loss] : discard [63260,0.05], pick [6740,0.05], koikoi [6011,0.03]
+260620 201620 loop:390 (学習時間: 7.57s)
+[sample,loss] : discard [60645,0.05], pick [6380,0.05], koikoi [5728,0.03]
+260620 201628 loop:391 (学習時間: 8.05s)
+[sample,loss] : discard [60954,0.05], pick [6045,0.06], koikoi [5926,0.03]
+260620 201636 loop:392 (学習時間: 7.96s)
+[sample,loss] : discard [64353,0.05], pick [6196,0.05], koikoi [6627,0.03]
+260620 201644 loop:393 (学習時間: 8.13s)
+[sample,loss] : discard [61506,0.05], pick [5472,0.05], koikoi [6504,0.02]
+260620 201652 loop:394 (学習時間: 7.95s)
+[sample,loss] : discard [64595,0.05], pick [5620,0.05], koikoi [6902,0.03]
+260620 201700 loop:395 (学習時間: 7.85s)
+[sample,loss] : discard [63451,0.05], pick [5786,0.05], koikoi [6618,0.02]
+260620 201707 loop:396 (学習時間: 7.53s)
+[sample,loss] : discard [64008,0.05], pick [5969,0.05], koikoi [6404,0.02]
+260620 201715 loop:397 (学習時間: 7.49s)
+[sample,loss] : discard [60818,0.05], pick [5404,0.05], koikoi [5719,0.03]
+260620 201723 loop:398 (学習時間: 7.86s)
+[sample,loss] : discard [63084,0.05], pick [5460,0.05], koikoi [5620,0.02]
+260620 201731 loop:399 (学習時間: 7.78s)
+[sample,loss] : discard [62659,0.05], pick [5556,0.05], koikoi [5593,0.03]
+260620 201738 loop:400 (学習時間: 7.84s)
+[sample,loss] : discard [62922,0.05], pick [5494,0.05], koikoi [5588,0.03]
+★arena 110.0 wins, 81.0 loses, 7.0 draws 30.8 points
+Record,loop:400, score:0.573, point:30.77
+260620 201813 loop:401 (学習時間: 8.07s)
+[sample,loss] : discard [62144,0.05], pick [5407,0.05], koikoi [5512,0.02]
+260620 201820 loop:402 (学習時間: 7.74s)
+[sample,loss] : discard [65373,0.05], pick [5858,0.05], koikoi [5759,0.03]
+260620 201828 loop:403 (学習時間: 7.63s)
+[sample,loss] : discard [61131,0.05], pick [5951,0.05], koikoi [5361,0.03]
+260620 201836 loop:404 (学習時間: 7.78s)
+[sample,loss] : discard [63148,0.05], pick [6508,0.05], koikoi [5628,0.03]
+260620 201843 loop:405 (学習時間: 7.58s)
+[sample,loss] : discard [63147,0.05], pick [6387,0.05], koikoi [5531,0.03]
+260620 201851 loop:406 (学習時間: 7.67s)
+[sample,loss] : discard [61681,0.05], pick [5562,0.05], koikoi [5679,0.03]
+260620 201859 loop:407 (学習時間: 7.62s)
+[sample,loss] : discard [61805,0.05], pick [5048,0.06], koikoi [5793,0.04]
+260620 201906 loop:408 (学習時間: 7.75s)
+[sample,loss] : discard [63373,0.06], pick [5097,0.07], koikoi [6398,0.03]
+260620 201914 loop:409 (学習時間: 7.84s)
+[sample,loss] : discard [63865,0.06], pick [5898,0.08], koikoi [6680,0.04]
+260620 201922 loop:410 (学習時間: 7.59s)
+[sample,loss] : discard [62733,0.06], pick [6494,0.08], koikoi [6695,0.04]
+260620 201929 loop:411 (学習時間: 7.55s)
+[sample,loss] : discard [59873,0.06], pick [6501,0.07], koikoi [6103,0.04]
+260620 201937 loop:412 (学習時間: 7.89s)
+[sample,loss] : discard [62114,0.05], pick [6728,0.06], koikoi [6040,0.04]
+260620 201945 loop:413 (学習時間: 7.66s)
+[sample,loss] : discard [63559,0.05], pick [6749,0.05], koikoi [6088,0.04]
+260620 201953 loop:414 (学習時間: 7.69s)
+[sample,loss] : discard [60666,0.05], pick [6281,0.05], koikoi [5895,0.03]
+260620 202001 loop:415 (学習時間: 7.96s)
+[sample,loss] : discard [62197,0.05], pick [6068,0.05], koikoi [5915,0.03]
+260620 202008 loop:416 (学習時間: 7.95s)
+[sample,loss] : discard [65233,0.05], pick [6174,0.05], koikoi [6105,0.03]
+260620 202016 loop:417 (学習時間: 7.66s)
+[sample,loss] : discard [62967,0.05], pick [6080,0.05], koikoi [6121,0.03]
+260620 202024 loop:418 (学習時間: 7.69s)
+[sample,loss] : discard [60704,0.05], pick [6135,0.06], koikoi [6023,0.03]
+260620 202032 loop:419 (学習時間: 8.00s)
+[sample,loss] : discard [63190,0.05], pick [6929,0.06], koikoi [6818,0.03]
+260620 202040 loop:420 (学習時間: 7.77s)
+[sample,loss] : discard [61567,0.05], pick [7124,0.06], koikoi [6596,0.03]
+260620 202048 loop:421 (学習時間: 7.92s)
+[sample,loss] : discard [60630,0.05], pick [7153,0.05], koikoi [6104,0.03]
+260620 202055 loop:422 (学習時間: 7.78s)
+[sample,loss] : discard [61797,0.04], pick [7460,0.05], koikoi [5893,0.03]
+260620 202103 loop:423 (学習時間: 7.56s)
+[sample,loss] : discard [60728,0.05], pick [7151,0.05], koikoi [5513,0.03]
+260620 202111 loop:424 (学習時間: 7.70s)
+[sample,loss] : discard [61566,0.05], pick [6459,0.05], koikoi [5949,0.03]
+260620 202118 loop:425 (学習時間: 7.62s)
+[sample,loss] : discard [60291,0.05], pick [5742,0.05], koikoi [6184,0.03]
+260620 202126 loop:426 (学習時間: 7.86s)
+[sample,loss] : discard [62704,0.05], pick [5237,0.05], koikoi [6450,0.03]
+260620 202134 loop:427 (学習時間: 7.80s)
+[sample,loss] : discard [63625,0.05], pick [5128,0.06], koikoi [6619,0.03]
+260620 202142 loop:428 (学習時間: 7.81s)
+[sample,loss] : discard [62445,0.05], pick [4971,0.06], koikoi [6282,0.03]
+260620 202150 loop:429 (学習時間: 7.94s)
+[sample,loss] : discard [62383,0.05], pick [5214,0.06], koikoi [5971,0.03]
+260620 202157 loop:430 (学習時間: 7.71s)
+[sample,loss] : discard [62130,0.06], pick [5370,0.06], koikoi [5857,0.03]
+260620 202205 loop:431 (学習時間: 7.97s)
+[sample,loss] : discard [62029,0.06], pick [5858,0.06], koikoi [5924,0.03]
+260620 202213 loop:432 (学習時間: 8.00s)
+[sample,loss] : discard [65482,0.05], pick [6876,0.05], koikoi [6705,0.02]
+260620 202221 loop:433 (学習時間: 7.95s)
+[sample,loss] : discard [62618,0.05], pick [7053,0.05], koikoi [6682,0.02]
+260620 202229 loop:434 (学習時間: 7.91s)
+[sample,loss] : discard [63276,0.05], pick [7047,0.04], koikoi [6922,0.02]
+260620 202237 loop:435 (学習時間: 7.70s)
+[sample,loss] : discard [62722,0.05], pick [6221,0.05], koikoi [6746,0.03]
+260620 202244 loop:436 (学習時間: 7.60s)
+[sample,loss] : discard [61859,0.04], pick [5414,0.05], koikoi [6751,0.03]
+260620 202252 loop:437 (学習時間: 7.66s)
+[sample,loss] : discard [60679,0.04], pick [5068,0.04], koikoi [6597,0.02]
+260620 202300 loop:438 (学習時間: 7.66s)
+[sample,loss] : discard [63156,0.04], pick [5653,0.04], koikoi [6708,0.03]
+260620 202308 loop:439 (学習時間: 7.70s)
+[sample,loss] : discard [61004,0.04], pick [6064,0.05], koikoi [6253,0.02]
+260620 202315 loop:440 (学習時間: 7.83s)
+[sample,loss] : discard [63021,0.04], pick [6869,0.04], koikoi [6390,0.02]
+★arena 101.0 wins, 89.0 loses, 8.0 draws 30.6 points
+Record,loop:440, score:0.530, point:30.61
+260620 202346 loop:441 (学習時間: 7.97s)
+[sample,loss] : discard [61613,0.04], pick [6567,0.04], koikoi [6305,0.02]
+
+260620 202346 チェックポイントを保存中...
+260620 202347 プログラムを安全に終了しました。
+>>> パイプラインの準備中（初期データの生成）...
+loop:1 (学習時間: 9.48s) [sample,loss] : discard [55400,0.13], pick [3865,0.26], koikoi [6613,0.06]
+loop:2 (学習時間: 7.88s) [sample,loss] : discard [60062,0.05], pick [5913,0.05], koikoi [6725,0.03]
+loop:3 (学習時間: 8.09s) [sample,loss] : discard [62035,0.06], pick [6019,0.08], koikoi [7421,0.06]
+loop:4 (学習時間: 7.77s) [sample,loss] : discard [60329,0.07], pick [6784,0.06], koikoi [5502,0.04]
+loop:5 (学習時間: 7.66s) [sample,loss] : discard [60888,0.04], pick [5051,0.04], koikoi [8145,0.01]
+loop:6 (学習時間: 7.81s) [sample,loss] : discard [61538,0.08], pick [6191,0.05], koikoi [6610,0.05]
+loop:7 (学習時間: 8.03s) [sample,loss] : discard [62973,0.05], pick [7486,0.05], koikoi [7587,0.03]
+loop:8 (学習時間: 7.47s) [sample,loss] : discard [60798,0.04], pick [6093,0.02], koikoi [8011,0.02]
+loop:9 (学習時間: 7.57s) [sample,loss] : discard [58895,0.07], pick [5902,0.11], koikoi [4711,0.05]
+loop:10 (学習時間: 7.62s) [sample,loss] : discard [61099,0.06], pick [4191,0.08], koikoi [6891,0.04]
+loop:11 (学習時間: 7.64s) [sample,loss] : discard [62830,0.07], pick [5639,0.08], koikoi [7535,0.04]
+loop:12 (学習時間: 7.51s) [sample,loss] : discard [58606,0.04], pick [6022,0.03], koikoi [6712,0.02]
+loop:13 (学習時間: 7.78s) [sample,loss] : discard [62123,0.04], pick [5435,0.05], koikoi [6432,0.03]
+loop:14 (学習時間: 7.72s) [sample,loss] : discard [61501,0.04], pick [8427,0.05], koikoi [5951,0.02]
+loop:15 (学習時間: 7.50s) [sample,loss] : discard [59819,0.06], pick [5139,0.04], koikoi [5322,0.02]
+loop:16 (学習時間: 7.50s) [sample,loss] : discard [63139,0.05], pick [5185,0.05], koikoi [5417,0.03]
+loop:17 (学習時間: 7.44s) [sample,loss] : discard [59240,0.07], pick [5709,0.07], koikoi [4885,0.04]
+loop:18 (学習時間: 7.83s) [sample,loss] : discard [61917,0.04], pick [4346,0.05], koikoi [6850,0.03]
+loop:19 (学習時間: 7.79s) [sample,loss] : discard [61078,0.05], pick [7267,0.05], koikoi [5256,0.03]
+loop:20 (学習時間: 7.82s) [sample,loss] : discard [61421,0.07], pick [4740,0.11], koikoi [4915,0.09]
+loop:21 (学習時間: 7.74s) [sample,loss] : discard [60021,0.06], pick [7042,0.06], koikoi [6218,0.03]
+loop:22 (学習時間: 8.25s) [sample,loss] : discard [63829,0.06], pick [6829,0.05], koikoi [5154,0.03]
+loop:23 (学習時間: 7.97s) [sample,loss] : discard [64928,0.04], pick [4034,0.04], koikoi [6114,0.02]
+loop:24 (学習時間: 7.86s) [sample,loss] : discard [60512,0.05], pick [7223,0.05], koikoi [7371,0.02]
+loop:25 (学習時間: 7.71s) [sample,loss] : discard [62528,0.05], pick [5366,0.04], koikoi [5534,0.02]
+loop:26 (学習時間: 7.71s) [sample,loss] : discard [60780,0.04], pick [6844,0.04], koikoi [5798,0.02]
+loop:27 (学習時間: 7.70s) [sample,loss] : discard [63509,0.05], pick [5373,0.04], koikoi [5731,0.03]
+loop:28 (学習時間: 7.73s) [sample,loss] : discard [60642,0.04], pick [5234,0.05], koikoi [4909,0.03]
+loop:29 (学習時間: 7.67s) [sample,loss] : discard [63560,0.07], pick [4682,0.07], koikoi [5569,0.03]
+loop:30 (学習時間: 7.26s) [sample,loss] : discard [60196,0.05], pick [3906,0.06], koikoi [4687,0.04]
+loop:31 (学習時間: 7.56s) [sample,loss] : discard [62163,0.04], pick [4684,0.04], koikoi [7583,0.02]
+loop:32 (学習時間: 7.79s) [sample,loss] : discard [61656,0.04], pick [7894,0.03], koikoi [6847,0.02]
+loop:33 (学習時間: 7.59s) [sample,loss] : discard [61564,0.06], pick [5310,0.04], koikoi [5575,0.03]
+loop:34 (学習時間: 7.32s) [sample,loss] : discard [63053,0.05], pick [3537,0.05], koikoi [4336,0.03]
+loop:35 (学習時間: 7.40s) [sample,loss] : discard [59530,0.07], pick [5188,0.07], koikoi [5557,0.04]
+loop:36 (学習時間: 7.76s) [sample,loss] : discard [61981,0.06], pick [4043,0.06], koikoi [6984,0.03]
+loop:37 (学習時間: 7.88s) [sample,loss] : discard [64851,0.06], pick [4899,0.05], koikoi [6569,0.03]
+loop:38 (学習時間: 7.91s) [sample,loss] : discard [65606,0.05], pick [5621,0.06], koikoi [6318,0.03]
+loop:39 (学習時間: 7.88s) [sample,loss] : discard [62529,0.04], pick [6973,0.05], koikoi [6180,0.02]
+loop:40 (学習時間: 8.21s) [sample,loss] : discard [62514,0.04], pick [6907,0.04], koikoi [6534,0.03]
+>>> パイプラインの準備中（初期データの生成）...
+loop 00001  time 8.7s  sample:loss  discard 55573,0.13], pick [3881,0.26], koikoi [6568,0.06]
+loop 00002  time 8.2s  sample:loss  discard 62402,0.05], pick [5884,0.04], koikoi [6925,0.03]
+loop 00003  time 8.0s  sample:loss  discard 62188,0.07], pick [6145,0.08], koikoi [7460,0.07]
+loop 00004  time 7.7s  sample:loss  discard 59909,0.08], pick [6672,0.06], koikoi [5478,0.04]
+loop 00005  time 7.6s  sample:loss  discard 59353,0.04], pick [4890,0.04], koikoi [7850,0.01]
+loop 00006  time 7.6s  sample:loss  discard 61312,0.07], pick [6069,0.05], koikoi [6518,0.05]
+loop 00007  time 7.8s  sample:loss  discard 61860,0.05], pick [7596,0.05], koikoi [7059,0.03]
+loop 00008  time 7.7s  sample:loss  discard 62089,0.04], pick [6395,0.02], koikoi [8192,0.01]
+loop 00009  time 7.3s  sample:loss  discard 58544,0.07], pick [5916,0.11], koikoi [4613,0.05]
+loop 00010  time 7.4s  sample:loss  discard 58653,0.06], pick [4143,0.07], koikoi [6645,0.04]
+loop 00011  time 7.6s  sample:loss  discard 62180,0.07], pick [5363,0.09], koikoi [7525,0.05]
+loop 00012  time 7.6s  sample:loss  discard 60207,0.04], pick [6335,0.03], koikoi [6914,0.02]
+loop 00013  time 7.5s  sample:loss  discard 62448,0.04], pick [5321,0.05], koikoi [6556,0.02]
+loop 00014  time 7.7s  sample:loss  discard 60411,0.04], pick [8251,0.04], koikoi [5899,0.02]
+loop 00015  time 7.7s  sample:loss  discard 60854,0.06], pick [5252,0.04], koikoi [5321,0.02]
+loop 00016  time 7.5s  sample:loss  discard 62472,0.04], pick [5375,0.05], koikoi [5367,0.03]
+loop 00017  time 7.9s  sample:loss  discard 60858,0.08], pick [5895,0.08], koikoi [5000,0.04]
+loop 00018  time 7.6s  sample:loss  discard 64932,0.04], pick [4575,0.05], koikoi [7120,0.03]
+loop 00019  time 7.3s  sample:loss  discard 59260,0.04], pick [7240,0.05], koikoi [4990,0.03]
+loop 00020  time 7.5s  sample:loss  discard 61515,0.07], pick [4737,0.11], koikoi [4814,0.08]
+loop 00021  time 7.5s  sample:loss  discard 59682,0.06], pick [7018,0.06], koikoi [6306,0.03]
+loop 00022  time 7.4s  sample:loss  discard 61970,0.06], pick [6798,0.04], koikoi [5099,0.04]
+loop 00023  time 7.4s  sample:loss  discard 60642,0.05], pick [4068,0.04], koikoi [5900,0.02]
+loop 00024  time 8.0s  sample:loss  discard 60520,0.04], pick [6913,0.05], koikoi [7408,0.02]
+loop 00025  time 7.6s  sample:loss  discard 62555,0.05], pick [5620,0.05], koikoi [5749,0.02]
+loop 00026  time 8.0s  sample:loss  discard 62312,0.04], pick [6860,0.04], koikoi [6210,0.02]
+loop 00027  time 7.7s  sample:loss  discard 63742,0.05], pick [5778,0.04], koikoi [5601,0.04]
+loop 00028  time 7.3s  sample:loss  discard 60672,0.04], pick [4778,0.05], koikoi [4974,0.02]
+loop 00029  time 7.4s  sample:loss  discard 62291,0.07], pick [4451,0.09], koikoi [5600,0.04]
+loop 00030  time 7.2s  sample:loss  discard 60812,0.05], pick [3760,0.05], koikoi [4332,0.03]
+loop 00031  time 7.5s  sample:loss  discard 63692,0.04], pick [4434,0.03], koikoi [7783,0.02]
+loop 00032  time 7.5s  sample:loss  discard 60487,0.04], pick [7533,0.03], koikoi [6733,0.02]
+loop 00033  time 7.4s  sample:loss  discard 60907,0.05], pick [5904,0.03], koikoi [5969,0.03]
+loop 00034  time 7.3s  sample:loss  discard 62313,0.05], pick [3269,0.04], koikoi [4177,0.03]
+loop 00035  time 7.3s  sample:loss  discard 60864,0.07], pick [5143,0.07], koikoi [5730,0.05]
+loop 00036  time 7.6s  sample:loss  discard 61238,0.06], pick [4443,0.08], koikoi [6579,0.04]
+loop 00037  time 7.8s  sample:loss  discard 65118,0.05], pick [4837,0.05], koikoi [6982,0.03]
+loop 00038  time 7.5s  sample:loss  discard 62971,0.05], pick [5277,0.06], koikoi [5788,0.03]
+loop 00039  time 7.6s  sample:loss  discard 63673,0.04], pick [6579,0.04], koikoi [6429,0.02]
+loop 00040  time 7.8s  sample:loss  discard 61655,0.04], pick [7157,0.04], koikoi [6616,0.03]
+■■■  arena  88wins  107loses  3draws  30.4pt  ■■■
+loop 00041  time 7.5s  sample:loss  discard 62182,0.05], pick [6227,0.04], koikoi [5366,0.03]
+loop 00042  time 7.4s  sample:loss  discard 58631,0.06], pick [5798,0.05], koikoi [4853,0.04]
+loop 00043  time 7.4s  sample:loss  discard 61959,0.05], pick [4860,0.05], koikoi [6388,0.04]
+loop 00044  time 7.5s  sample:loss  discard 60316,0.05], pick [6664,0.06], koikoi [6434,0.03]
+loop 00045  time 7.4s  sample:loss  discard 60413,0.05], pick [5319,0.07], koikoi [4571,0.03]
+loop 00046  time 7.4s  sample:loss  discard 61287,0.05], pick [4315,0.06], koikoi [4326,0.04]
+loop 00047  time 7.5s  sample:loss  discard 63567,0.04], pick [5014,0.03], koikoi [6395,0.02]
+loop 00048  time 7.5s  sample:loss  discard 60622,0.05], pick [6316,0.05], koikoi [6579,0.04]
+loop 00049  time 7.5s  sample:loss  discard 63051,0.04], pick [5864,0.05], koikoi [5322,0.02]
+loop 00050  time 7.5s  sample:loss  discard 63129,0.04], pick [4413,0.05], koikoi [5420,0.02]
+loop 00051  time 7.5s  sample:loss  discard 62529,0.04], pick [5135,0.05], koikoi [5036,0.03]
+loop 00052  time 7.5s  sample:loss  discard 65174,0.05], pick [5334,0.05], koikoi [5187,0.03]
+loop 00053  time 7.3s  sample:loss  discard 61831,0.03], pick [4946,0.04], koikoi [4476,0.02]
+loop 00054  time 7.4s  sample:loss  discard 61474,0.05], pick [3276,0.03], koikoi [5843,0.02]
+loop 00055  time 7.5s  sample:loss  discard 64139,0.04], pick [3741,0.03], koikoi [5869,0.02]
+loop 00056  time 7.5s  sample:loss  discard 62971,0.05], pick [5503,0.04], koikoi [6238,0.02]
+loop 00057  time 7.5s  sample:loss  discard 60234,0.04], pick [5501,0.04], koikoi [5768,0.02]
+loop 00058  time 7.9s  sample:loss  discard 64862,0.03], pick [6811,0.03], koikoi [5401,0.02]
+loop 00059  time 7.6s  sample:loss  discard 64775,0.05], pick [6176,0.04], koikoi [6115,0.03]
+loop 00060  time 7.4s  sample:loss  discard 59968,0.05], pick [4835,0.06], koikoi [5996,0.03]
+loop 00061  time 7.3s  sample:loss  discard 61320,0.05], pick [5410,0.05], koikoi [5966,0.03]
+loop 00062  time 7.3s  sample:loss  discard 60947,0.04], pick [4449,0.04], koikoi [5453,0.02]
+loop 00063  time 7.3s  sample:loss  discard 60443,0.04], pick [7846,0.04], koikoi [4954,0.03]
+loop 00064  time 7.4s  sample:loss  discard 60040,0.04], pick [7876,0.05], koikoi [4492,0.02]
+loop 00065  time 7.3s  sample:loss  discard 62009,0.06], pick [5689,0.06], koikoi [4791,0.05]
+loop 00066  time 7.2s  sample:loss  discard 59922,0.05], pick [5003,0.06], koikoi [5118,0.04]
+loop 00067  time 7.5s  sample:loss  discard 62306,0.04], pick [5613,0.04], koikoi [5424,0.02]
+loop 00068  time 7.3s  sample:loss  discard 61224,0.04], pick [5734,0.04], koikoi [5286,0.02]
+loop 00069  time 7.2s  sample:loss  discard 60699,0.06], pick [5761,0.05], koikoi [5504,0.04]
+loop 00070  time 7.3s  sample:loss  discard 58320,0.06], pick [5395,0.05], koikoi [6165,0.06]
+loop 00071  time 7.5s  sample:loss  discard 62126,0.05], pick [4695,0.05], koikoi [6150,0.04]
+loop 00072  time 7.6s  sample:loss  discard 61304,0.05], pick [4349,0.04], koikoi [5608,0.03]
+loop 00073  time 7.9s  sample:loss  discard 63596,0.05], pick [5998,0.06], koikoi [7163,0.03]
+loop 00074  time 7.9s  sample:loss  discard 64532,0.06], pick [6910,0.07], koikoi [6524,0.05]
+loop 00075  time 7.6s  sample:loss  discard 61748,0.05], pick [5976,0.05], koikoi [6527,0.03]
+loop 00076  time 7.8s  sample:loss  discard 60469,0.04], pick [6157,0.04], koikoi [6032,0.03]
+loop 00077  time 7.6s  sample:loss  discard 61880,0.05], pick [5697,0.04], koikoi [5760,0.03]
+loop 00078  time 7.9s  sample:loss  discard 63928,0.04], pick [5762,0.04], koikoi [6534,0.03]
+loop 00079  time 7.8s  sample:loss  discard 62571,0.06], pick [6573,0.07], koikoi [6487,0.03]
+loop 00080  time 7.8s  sample:loss  discard 62749,0.05], pick [5922,0.07], koikoi [5108,0.04]
+■■■  arena  94wins  102loses  2draws  30.0pt  ■■■
+loop 00081  time 7.4s  sample:loss  discard 60128,0.04], pick [5589,0.04], koikoi [5200,0.04]
+loop 00082  time 7.1s  sample:loss  discard 60048,0.04], pick [3726,0.04], koikoi [4228,0.03]
+loop 00083  time 7.2s  sample:loss  discard 60516,0.05], pick [3863,0.05], koikoi [4374,0.04]
+loop 00084  time 7.3s  sample:loss  discard 60497,0.05], pick [4624,0.05], koikoi [5262,0.03]
+loop 00085  time 7.3s  sample:loss  discard 59890,0.04], pick [5734,0.05], koikoi [6056,0.03]
+loop 00086  time 7.4s  sample:loss  discard 60249,0.05], pick [6395,0.03], koikoi [5689,0.03]
+loop 00087  time 7.4s  sample:loss  discard 61965,0.05], pick [5017,0.03], koikoi [6023,0.02]
+loop 00088  time 7.4s  sample:loss  discard 59171,0.06], pick [6187,0.07], koikoi [5350,0.04]
+loop 00089  time 7.8s  sample:loss  discard 63934,0.06], pick [6689,0.07], koikoi [6564,0.04]
+loop 00090  time 7.6s  sample:loss  discard 64730,0.05], pick [4593,0.04], koikoi [7306,0.02]
+loop 00091  time 7.1s  sample:loss  discard 59989,0.06], pick [4258,0.05], koikoi [6148,0.03]
+loop 00092  time 7.1s  sample:loss  discard 57797,0.05], pick [5687,0.05], koikoi [6415,0.04]
+loop 00093  time 7.2s  sample:loss  discard 58043,0.05], pick [4816,0.04], koikoi [6818,0.04]
+loop 00094  time 7.2s  sample:loss  discard 60256,0.05], pick [5706,0.04], koikoi [5227,0.04]
+loop 00095  time 7.3s  sample:loss  discard 60325,0.05], pick [6750,0.05], koikoi [4921,0.04]
+loop 00096  time 7.3s  sample:loss  discard 60765,0.05], pick [6124,0.06], koikoi [5393,0.04]
+loop 00097  time 7.2s  sample:loss  discard 59224,0.04], pick [5229,0.05], koikoi [5220,0.04]
+loop 00098  time 7.2s  sample:loss  discard 60684,0.04], pick [4928,0.05], koikoi [5387,0.03]
+loop 00099  time 7.3s  sample:loss  discard 59666,0.04], pick [5524,0.05], koikoi [5358,0.03]
+loop 00100  time 7.5s  sample:loss  discard 60766,0.04], pick [6443,0.04], koikoi [4753,0.03]
+loop 00101  time 7.3s  sample:loss  discard 62375,0.05], pick [5259,0.05], koikoi [5616,0.03]
+loop 00102  time 7.3s  sample:loss  discard 60470,0.05], pick [4588,0.04], koikoi [5302,0.03]
+loop 00103  time 7.2s  sample:loss  discard 62215,0.04], pick [5892,0.04], koikoi [5760,0.03]
+loop 00104  time 7.2s  sample:loss  discard 60244,0.04], pick [4906,0.03], koikoi [5495,0.02]
+loop 00105  time 7.5s  sample:loss  discard 61121,0.03], pick [4983,0.03], koikoi [5319,0.02]
+loop 00106  time 7.6s  sample:loss  discard 64195,0.04], pick [6025,0.03], koikoi [5808,0.02]
+loop 00107  time 7.4s  sample:loss  discard 62175,0.05], pick [5239,0.04], koikoi [5476,0.03]
+loop 00108  time 7.5s  sample:loss  discard 60883,0.06], pick [4375,0.05], koikoi [5604,0.04]
+loop 00109  time 7.2s  sample:loss  discard 62856,0.06], pick [3686,0.06], koikoi [5555,0.04]
+loop 00110  time 7.3s  sample:loss  discard 58278,0.05], pick [5553,0.06], koikoi [5256,0.04]
+loop 00111  time 7.6s  sample:loss  discard 62110,0.06], pick [6153,0.05], koikoi [5371,0.04]
+loop 00112  time 7.1s  sample:loss  discard 59778,0.06], pick [5729,0.06], koikoi [6232,0.04]
+loop 00113  time 7.0s  sample:loss  discard 57159,0.05], pick [5449,0.05], koikoi [6097,0.04]
+loop 00114  time 7.2s  sample:loss  discard 59768,0.04], pick [5559,0.04], koikoi [6899,0.02]
+loop 00115  time 7.2s  sample:loss  discard 59688,0.05], pick [6261,0.05], koikoi [6986,0.02]
+loop 00116  time 7.2s  sample:loss  discard 59180,0.05], pick [6881,0.06], koikoi [6770,0.03]
+loop 00117  time 7.3s  sample:loss  discard 60221,0.05], pick [7208,0.06], koikoi [6385,0.03]
+loop 00118  time 7.5s  sample:loss  discard 61344,0.06], pick [6684,0.07], koikoi [6261,0.03]
+loop 00119  time 7.4s  sample:loss  discard 64184,0.05], pick [5509,0.05], koikoi [6627,0.03]
+loop 00120  time 7.7s  sample:loss  discard 62021,0.06], pick [5119,0.08], koikoi [6871,0.03]
+■■■  arena  91wins  102loses  5draws  30.3pt  ■■■
+loop 00121  time 7.7s  sample:loss  discard 63780,0.06], pick [6995,0.07], koikoi [6916,0.03]
+loop 00122  time 7.4s  sample:loss  discard 62077,0.05], pick [5980,0.06], koikoi [5559,0.02]
+loop 00123  time 7.4s  sample:loss  discard 63501,0.05], pick [4970,0.05], koikoi [5870,0.03]
+loop 00124  time 7.1s  sample:loss  discard 59980,0.05], pick [5283,0.05], koikoi [6013,0.03]
+loop 00125  time 7.2s  sample:loss  discard 60637,0.06], pick [5255,0.05], koikoi [5834,0.03]
+loop 00126  time 7.3s  sample:loss  discard 61036,0.06], pick [5270,0.07], koikoi [5049,0.03]
+loop 00127  time 7.3s  sample:loss  discard 62033,0.06], pick [6212,0.07], koikoi [5397,0.03]
+loop 00128  time 7.3s  sample:loss  discard 60963,0.05], pick [4878,0.05], koikoi [5895,0.03]
+loop 00129  time 7.4s  sample:loss  discard 62752,0.06], pick [5162,0.05], koikoi [6434,0.04]
+loop 00130  time 7.3s  sample:loss  discard 59736,0.05], pick [5820,0.04], koikoi [6271,0.03]
+loop 00131  time 7.4s  sample:loss  discard 62141,0.04], pick [7205,0.04], koikoi [5431,0.03]
+loop 00132  time 7.5s  sample:loss  discard 60544,0.04], pick [7073,0.04], koikoi [5972,0.03]
+loop 00133  time 7.4s  sample:loss  discard 62515,0.06], pick [6366,0.04], koikoi [6331,0.05]
+loop 00134  time 7.3s  sample:loss  discard 60330,0.07], pick [5516,0.06], koikoi [5995,0.06]
+loop 00135  time 7.3s  sample:loss  discard 61296,0.07], pick [5678,0.07], koikoi [7162,0.05]
+loop 00136  time 7.4s  sample:loss  discard 60042,0.06], pick [4328,0.05], koikoi [7074,0.04]
+loop 00137  time 7.4s  sample:loss  discard 60660,0.05], pick [4132,0.06], koikoi [6401,0.03]
+loop 00138  time 7.7s  sample:loss  discard 61813,0.05], pick [5022,0.06], koikoi [6916,0.03]
+loop 00139  time 7.5s  sample:loss  discard 64466,0.05], pick [5327,0.05], koikoi [6737,0.03]
+loop 00140  time 7.5s  sample:loss  discard 62146,0.06], pick [5043,0.06], koikoi [5642,0.03]
+loop 00141  time 7.6s  sample:loss  discard 61320,0.04], pick [5265,0.05], koikoi [5312,0.03]
+loop 00142  time 7.5s  sample:loss  discard 62800,0.05], pick [5837,0.05], koikoi [7007,0.02]
+loop 00143  time 7.6s  sample:loss  discard 61969,0.06], pick [5687,0.06], koikoi [7130,0.03]
+loop 00144  time 7.6s  sample:loss  discard 64404,0.06], pick [5836,0.05], koikoi [6973,0.04]
+loop 00145  time 7.6s  sample:loss  discard 62791,0.05], pick [5461,0.04], koikoi [6508,0.04]
+loop 00146  time 7.7s  sample:loss  discard 64532,0.05], pick [5543,0.06], koikoi [6578,0.04]
+loop 00147  time 7.6s  sample:loss  discard 62772,0.06], pick [5634,0.06], koikoi [6952,0.04]
+loop 00148  time 7.3s  sample:loss  discard 61959,0.06], pick [5916,0.06], koikoi [6141,0.04]
+loop 00149  time 7.2s  sample:loss  discard 58704,0.05], pick [6293,0.06], koikoi [5599,0.04]
+loop 00150  time 7.2s  sample:loss  discard 58697,0.05], pick [7206,0.05], koikoi [6222,0.03]
+loop 00151  time 7.1s  sample:loss  discard 59115,0.05], pick [6963,0.04], koikoi [6048,0.03]
+loop 00152  time 7.2s  sample:loss  discard 59958,0.05], pick [5994,0.04], koikoi [6633,0.03]
+loop 00153  time 7.4s  sample:loss  discard 60230,0.05], pick [5290,0.04], koikoi [7084,0.03]
+loop 00154  time 7.4s  sample:loss  discard 63404,0.05], pick [5158,0.06], koikoi [6655,0.03]
+loop 00155  time 7.2s  sample:loss  discard 61795,0.05], pick [5867,0.06], koikoi [6077,0.04]
+loop 00156  time 7.0s  sample:loss  discard 57916,0.05], pick [5209,0.05], koikoi [5806,0.04]
+loop 00157  time 7.0s  sample:loss  discard 59553,0.05], pick [3517,0.05], koikoi [6795,0.03]
+loop 00158  time 7.0s  sample:loss  discard 59085,0.05], pick [2669,0.05], koikoi [6271,0.03]
+loop 00159  time 7.1s  sample:loss  discard 58726,0.04], pick [3534,0.04], koikoi [5338,0.03]
+loop 00160  time 7.5s  sample:loss  discard 62399,0.05], pick [5099,0.05], koikoi [6648,0.03]
+■■■  arena  102wins  94loses  2draws  32.2pt  ■■■
+loop 00161  time 7.2s  sample:loss  discard 60207,0.05], pick [5985,0.05], koikoi [6276,0.03]
+loop 00162  time 7.2s  sample:loss  discard 59954,0.05], pick [6352,0.04], koikoi [5525,0.02]
+loop 00163  time 7.6s  sample:loss  discard 61934,0.04], pick [5121,0.03], koikoi [5680,0.02]
+loop 00164  time 7.5s  sample:loss  discard 63221,0.04], pick [4728,0.03], koikoi [5321,0.02]
+loop 00165  time 7.5s  sample:loss  discard 62388,0.04], pick [5317,0.04], koikoi [5484,0.03]
+loop 00166  time 7.5s  sample:loss  discard 61818,0.05], pick [6288,0.06], koikoi [6272,0.03]
+loop 00167  time 7.4s  sample:loss  discard 62508,0.06], pick [6853,0.06], koikoi [6710,0.03]
+loop 00168  time 7.5s  sample:loss  discard 60754,0.06], pick [6395,0.05], koikoi [5938,0.03]
+loop 00169  time 7.3s  sample:loss  discard 60517,0.05], pick [7122,0.04], koikoi [5523,0.03]
+loop 00170  time 7.4s  sample:loss  discard 61205,0.04], pick [7694,0.04], koikoi [5446,0.03]
+loop 00171  time 7.4s  sample:loss  discard 61223,0.05], pick [7256,0.04], koikoi [5587,0.03]
+loop 00172  time 7.2s  sample:loss  discard 60016,0.05], pick [6734,0.04], koikoi [6126,0.04]
+loop 00173  time 7.2s  sample:loss  discard 58124,0.05], pick [5693,0.03], koikoi [6343,0.04]
+loop 00174  time 7.4s  sample:loss  discard 60794,0.05], pick [5111,0.04], koikoi [6571,0.04]
+loop 00175  time 7.6s  sample:loss  discard 63300,0.04], pick [5136,0.04], koikoi [6567,0.04]
+loop 00176  time 7.6s  sample:loss  discard 64550,0.04], pick [4897,0.04], koikoi [5901,0.03]
+loop 00177  time 7.5s  sample:loss  discard 64430,0.04], pick [5009,0.06], koikoi [4531,0.03]
+loop 00178  time 7.3s  sample:loss  discard 60737,0.05], pick [5701,0.07], koikoi [5159,0.04]
+loop 00179  time 7.5s  sample:loss  discard 60828,0.05], pick [6539,0.06], koikoi [6906,0.03]
+loop 00180  time 7.7s  sample:loss  discard 61278,0.04], pick [5843,0.05], koikoi [6693,0.03]
+loop 00181  time 7.3s  sample:loss  discard 62304,0.05], pick [5572,0.05], koikoi [5597,0.03]
+loop 00182  time 7.5s  sample:loss  discard 61216,0.05], pick [5403,0.05], koikoi [6114,0.03]
+loop 00183  time 7.7s  sample:loss  discard 65019,0.05], pick [5065,0.06], koikoi [6738,0.03]
+loop 00184  time 7.5s  sample:loss  discard 63797,0.05], pick [4588,0.07], koikoi [6658,0.03]
+loop 00185  time 7.9s  sample:loss  discard 63508,0.06], pick [4986,0.08], koikoi [6911,0.03]
+loop 00186  time 7.8s  sample:loss  discard 60359,0.05], pick [6047,0.06], koikoi [6553,0.04]
+loop 00187  time 7.5s  sample:loss  discard 59566,0.05], pick [6033,0.05], koikoi [5564,0.04]
+loop 00188  time 7.6s  sample:loss  discard 59259,0.05], pick [4788,0.05], koikoi [4947,0.04]
+loop 00189  time 7.4s  sample:loss  discard 59013,0.05], pick [4987,0.05], koikoi [4880,0.04]
+loop 00190  time 7.2s  sample:loss  discard 57953,0.05], pick [5435,0.04], koikoi [4653,0.03]
+loop 00191  time 7.4s  sample:loss  discard 60148,0.05], pick [5342,0.05], koikoi [4987,0.04]
+loop 00192  time 7.6s  sample:loss  discard 61664,0.05], pick [5957,0.04], koikoi [5795,0.03]
+loop 00193  time 7.8s  sample:loss  discard 61410,0.05], pick [6283,0.05], koikoi [6270,0.04]
+loop 00194  time 8.0s  sample:loss  discard 63986,0.06], pick [7240,0.06], koikoi [6335,0.04]
+loop 00195  time 7.7s  sample:loss  discard 61727,0.05], pick [6843,0.05], koikoi [5791,0.04]
+loop 00196  time 7.8s  sample:loss  discard 62523,0.05], pick [5705,0.05], koikoi [5451,0.04]
+loop 00197  time 7.4s  sample:loss  discard 61699,0.05], pick [5673,0.07], koikoi [5606,0.04]
+loop 00198  time 7.3s  sample:loss  discard 61222,0.05], pick [5662,0.06], koikoi [5122,0.03]
+loop 00199  time 7.4s  sample:loss  discard 61497,0.04], pick [4813,0.04], koikoi [4596,0.04]
+loop 00200  time 7.5s  sample:loss  discard 59878,0.05], pick [4580,0.04], koikoi [4623,0.04]
+■■■  arena  99wins  93loses  6draws  31.4pt  ■■■
+loop 00201  time 7.6s  sample:loss  discard 63076,0.06], pick [5238,0.05], koikoi [4871,0.05]
+loop 00202  time 7.8s  sample:loss  discard 62344,0.05], pick [5047,0.04], koikoi [5416,0.03]
+loop 00203  time 7.5s  sample:loss  discard 60506,0.05], pick [5372,0.06], koikoi [5471,0.03]
+loop 00204  time 7.5s  sample:loss  discard 61935,0.06], pick [6316,0.06], koikoi [5938,0.03]
+loop 00205  time 7.5s  sample:loss  discard 62236,0.06], pick [6189,0.06], koikoi [6291,0.03]
+loop 00206  time 7.3s  sample:loss  discard 61112,0.05], pick [5301,0.05], koikoi [6031,0.03]
+loop 00207  time 7.4s  sample:loss  discard 61566,0.04], pick [5128,0.04], koikoi [5483,0.03]
+loop 00208  time 7.6s  sample:loss  discard 61828,0.05], pick [5117,0.03], koikoi [4596,0.03]
+loop 00209  time 7.5s  sample:loss  discard 62628,0.05], pick [4661,0.04], koikoi [5450,0.03]
+loop 00210  time 7.7s  sample:loss  discard 64258,0.05], pick [4917,0.04], koikoi [6603,0.02]
+loop 00211  time 8.1s  sample:loss  discard 61775,0.04], pick [5962,0.04], koikoi [6697,0.03]
+loop 00212  time 7.7s  sample:loss  discard 63034,0.05], pick [7060,0.04], koikoi [6478,0.03]
+loop 00213  time 7.5s  sample:loss  discard 60819,0.05], pick [7145,0.04], koikoi [6086,0.03]
+loop 00214  time 7.4s  sample:loss  discard 62489,0.04], pick [5937,0.04], koikoi [5816,0.02]
+loop 00215  time 7.4s  sample:loss  discard 59262,0.05], pick [4712,0.05], koikoi [4572,0.02]
+loop 00216  time 7.6s  sample:loss  discard 61636,0.05], pick [4732,0.05], koikoi [4647,0.02]
+loop 00217  time 7.5s  sample:loss  discard 60711,0.05], pick [5582,0.05], koikoi [5476,0.02]
+loop 00218  time 7.8s  sample:loss  discard 60486,0.05], pick [6442,0.06], koikoi [6069,0.02]
+loop 00219  time 8.0s  sample:loss  discard 64664,0.04], pick [6167,0.06], koikoi [6253,0.02]
+loop 00220  time 7.8s  sample:loss  discard 61981,0.05], pick [5889,0.06], koikoi [5755,0.02]
+loop 00221  time 7.6s  sample:loss  discard 62968,0.05], pick [6981,0.05], koikoi [5912,0.02]
+loop 00222  time 7.9s  sample:loss  discard 63912,0.04], pick [7130,0.04], koikoi [5958,0.02]
+loop 00223  time 7.5s  sample:loss  discard 62933,0.04], pick [6452,0.04], koikoi [6011,0.02]
+loop 00224  time 7.4s  sample:loss  discard 60927,0.04], pick [5337,0.04], koikoi [5817,0.02]
+loop 00225  time 7.6s  sample:loss  discard 61395,0.05], pick [5195,0.05], koikoi [5484,0.03]
+loop 00226  time 7.6s  sample:loss  discard 63028,0.05], pick [6040,0.05], koikoi [5668,0.03]
+loop 00227  time 7.5s  sample:loss  discard 62714,0.04], pick [6474,0.04], koikoi [6080,0.03]
+loop 00228  time 7.6s  sample:loss  discard 61331,0.04], pick [6175,0.05], koikoi [6607,0.03]
+loop 00229  time 7.6s  sample:loss  discard 61613,0.05], pick [5605,0.05], koikoi [6669,0.03]
+loop 00230  time 8.0s  sample:loss  discard 64446,0.05], pick [5844,0.05], koikoi [6922,0.03]
+loop 00231  time 8.0s  sample:loss  discard 63543,0.06], pick [5781,0.05], koikoi [6665,0.03]
+loop 00232  time 7.7s  sample:loss  discard 63702,0.06], pick [5543,0.06], koikoi [6434,0.03]
+loop 00233  time 7.6s  sample:loss  discard 61114,0.05], pick [4989,0.05], koikoi [5166,0.03]
+loop 00234  time 7.4s  sample:loss  discard 60322,0.05], pick [4437,0.04], koikoi [4330,0.03]
+loop 00235  time 7.4s  sample:loss  discard 59988,0.05], pick [3935,0.04], koikoi [4796,0.03]
+loop 00236  time 7.5s  sample:loss  discard 60659,0.06], pick [3989,0.05], koikoi [5553,0.03]
+loop 00237  time 7.4s  sample:loss  discard 62630,0.06], pick [5184,0.06], koikoi [6225,0.04]
+loop 00238  time 7.4s  sample:loss  discard 61636,0.06], pick [5794,0.06], koikoi [6046,0.03]
+loop 00239  time 7.3s  sample:loss  discard 61551,0.06], pick [5800,0.07], koikoi [5177,0.03]
+loop 00240  time 7.7s  sample:loss  discard 59243,0.06], pick [5596,0.07], koikoi [4354,0.04]
+■■■  arena  99wins  97loses  2draws  31.7pt  ■■■
+loop 00241  time 7.9s  sample:loss  discard 61380,0.05], pick [6843,0.06], koikoi [5051,0.04]
+loop 00242  time 7.8s  sample:loss  discard 59908,0.05], pick [7627,0.05], koikoi [5195,0.04]
+loop 00243  time 8.0s  sample:loss  discard 60399,0.05], pick [6921,0.05], koikoi [4962,0.03]
+loop 00244  time 8.0s  sample:loss  discard 64022,0.05], pick [5657,0.05], koikoi [5445,0.03]
+loop 00245  time 7.6s  sample:loss  discard 62985,0.05], pick [5181,0.05], koikoi [5965,0.03]
+loop 00246  time 7.8s  sample:loss  discard 62195,0.06], pick [5152,0.06], koikoi [6296,0.04]
+loop 00247  time 7.6s  sample:loss  discard 61234,0.05], pick [5094,0.06], koikoi [5410,0.03]
+loop 00248  time 7.7s  sample:loss  discard 61860,0.05], pick [4675,0.06], koikoi [5082,0.04]
+loop 00249  time 7.9s  sample:loss  discard 62179,0.05], pick [5146,0.05], koikoi [5829,0.03]
+loop 00250  time 8.1s  sample:loss  discard 64147,0.04], pick [6564,0.04], koikoi [6574,0.03]
+loop 00251  time 7.9s  sample:loss  discard 64244,0.05], pick [6497,0.04], koikoi [6690,0.03]
+loop 00252  time 7.8s  sample:loss  discard 61924,0.05], pick [5781,0.05], koikoi [6421,0.03]
+loop 00253  time 7.3s  sample:loss  discard 60474,0.05], pick [5768,0.05], koikoi [6294,0.03]
+loop 00254  time 7.3s  sample:loss  discard 61733,0.05], pick [5570,0.05], koikoi [5923,0.03]
+loop 00255  time 7.3s  sample:loss  discard 60027,0.05], pick [4518,0.05], koikoi [5329,0.03]
+loop 00256  time 7.4s  sample:loss  discard 61998,0.05], pick [4218,0.04], koikoi [5915,0.03]
+loop 00257  time 7.7s  sample:loss  discard 60523,0.05], pick [5186,0.05], koikoi [6334,0.03]
+loop 00258  time 7.6s  sample:loss  discard 60953,0.05], pick [6450,0.05], koikoi [5907,0.04]
+loop 00259  time 7.6s  sample:loss  discard 60412,0.05], pick [6858,0.05], koikoi [5345,0.04]
+loop 00260  time 7.9s  sample:loss  discard 60318,0.05], pick [6358,0.05], koikoi [5196,0.04]
+loop 00261  time 7.7s  sample:loss  discard 63056,0.04], pick [5863,0.04], koikoi [5535,0.03]
+loop 00262  time 7.5s  sample:loss  discard 61648,0.05], pick [4895,0.05], koikoi [6230,0.03]
+loop 00263  time 7.4s  sample:loss  discard 61216,0.05], pick [5244,0.05], koikoi [6217,0.03]
+loop 00264  time 7.6s  sample:loss  discard 62634,0.05], pick [5016,0.05], koikoi [6125,0.03]
+loop 00265  time 7.7s  sample:loss  discard 65961,0.06], pick [4237,0.05], koikoi [6260,0.04]
+loop 00266  time 7.4s  sample:loss  discard 63977,0.05], pick [3990,0.05], koikoi [5702,0.03]
+loop 00267  time 7.2s  sample:loss  discard 60569,0.05], pick [4862,0.05], koikoi [5101,0.03]
+loop 00268  time 7.3s  sample:loss  discard 59435,0.05], pick [5798,0.04], koikoi [4957,0.03]
+loop 00269  time 7.5s  sample:loss  discard 63036,0.05], pick [6483,0.05], koikoi [4879,0.03]
+loop 00270  time 7.4s  sample:loss  discard 62536,0.06], pick [5703,0.07], koikoi [4799,0.03]
+loop 00271  time 7.4s  sample:loss  discard 61511,0.06], pick [5621,0.08], koikoi [4726,0.04]
+loop 00272  time 7.5s  sample:loss  discard 63262,0.06], pick [6304,0.06], koikoi [4952,0.04]
+loop 00273  time 7.5s  sample:loss  discard 63401,0.05], pick [6083,0.05], koikoi [5095,0.03]
+loop 00274  time 7.4s  sample:loss  discard 63877,0.05], pick [4949,0.05], koikoi [5189,0.03]
+loop 00275  time 7.4s  sample:loss  discard 61966,0.05], pick [4212,0.05], koikoi [4737,0.03]
+loop 00276  time 7.6s  sample:loss  discard 65625,0.05], pick [5036,0.05], koikoi [5070,0.03]
+loop 00277  time 7.6s  sample:loss  discard 64474,0.06], pick [4855,0.06], koikoi [5691,0.03]
+loop 00278  time 7.2s  sample:loss  discard 63185,0.06], pick [4557,0.07], koikoi [6108,0.03]
+loop 00279  time 7.3s  sample:loss  discard 59087,0.06], pick [4495,0.06], koikoi [6214,0.04]
+loop 00280  time 7.9s  sample:loss  discard 65896,0.05], pick [5378,0.04], koikoi [7710,0.03]
+■■■  arena  103wins  88loses  7draws  31.0pt  ■■■
+loop 00281  time 7.8s  sample:loss  discard 64679,0.05], pick [5941,0.04], koikoi [7513,0.02]
+loop 00282  time 7.6s  sample:loss  discard 63885,0.05], pick [6207,0.05], koikoi [6814,0.02]
+loop 00283  time 7.4s  sample:loss  discard 62077,0.05], pick [5827,0.05], koikoi [6008,0.02]
+loop 00284  time 7.6s  sample:loss  discard 61860,0.04], pick [6117,0.05], koikoi [5858,0.02]
+loop 00285  time 7.8s  sample:loss  discard 66171,0.04], pick [6750,0.04], koikoi [6394,0.02]
+
+260620 213707 チェックポイントを保存中...
+260620 213707 プログラムを安全に終了しました。
+>>> パイプラインの準備中（初期データの生成）...
+loop 00001  time 8.4s  sample:loss discard 52685:0.11  pick 03605:0.24  koikoi 07205:0.03
+loop 00002  time 7.8s  sample:loss discard 60034:0.05  pick 06175:0.05  koikoi 06593:0.04
+loop 00003  time 7.8s  sample:loss discard 61206:0.07  pick 05560:0.11  koikoi 06474:0.06
+loop 00004  time 7.5s  sample:loss discard 59659:0.05  pick 07139:0.07  koikoi 05037:0.04
+loop 00005  time 8.7s  sample:loss discard 63583:0.03  pick 04948:0.03  koikoi 08192:0.02
+loop 00006  time 7.7s  sample:loss discard 63439:0.05  pick 05703:0.05  koikoi 06515:0.04
+loop 00007  time 7.5s  sample:loss discard 60660:0.08  pick 07536:0.08  koikoi 05564:0.08
+loop 00008  time 7.5s  sample:loss discard 61909:0.04  pick 05959:0.03  koikoi 08192:0.03
+loop 00009  time 7.1s  sample:loss discard 59556:0.06  pick 04188:0.04  koikoi 06385:0.03
+loop 00010  time 7.1s  sample:loss discard 57976:0.05  pick 04583:0.07  koikoi 05075:0.03
+loop 00011  time 10.7s  sample:loss discard 63864:0.06  pick 04217:0.08  koikoi 07338:0.04
+loop 00012  time 7.5s  sample:loss discard 59698:0.05  pick 06653:0.04  koikoi 06418:0.03
+loop 00013  time 7.4s  sample:loss discard 61794:0.04  pick 05026:0.04  koikoi 05829:0.02
+loop 00014  time 7.3s  sample:loss discard 61044:0.05  pick 07811:0.05  koikoi 05783:0.02
+loop 00015  time 7.6s  sample:loss discard 61294:0.03  pick 06705:0.02  koikoi 06387:0.01
+loop 00016  time 7.4s  sample:loss discard 62817:0.04  pick 06138:0.03  koikoi 04381:0.01
+loop 00017  time 7.2s  sample:loss discard 62043:0.09  pick 04945:0.06  koikoi 06332:0.06
+loop 00018  time 7.2s  sample:loss discard 60477:0.04  pick 05066:0.04  koikoi 06578:0.02
+loop 00019  time 7.6s  sample:loss discard 61533:0.05  pick 05780:0.06  koikoi 05722:0.03
+loop 00020  time 10.9s  sample:loss discard 64255:0.04  pick 04764:0.05  koikoi 05146:0.04
+loop 00021  time 7.4s  sample:loss discard 59184:0.06  pick 05247:0.07  koikoi 06052:0.03
+
+260620 223816 チェックポイントを保存中...
+260620 223816 プログラムを安全に終了しました。
+>>> パイプラインの準備中（初期データの生成）...
+loop 00001  time 11.7s  sample:loss discard 52940:0.08  pick 04510:0.12  koikoi 06330:0.04
+loop 00002  time 8.7s  sample:loss discard 61683:0.05  pick 06258:0.05  koikoi 06688:0.03
+loop 00003  time 7.9s  sample:loss discard 62203:0.06  pick 05676:0.09  koikoi 06281:0.05
+loop 00004  time 7.5s  sample:loss discard 59889:0.05  pick 06943:0.07  koikoi 05028:0.03
+loop 00005  time 7.6s  sample:loss discard 62075:0.03  pick 04534:0.03  koikoi 08192:0.02
+loop 00006  time 7.2s  sample:loss discard 60894:0.05  pick 04864:0.05  koikoi 06141:0.04
+loop 00007  time 7.5s  sample:loss discard 59909:0.09  pick 07697:0.07  koikoi 05775:0.07
+loop 00008  time 7.1s  sample:loss discard 61815:0.04  pick 06459:0.03  koikoi 08192:0.02
+loop 00009  time 7.0s  sample:loss discard 59355:0.07  pick 04479:0.06  koikoi 06538:0.03
+loop 00010  time 7.1s  sample:loss discard 57817:0.05  pick 04990:0.08  koikoi 04988:0.03
+loop 00011  time 7.5s  sample:loss discard 64055:0.06  pick 04114:0.15  koikoi 07343:0.04
+loop 00012  time 7.2s  sample:loss discard 59042:0.05  pick 06562:0.04  koikoi 06160:0.04
+loop 00013  time 6.9s  sample:loss discard 61550:0.04  pick 05161:0.04  koikoi 05603:0.02
+loop 00014  time 7.5s  sample:loss discard 59520:0.05  pick 07529:0.05  koikoi 05642:0.02
+loop 00015  time 7.6s  sample:loss discard 64107:0.03  pick 07233:0.03  koikoi 07106:0.01
+loop 00016  time 7.2s  sample:loss discard 62426:0.04  pick 06131:0.04  koikoi 04501:0.01
+loop 00017  time 7.1s  sample:loss discard 59998:0.08  pick 05009:0.07  koikoi 05695:0.05
+loop 00018  time 7.3s  sample:loss discard 62014:0.04  pick 05268:0.05  koikoi 07002:0.02
+loop 00019  time 7.5s  sample:loss discard 61895:0.05  pick 05851:0.06  koikoi 05803:0.03
+loop 00020  time 7.4s  sample:loss discard 62449:0.04  pick 04228:0.04  koikoi 04565:0.03
+loop 00021  time 7.2s  sample:loss discard 57698:0.06  pick 05424:0.08  koikoi 05893:0.04
+loop 00022  time 7.6s  sample:loss discard 60389:0.05  pick 07333:0.05  koikoi 05949:0.03
+loop 00023  time 7.4s  sample:loss discard 65254:0.05  pick 06444:0.04  koikoi 05272:0.03
+loop 00024  time 7.4s  sample:loss discard 61290:0.04  pick 03937:0.04  koikoi 05808:0.03
+loop 00025  time 7.2s  sample:loss discard 60960:0.05  pick 07459:0.05  koikoi 07622:0.02
+loop 00026  time 7.1s  sample:loss discard 62046:0.04  pick 05274:0.05  koikoi 06193:0.02
+loop 00027  time 7.6s  sample:loss discard 60847:0.05  pick 07504:0.05  koikoi 05308:0.04
+loop 00028  time 7.5s  sample:loss discard 64978:0.05  pick 04975:0.05  koikoi 06132:0.02
+loop 00029  time 7.3s  sample:loss discard 63994:0.04  pick 05460:0.05  koikoi 05509:0.03
+loop 00030  time 7.2s  sample:loss discard 59604:0.06  pick 03954:0.08  koikoi 05003:0.04
+loop 00031  time 7.2s  sample:loss discard 62732:0.05  pick 04025:0.07  koikoi 04910:0.03
+loop 00032  time 7.1s  sample:loss discard 62505:0.04  pick 04531:0.05  koikoi 07131:0.02
+loop 00033  time 7.1s  sample:loss discard 60125:0.04  pick 07171:0.05  koikoi 06508:0.02
+loop 00034  time 7.3s  sample:loss discard 61159:0.06  pick 05183:0.05  koikoi 06066:0.03
+loop 00035  time 7.1s  sample:loss discard 61377:0.05  pick 03770:0.04  koikoi 04198:0.03
+loop 00036  time 7.5s  sample:loss discard 60549:0.07  pick 05515:0.07  koikoi 04957:0.04
+loop 00037  time 7.5s  sample:loss discard 65287:0.07  pick 04525:0.06  koikoi 06343:0.04
+loop 00038  time 7.5s  sample:loss discard 65166:0.05  pick 05171:0.04  koikoi 07141:0.03
+loop 00039  time 7.4s  sample:loss discard 61317:0.05  pick 05625:0.06  koikoi 05761:0.02
+loop 00040  time 7.6s  sample:loss discard 63364:0.04  pick 06314:0.05  koikoi 06006:0.02
+■■■  arena   win 102   lose 94  draw 2   score 31.6pt  ■■■
+loop 00041  time 7.7s  sample:loss discard 64357:0.05  pick 06854:0.05  koikoi 06664:0.02
+
+260620 224847 チェックポイントを保存中...
+260620 224847 プログラムを安全に終了しました。
+>>> パイプラインの準備中（初期データの生成）...
+loop 00001  time 7.4s  sample:loss discard 53960:0.08  pick 04006:0.12  koikoi 06722:0.02
+loop 00002  time 6.4s  sample:loss discard 57857:0.04  pick 05267:0.05  koikoi 06123:0.03
+loop 00003  time 6.6s  sample:loss discard 61690:0.08  pick 04507:0.10  koikoi 06121:0.05
+loop 00004  time 6.3s  sample:loss discard 58085:0.04  pick 07204:0.05  koikoi 05014:0.03
+loop 00005  time 6.5s  sample:loss discard 62373:0.05  pick 05017:0.04  koikoi 07627:0.03
+loop 00006  time 6.4s  sample:loss discard 61570:0.06  pick 06008:0.08  koikoi 05779:0.06
+loop 00007  time 6.5s  sample:loss discard 59402:0.08  pick 07829:0.08  koikoi 05852:0.07
+loop 00008  time 6.4s  sample:loss discard 58958:0.06  pick 05095:0.04  koikoi 08192:0.04
+loop 00009  time 6.3s  sample:loss discard 60300:0.06  pick 04440:0.06  koikoi 07199:0.03
+loop 00010  time 6.3s  sample:loss discard 57717:0.06  pick 05353:0.06  koikoi 04065:0.01
+loop 00011  time 6.5s  sample:loss discard 65660:0.04  pick 03651:0.05  koikoi 07793:0.04
+loop 00012  time 6.2s  sample:loss discard 57744:0.05  pick 05900:0.05  koikoi 06184:0.03
+loop 00013  time 6.5s  sample:loss discard 62003:0.04  pick 05665:0.04  koikoi 06415:0.02
+loop 00014  time 6.6s  sample:loss discard 62229:0.04  pick 07162:0.04  koikoi 06702:0.02
+loop 00015  time 6.9s  sample:loss discard 62501:0.04  pick 08049:0.03  koikoi 06937:0.02
+loop 00016  time 6.6s  sample:loss discard 66425:0.05  pick 05594:0.04  koikoi 05781:0.03
+loop 00017  time 6.3s  sample:loss discard 61001:0.08  pick 05336:0.08  koikoi 06507:0.04
+
+260620 225706 チェックポイントを保存中...
+260620 225706 プログラムを安全に終了しました。
+>>> パイプラインの準備中（初期データの生成）...
+loop 00001  time 7.2s  sample:loss discard 52555:0.08  pick 04315:0.09  koikoi 06846:0.03
+loop 00002  time 6.4s  sample:loss discard 60408:0.04  pick 05641:0.05  koikoi 06360:0.03
+loop 00003  time 6.4s  sample:loss discard 60536:0.07  pick 04837:0.07  koikoi 05433:0.03
+loop 00004  time 6.2s  sample:loss discard 58647:0.05  pick 07392:0.06  koikoi 05185:0.04
+loop 00005  time 6.4s  sample:loss discard 62509:0.06  pick 04922:0.05  koikoi 07459:0.04
+loop 00006  time 6.2s  sample:loss discard 60651:0.07  pick 05202:0.08  koikoi 05639:0.08
+loop 00007  time 6.2s  sample:loss discard 59069:0.07  pick 07590:0.08  koikoi 05725:0.06
+loop 00008  time 6.3s  sample:loss discard 58913:0.06  pick 05263:0.04  koikoi 08192:0.04
+loop 00009  time 6.3s  sample:loss discard 60621:0.07  pick 04954:0.07  koikoi 07045:0.03
+loop 00010  time 6.3s  sample:loss discard 59249:0.06  pick 05182:0.07  koikoi 04588:0.02
+loop 00011  time 6.4s  sample:loss discard 65055:0.06  pick 04289:0.05  koikoi 07128:0.04
+loop 00012  time 6.3s  sample:loss discard 58376:0.04  pick 06175:0.04  koikoi 06488:0.03
+
+260620 230713 チェックポイントを保存中...
+260620 230714 プログラムを安全に終了しました。
+>>> パイプラインの準備中（初期データの生成）...
+loop 00001  time 6.8s  sample:loss discard 52838:0.07  pick 04217:0.11  koikoi 06840:0.03
+loop 00002  time 6.2s  sample:loss discard 56914:0.04  pick 05328:0.04  koikoi 05691:0.04
+loop 00003  time 6.5s  sample:loss discard 61953:0.07  pick 04501:0.06  koikoi 05629:0.04
+loop 00004  time 6.3s  sample:loss discard 58506:0.05  pick 07302:0.07  koikoi 05529:0.04
+loop 00005  time 6.6s  sample:loss discard 62967:0.05  pick 05269:0.05  koikoi 08192:0.03
+loop 00006  time 6.6s  sample:loss discard 64403:0.06  pick 05722:0.07  koikoi 06567:0.06
+
+260620 230824 チェックポイントを保存中...
+260620 230824 プログラムを安全に終了しました。
+>>> パイプラインの準備中（初期データの生成）...
+loop 00001  time 7.1s  sample:loss discard 53546:0.06  pick 04339:0.10  koikoi 07227:0.03
+loop 00002  time 6.4s  sample:loss discard 58369:0.04  pick 05245:0.04  koikoi 06108:0.03
+loop 00003  time 6.6s  sample:loss discard 60725:0.08  pick 05068:0.09  koikoi 05830:0.05
+loop 00004  time 6.5s  sample:loss discard 59041:0.05  pick 07209:0.08  koikoi 05466:0.04
+loop 00005  time 6.8s  sample:loss discard 64941:0.06  pick 05482:0.05  koikoi 08192:0.03
+loop 00006  time 6.4s  sample:loss discard 61589:0.06  pick 05505:0.08  koikoi 06617:0.06
+loop 00007  time 6.4s  sample:loss discard 59879:0.07  pick 08252:0.08  koikoi 05751:0.03
+loop 00008  time 6.3s  sample:loss discard 60733:0.05  pick 05888:0.03  koikoi 08192:0.03
+loop 00009  time 6.2s  sample:loss discard 59520:0.08  pick 04638:0.08  koikoi 06790:0.03
+loop 00010  time 6.1s  sample:loss discard 58902:0.07  pick 04711:0.09  koikoi 04564:0.02
+loop 00011  time 6.3s  sample:loss discard 62111:0.05  pick 03806:0.06  koikoi 07254:0.05
+loop 00012  time 6.3s  sample:loss discard 58955:0.06  pick 05916:0.05  koikoi 06119:0.03
+loop 00013  time 6.5s  sample:loss discard 63324:0.05  pick 05747:0.03  koikoi 06420:0.02
+loop 00014  time 6.5s  sample:loss discard 62579:0.04  pick 07669:0.03  koikoi 06491:0.01
+loop 00015  time 6.8s  sample:loss discard 61706:0.04  pick 07950:0.03  koikoi 06643:0.01
+loop 00016  time 6.6s  sample:loss discard 64336:0.05  pick 05409:0.05  koikoi 05680:0.02
+loop 00017  time 6.3s  sample:loss discard 60179:0.08  pick 05115:0.08  koikoi 06032:0.05
+loop 00018  time 6.3s  sample:loss discard 59794:0.06  pick 05270:0.05  koikoi 04953:0.04
+loop 00019  time 6.5s  sample:loss discard 61998:0.05  pick 04664:0.05  koikoi 06644:0.03
+loop 00020  time 6.5s  sample:loss discard 61445:0.04  pick 05949:0.05  koikoi 04843:0.04
+loop 00021  time 6.5s  sample:loss discard 62821:0.07  pick 04331:0.08  koikoi 05252:0.04
+loop 00022  time 6.7s  sample:loss discard 63431:0.06  pick 07086:0.04  koikoi 06346:0.03
+loop 00023  time 6.8s  sample:loss discard 61353:0.06  pick 07099:0.04  koikoi 05101:0.02
+loop 00024  time 6.7s  sample:loss discard 63860:0.05  pick 04005:0.03  koikoi 05778:0.03
+loop 00025  time 6.6s  sample:loss discard 62954:0.05  pick 06984:0.06  koikoi 06726:0.02
+loop 00026  time 6.3s  sample:loss discard 60901:0.05  pick 05771:0.05  koikoi 05748:0.02
+loop 00027  time 6.3s  sample:loss discard 60145:0.05  pick 06139:0.04  koikoi 06198:0.03
+loop 00028  time 6.3s  sample:loss discard 61204:0.05  pick 06988:0.04  koikoi 04871:0.03
+loop 00029  time 6.1s  sample:loss discard 60524:0.04  pick 04233:0.05  koikoi 04568:0.02
+loop 00030  time 6.4s  sample:loss discard 59446:0.07  pick 04189:0.07  koikoi 05114:0.03
+loop 00031  time 6.6s  sample:loss discard 63654:0.06  pick 03593:0.06  koikoi 04830:0.02
+loop 00032  time 6.5s  sample:loss discard 61088:0.05  pick 03771:0.05  koikoi 06905:0.03
+loop 00033  time 6.9s  sample:loss discard 63389:0.05  pick 06269:0.05  koikoi 07291:0.02
+loop 00034  time 6.8s  sample:loss discard 61951:0.05  pick 06911:0.04  koikoi 06509:0.03
+loop 00035  time 6.3s  sample:loss discard 62658:0.06  pick 03622:0.05  koikoi 04578:0.04
+loop 00036  time 6.6s  sample:loss discard 59568:0.06  pick 04294:0.07  koikoi 04643:0.04
+loop 00037  time 6.7s  sample:loss discard 61885:0.08  pick 05579:0.09  koikoi 05504:0.03
+loop 00038  time 6.5s  sample:loss discard 64762:0.05  pick 04417:0.05  koikoi 07863:0.03
+loop 00039  time 6.3s  sample:loss discard 61492:0.05  pick 04911:0.05  koikoi 06636:0.02
+loop 00040  time 6.5s  sample:loss discard 62196:0.04  pick 05760:0.04  koikoi 06052:0.02
+■■■  arena   win 102   lose 90  draw 6   score 32.7pt  ■■■
+loop 00041  time 6.8s  sample:loss discard 64590:0.05  pick 07719:0.05  koikoi 05710:0.02
+loop 00042  time 6.4s  sample:loss discard 63044:0.04  pick 05577:0.04  koikoi 06195:0.02
+loop 00043  time 6.4s  sample:loss discard 60961:0.07  pick 05747:0.06  koikoi 05240:0.04
+loop 00044  time 6.5s  sample:loss discard 63232:0.06  pick 05137:0.05  koikoi 06260:0.04
+loop 00045  time 6.4s  sample:loss discard 61747:0.05  pick 05860:0.05  koikoi 07253:0.03
+loop 00046  time 6.3s  sample:loss discard 60578:0.06  pick 05934:0.05  koikoi 06148:0.03
+loop 00047  time 6.3s  sample:loss discard 61612:0.06  pick 04803:0.06  koikoi 05130:0.03
+loop 00048  time 6.7s  sample:loss discard 62528:0.06  pick 04349:0.05  koikoi 04821:0.02
+loop 00049  time 6.5s  sample:loss discard 65438:0.05  pick 06196:0.05  koikoi 06799:0.03
+loop 00050  time 6.1s  sample:loss discard 59927:0.05  pick 06460:0.06  koikoi 05410:0.03
+loop 00051  time 6.1s  sample:loss discard 60095:0.05  pick 04873:0.06  koikoi 04121:0.04
+loop 00052  time 6.3s  sample:loss discard 61590:0.05  pick 03698:0.05  koikoi 05541:0.03
+loop 00053  time 6.1s  sample:loss discard 59692:0.05  pick 04904:0.05  koikoi 05256:0.03
+loop 00054  time 6.2s  sample:loss discard 60923:0.05  pick 04474:0.04  koikoi 04943:0.03
+loop 00055  time 6.4s  sample:loss discard 62785:0.04  pick 05073:0.03  koikoi 04479:0.02
+loop 00056  time 6.2s  sample:loss discard 63017:0.05  pick 03721:0.03  koikoi 04945:0.03
+loop 00057  time 6.1s  sample:loss discard 60315:0.04  pick 03246:0.03  koikoi 04796:0.02
+loop 00058  time 6.5s  sample:loss discard 62190:0.04  pick 05610:0.04  koikoi 06728:0.02
+loop 00059  time 6.6s  sample:loss discard 64674:0.05  pick 05357:0.04  koikoi 06123:0.03
+loop 00060  time 6.4s  sample:loss discard 62475:0.04  pick 06026:0.04  koikoi 04786:0.04
+loop 00061  time 6.5s  sample:loss discard 65330:0.06  pick 06221:0.05  koikoi 06471:0.04
+loop 00062  time 6.2s  sample:loss discard 60680:0.07  pick 04584:0.05  koikoi 05274:0.03
+loop 00063  time 6.1s  sample:loss discard 58083:0.06  pick 05369:0.07  koikoi 05449:0.03
+loop 00064  time 6.2s  sample:loss discard 60530:0.04  pick 04369:0.04  koikoi 04786:0.04
+loop 00065  time 6.1s  sample:loss discard 59785:0.06  pick 06837:0.06  koikoi 04590:0.04
+loop 00066  time 6.2s  sample:loss discard 58481:0.04  pick 07005:0.05  koikoi 04465:0.03
+loop 00067  time 6.3s  sample:loss discard 61053:0.05  pick 05283:0.05  koikoi 04666:0.05
+loop 00068  time 6.3s  sample:loss discard 61447:0.05  pick 04613:0.05  koikoi 05685:0.04
+loop 00069  time 6.4s  sample:loss discard 62713:0.05  pick 05410:0.06  koikoi 05692:0.04
+loop 00070  time 6.2s  sample:loss discard 61611:0.05  pick 05768:0.04  koikoi 06329:0.03
+loop 00071  time 6.2s  sample:loss discard 59399:0.07  pick 05885:0.06  koikoi 06041:0.04
+loop 00072  time 6.2s  sample:loss discard 59441:0.06  pick 05060:0.05  koikoi 05985:0.03
+loop 00073  time 6.3s  sample:loss discard 61064:0.05  pick 05475:0.05  koikoi 05855:0.02
+loop 00074  time 6.2s  sample:loss discard 61387:0.05  pick 04286:0.04  koikoi 04832:0.03
+loop 00075  time 6.2s  sample:loss discard 60260:0.06  pick 04813:0.06  koikoi 04731:0.06
+loop 00076  time 6.3s  sample:loss discard 60206:0.07  pick 06043:0.08  koikoi 04885:0.06
+loop 00077  time 6.4s  sample:loss discard 63433:0.06  pick 06732:0.06  koikoi 05638:0.04
+loop 00078  time 6.4s  sample:loss discard 61781:0.05  pick 05632:0.05  koikoi 05670:0.04
+loop 00079  time 6.3s  sample:loss discard 61943:0.05  pick 06474:0.06  koikoi 05376:0.03
+loop 00080  time 6.3s  sample:loss discard 61487:0.04  pick 05093:0.05  koikoi 05675:0.03
+■■■  arena   win 93   lose 98  draw 7   score 30.6pt  ■■■
+loop 00081  time 6.4s  sample:loss discard 62417:0.05  pick 06278:0.06  koikoi 07009:0.03
+
+260620 232029 チェックポイントを保存中...
+260620 232029 プログラムを安全に終了しました。
+>>> パイプラインの準備中（初期データの生成）...
+loop 00001  time 6.6s  sample:loss discard 52148:0.08  pick 04163:0.10  koikoi 06548:0.02
+loop 00002  time 6.0s  sample:loss discard 56252:0.05  pick 05685:0.07  koikoi 06155:0.03
+loop 00003  time 6.0s  sample:loss discard 59265:0.07  pick 04726:0.07  koikoi 05193:0.03
+loop 00004  time 6.0s  sample:loss discard 56701:0.05  pick 07535:0.06  koikoi 05514:0.03
+loop 00005  time 6.0s  sample:loss discard 59498:0.05  pick 04995:0.04  koikoi 06370:0.04
+loop 00006  time 6.0s  sample:loss discard 59200:0.06  pick 05883:0.07  koikoi 05207:0.06
+loop 00007  time 6.0s  sample:loss discard 57947:0.09  pick 07748:0.10  koikoi 05802:0.09
+loop 00008  time 5.8s  sample:loss discard 56617:0.06  pick 04618:0.04  koikoi 08192:0.03
+loop 00009  time 5.9s  sample:loss discard 57698:0.07  pick 04128:0.07  koikoi 06468:0.03
+loop 00010  time 5.7s  sample:loss discard 57135:0.06  pick 04899:0.08  koikoi 04112:0.01
+loop 00011  time 5.8s  sample:loss discard 59606:0.04  pick 03540:0.04  koikoi 07160:0.02
+loop 00012  time 5.7s  sample:loss discard 56103:0.05  pick 05422:0.05  koikoi 06433:0.03
+loop 00013  time 5.6s  sample:loss discard 57386:0.05  pick 05258:0.04  koikoi 05201:0.03
+loop 00014  time 5.8s  sample:loss discard 56712:0.04  pick 05718:0.04  koikoi 05626:0.01
+loop 00015  time 6.0s  sample:loss discard 60563:0.03  pick 08090:0.04  koikoi 06245:0.01
+loop 00016  time 5.6s  sample:loss discard 56808:0.06  pick 03976:0.05  koikoi 05083:0.01
+
+260620 232305 チェックポイントを保存中...
+260620 232305 プログラムを安全に終了しました。
+>>> パイプラインの準備中（初期データの生成）...
+loop 00001  time 6.6s  sample:loss discard 52316:0.06  pick 04534:0.08  koikoi 06936:0.02
+loop 00002  time 6.0s  sample:loss discard 56460:0.05  pick 06069:0.05  koikoi 05800:0.03
+loop 00003  time 6.0s  sample:loss discard 58101:0.07  pick 04845:0.08  koikoi 05092:0.03
+loop 00004  time 5.7s  sample:loss discard 55155:0.05  pick 07257:0.05  koikoi 05208:0.03
+loop 00005  time 5.8s  sample:loss discard 55892:0.05  pick 04968:0.05  koikoi 06239:0.03
+loop 00006  time 5.8s  sample:loss discard 57257:0.05  pick 05131:0.08  koikoi 04904:0.06
+loop 00007  time 5.8s  sample:loss discard 57862:0.09  pick 07934:0.12  koikoi 05869:0.10
+loop 00008  time 5.7s  sample:loss discard 55872:0.06  pick 04365:0.04  koikoi 07841:0.06
+loop 00009  time 5.7s  sample:loss discard 57131:0.07  pick 04078:0.05  koikoi 06320:0.02
+loop 00010  time 5.6s  sample:loss discard 56845:0.05  pick 04693:0.10  koikoi 03851:0.02
+loop 00011  time 5.7s  sample:loss discard 58111:0.04  pick 03733:0.05  koikoi 06624:0.03
+loop 00012  time 5.7s  sample:loss discard 56286:0.06  pick 05258:0.06  koikoi 06300:0.03
+loop 00013  time 5.8s  sample:loss discard 56919:0.05  pick 05546:0.05  koikoi 06118:0.03
+loop 00014  time 5.8s  sample:loss discard 58396:0.04  pick 05830:0.04  koikoi 05828:0.01
+loop 00015  time 6.0s  sample:loss discard 59418:0.04  pick 08094:0.04  koikoi 05844:0.01
+loop 00016  time 5.6s  sample:loss discard 57076:0.06  pick 04314:0.05  koikoi 05005:0.01
+loop 00017  time 5.6s  sample:loss discard 55655:0.06  pick 05511:0.06  koikoi 05169:0.05
+loop 00018  time 5.7s  sample:loss discard 57612:0.08  pick 05314:0.07  koikoi 04922:0.03
+loop 00019  time 5.8s  sample:loss discard 58202:0.05  pick 04385:0.06  koikoi 06250:0.02
+loop 00020  time 5.8s  sample:loss discard 57169:0.05  pick 05782:0.06  koikoi 05304:0.03
+loop 00021  time 5.9s  sample:loss discard 60445:0.06  pick 03738:0.07  koikoi 04296:0.02
+
+260620 232529 チェックポイントを保存中...
+260620 232529 プログラムを安全に終了しました。
+>>> パイプラインの準備中（初期データの生成）...
+loop 00001  time 7.6s  sample:loss discard 51798:0.07  pick 04285:0.12  koikoi 07661:0.03
+loop 00002  time 6.5s  sample:loss discard 58477:0.05  pick 06056:0.05  koikoi 05849:0.04
+loop 00003  time 6.3s  sample:loss discard 56752:0.06  pick 04562:0.05  koikoi 04999:0.03
+loop 00004  time 6.3s  sample:loss discard 54375:0.05  pick 07572:0.05  koikoi 05063:0.02
+loop 00005  time 6.3s  sample:loss discard 57182:0.05  pick 05019:0.05  koikoi 06844:0.03
+loop 00006  time 6.4s  sample:loss discard 58008:0.06  pick 05550:0.06  koikoi 05489:0.05
+loop 00007  time 6.3s  sample:loss discard 58490:0.08  pick 07652:0.10  koikoi 05917:0.09
+loop 00008  time 6.1s  sample:loss discard 55216:0.06  pick 04362:0.03  koikoi 07721:0.06
+loop 00009  time 6.2s  sample:loss discard 56958:0.08  pick 04124:0.06  koikoi 05809:0.03
+loop 00010  time 6.1s  sample:loss discard 58142:0.06  pick 05149:0.09  koikoi 03864:0.01
+loop 00011  time 6.3s  sample:loss discard 59430:0.04  pick 03487:0.04  koikoi 07373:0.02
+loop 00012  time 6.3s  sample:loss discard 56537:0.05  pick 05370:0.05  koikoi 06224:0.02
+loop 00013  time 6.4s  sample:loss discard 57920:0.04  pick 05384:0.04  koikoi 06423:0.02
+loop 00014  time 6.2s  sample:loss discard 56877:0.04  pick 05812:0.04  koikoi 05841:0.02
+loop 00015  time 6.4s  sample:loss discard 59882:0.04  pick 08256:0.04  koikoi 06176:0.01
+loop 00016  time 6.0s  sample:loss discard 57429:0.06  pick 04111:0.08  koikoi 05048:0.01
+loop 00017  time 6.0s  sample:loss discard 55601:0.06  pick 05380:0.08  koikoi 05367:0.04
+
+260620 233930 チェックポイントを保存中...
+260620 233930 プログラムを安全に終了しました。
+>>> パイプラインの準備中（初期データの生成）...
+loop 00001  time 7.0s  sample:loss discard 51858:0.06  pick 04376:0.07  koikoi 07606:0.02
+loop 00002  time 6.3s  sample:loss discard 56472:0.06  pick 05816:0.05  koikoi 05330:0.04
+loop 00003  time 6.4s  sample:loss discard 58360:0.07  pick 04744:0.06  koikoi 04660:0.04
+loop 00004  time 6.1s  sample:loss discard 54968:0.05  pick 07126:0.07  koikoi 05220:0.03
+loop 00005  time 6.1s  sample:loss discard 55896:0.05  pick 05382:0.05  koikoi 06462:0.03
+loop 00006  time 6.4s  sample:loss discard 56556:0.04  pick 05566:0.06  koikoi 05138:0.04
+loop 00007  time 6.2s  sample:loss discard 56982:0.07  pick 07430:0.10  koikoi 06280:0.09
+loop 00008  time 6.1s  sample:loss discard 55738:0.07  pick 04254:0.02  koikoi 07394:0.09
+loop 00009  time 6.0s  sample:loss discard 56384:0.06  pick 04250:0.05  koikoi 06014:0.03
+loop 00010  time 6.1s  sample:loss discard 55894:0.05  pick 04994:0.10  koikoi 03682:0.03
+loop 00011  time 6.4s  sample:loss discard 59620:0.04  pick 03702:0.05  koikoi 06692:0.03
+loop 00012  time 6.3s  sample:loss discard 55944:0.06  pick 05376:0.05  koikoi 06366:0.03
