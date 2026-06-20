@@ -46,11 +46,9 @@ uint64_t cards_to_bitboard(const std::vector<std::vector<int>>& cards) {
 // モデルを1度だけGPUにロードし、全スレッドで共有するためのグローバル管理
 // ---------------------------------------------------------
 struct SharedModels {
-    torch::jit::script::Module discard_p1, pick_p1, koikoi_p1;
-    torch::jit::script::Module discard_p2, pick_p2, koikoi_p2;
+    torch::jit::script::Module discard, pick, koikoi;
     std::mutex mtx;
-    bool loaded_p1 = false;
-    bool loaded_p2 = false;
+    bool loaded = false;
 };
 static SharedModels g_models;
 
@@ -1445,15 +1443,9 @@ public:
                     torch::Tensor m_gpu = mask_tensor[type].slice(0, 0, n).to(device, true);
 
                     torch::Tensor output;
-                    if (p_id == 1) {
-                        if (type == 0) output = g_models.discard_p1.forward({f_gpu}).toTensor();
-                        else if (type == 1) output = g_models.pick_p1.forward({f_gpu}).toTensor();
-                        else output = g_models.koikoi_p1.forward({f_gpu}).toTensor();
-                    } else {
-                        if (type == 0) output = g_models.discard_p2.forward({f_gpu}).toTensor();
-                        else if (type == 1) output = g_models.pick_p2.forward({f_gpu}).toTensor();
-                        else output = g_models.koikoi_p2.forward({f_gpu}).toTensor();
-                    }
+                    if (type == 0) output = g_models.discard.forward({f_gpu}).toTensor();
+                    else if (type == 1) output = g_models.pick.forward({f_gpu}).toTensor();
+                    else output = g_models.koikoi.forward({f_gpu}).toTensor();
 
                     output = output.masked_fill(~m_gpu, -1e9);
                     int64_t* act_ptr = output.argmax(1).cpu().data_ptr<int64_t>();
@@ -1844,11 +1836,11 @@ static std::unique_ptr<SimulationManager> g_sim_manager = nullptr;
 // ---------------------------------------------------------
 // 統合パイプライン
 // ---------------------------------------------------------
+
 py::dict run_simulation_and_train(
     int num_threads, int n_envs_per_thread, int target_games_per_thread,
     int cap_d, int cap_p, int cap_k, float disc, py::array_t<float> wp_mat,
-    std::string path_d_p1, std::string path_p_p1, std::string path_k_p1, // P1モデルパス
-    std::string path_d_p2, std::string path_p_p2, std::string path_k_p2, // P2モデルパス
+    std::string path_discard, std::string path_pick, std::string path_koikoi
     std::string dev_str,
     KoiKoiTrainer& trainer_discard, KoiKoiTrainer& trainer_pick, KoiKoiTrainer& trainer_koikoi,
     int batch_size, bool sync_models) 
@@ -1857,19 +1849,12 @@ py::dict run_simulation_and_train(
 
     {
         std::lock_guard<std::mutex> lock(g_models.mtx);
-        if (!g_models.loaded_p2) {
-            g_models.discard_p2 = torch::jit::load(path_d_p2, device);
-            g_models.pick_p2 = torch::jit::load(path_p_p2, device);
-            g_models.koikoi_p2 = torch::jit::load(path_k_p2, device);
-            g_models.discard_p2.eval(); g_models.pick_p2.eval(); g_models.koikoi_p2.eval();
-            g_models.loaded_p2 = true;
-        }
-        if (!g_models.loaded_p1) {
-            g_models.discard_p1 = torch::jit::load(path_d_p1, device);
-            g_models.pick_p1 = torch::jit::load(path_p_p1, device);
-            g_models.koikoi_p1 = torch::jit::load(path_k_p1, device);
-            g_models.discard_p1.eval(); g_models.pick_p1.eval(); g_models.koikoi_p1.eval();
-            g_models.loaded_p1 = true;
+        if (!g_models.loaded) {
+            g_models.discard = torch::jit::load(path_discard, device);
+            g_models.pick = torch::jit::load(path_pick, device);
+            g_models.koikoi = torch::jit::load(path_koikoi, device);
+            g_models.discard.eval(); g_models.pick.eval(); g_models.koikoi.eval();
+            g_models.loaded = true;
         }
     }
 
@@ -1908,15 +1893,15 @@ py::dict run_simulation_and_train(
     float loss_k = states_k.empty() ? 0.0f : trainer_koikoi.train_epoch(torch::cat(states_k, 0), torch::cat(rewards_k, 0), batch_size);
 
     if (sync_models) {
-        trainer_discard.sync_and_save_action_model(path_d_p1);
-        trainer_pick.sync_and_save_action_model(path_p_p1);
-        trainer_koikoi.sync_and_save_action_model(path_k_p1);
+        trainer_discard.sync_and_save_action_model(path_discard);
+        trainer_pick.sync_and_save_action_model(path_pick);
+        trainer_koikoi.sync_and_save_action_model(path_koikoi);
 
         std::lock_guard<std::mutex> lock(g_models.mtx);
-        g_models.discard_p1 = torch::jit::load(path_d_p1, device);
-        g_models.pick_p1 = torch::jit::load(path_p_p1, device);
-        g_models.koikoi_p1 = torch::jit::load(path_k_p1, device);
-        g_models.discard_p1.eval(); g_models.pick_p1.eval(); g_models.koikoi_p1.eval();
+        g_models.discard = torch::jit::load(path_discard, device);
+        g_models.pick = torch::jit::load(path_pick, device);
+        g_models.koikoi = torch::jit::load(path_koikoi, device);
+        g_models.discard.eval(); g_models.pick.eval(); g_models.koikoi.eval();
     }
 
     py::dict out;
@@ -1930,6 +1915,19 @@ py::list run_parallel_simulations(
     int cap_d, int cap_p, int cap_k, float disc, py::array_t<float> wp_mat,
     std::string path_discard, std::string path_pick, std::string path_koikoi, std::string dev_str) 
 {
+    torch::Device device(dev_str);
+
+    {
+        std::lock_guard<std::mutex> lock(g_models.mtx);
+        g_models.discard = torch::jit::load(path_discard, device);
+        g_models.pick = torch::jit::load(path_pick, device);
+        g_models.koikoi = torch::jit::load(path_koikoi, device);
+        g_models.discard.eval(); 
+        g_models.pick.eval(); 
+        g_models.koikoi.eval();
+        g_models.loaded = true;
+    }
+
     SimConfig config = {num_threads, n_envs_per_thread, target_games_per_thread, cap_d, cap_p, cap_k, disc, dev_str};
     
     if (g_sim_manager && g_sim_manager->current_config != config) {
@@ -1943,7 +1941,7 @@ py::list run_parallel_simulations(
     }
 
     // ==========================================
-    // 【追加行】実行前のメモリレポート
+    // 実行前のメモリレポート
     // ==========================================
     std::cout << "\n>>> [Arena Simulation START] Current Component Memory Status:";
     g_sim_manager->print_memory_report();
@@ -1956,7 +1954,7 @@ py::list run_parallel_simulations(
         // ==========================================
         std::cout << "\n>>> [Arena Simulation END] Final Component Memory Status:";
         g_sim_manager->print_memory_report(); // --- メモリ使用量測定用
-//        g_sim_manager->print_buffer_utilization_report(); // --- メモリ使用量測定用
+        // g_sim_manager->print_buffer_utilization_report(); // --- メモリ使用量測定用
     }
 
     py::list results;

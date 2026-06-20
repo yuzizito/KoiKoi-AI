@@ -1,4 +1,5 @@
-import torch.nn.modules.linear as my_linear; my_linear._LinearWithBias = my_linear.Linear
+import torch.nn.modules.linear as my_linear
+setattr(my_linear, '_LinearWithBias', my_linear.Linear)
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
@@ -32,14 +33,14 @@ torch.set_num_threads(1)
 
 stop_event = threading.Event()
 
-log_path = 'log_rl_pbrs.txt'
+log_path = 'log_rl.txt'
 rl_folder = 'model_rl'
 
 # continue training with trained models
 start_loop_num = 1
-saved_model_path = {'discard':f'{rl_folder}/discard_final_stop.pt', 
-                    'pick':f'{rl_folder}/pick_final_stop.pt',
-                    'koikoi':f'{rl_folder}/koikoi_final_stop.pt'}
+saved_model_path = {'discard':f'{rl_folder}/J_discard_final_stop.pt', 
+                    'pick':f'{rl_folder}/J_pick_final_stop.pt',
+                    'koikoi':f'{rl_folder}/J_koikoi_final_stop.pt'}
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 win_prob_mat = None
@@ -175,7 +176,9 @@ def parallel_sampling(n_games, global_win_prob_mat):
         
         buffers = sim.finalize_buffers()
         
-        clean_buffer = {'discard': None, 'pick': None, 'koikoi': None}
+        from typing import Dict, Any, Optional
+        clean_buffer: Dict[str, Any] = {'discard': None, 'pick': None, 'koikoi': None}
+        
         for key in ['discard', 'pick', 'koikoi']:
             if buffers[key]['states'].shape[0] > 0:
                 states = torch.from_numpy(buffers[key]['states'].astype(np.float16)).share_memory_()
@@ -300,13 +303,13 @@ if __name__ == '__main__':
         action_net[key] = action_net[key].to(device).bfloat16().eval()
 
     with torch.inference_mode():
-        traced_discard = torch.jit.trace(action_net['discard'], example_input_normal, check_trace=False)
-        traced_pick    = torch.jit.trace(action_net['pick'], example_input_normal, check_trace=False)
-        traced_koikoi  = torch.jit.trace(action_net['koikoi'], example_input_koikoi, check_trace=False)
+        traced_discard = torch.jit.trace(action_net['discard'], example_input_normal, check_trace=False)  # type: ignore
+        traced_pick    = torch.jit.trace(action_net['pick'], example_input_normal, check_trace=False)     # type: ignore
+        traced_koikoi  = torch.jit.trace(action_net['koikoi'], example_input_koikoi, check_trace=False)   # type: ignore
         
-        traced_discard.save("traced_discard.pt")
-        traced_pick.save("traced_pick.pt")
-        traced_koikoi.save("traced_koikoi.pt")
+        traced_discard.save("J_traced_discard.pt") # type: ignore
+        traced_pick.save("J_traced_pick.pt")       # type: ignore
+        traced_koikoi.save("J_traced_koikoi.pt")   # type: ignore
 
     for key in ['discard', 'pick', 'koikoi']:
         action_net[key] = action_net[key].cpu()
@@ -322,9 +325,9 @@ if __name__ == '__main__':
     traced_val_pick    = torch.jit.trace(value_net['pick'], example_input_normal, check_trace=False)
     traced_val_koikoi  = torch.jit.trace(value_net['koikoi'], example_input_koikoi, check_trace=False)
     
-    traced_val_discard.save("traced_value_discard.pt")
-    traced_val_pick.save("traced_value_pick.pt")
-    traced_val_koikoi.save("traced_value_koikoi.pt")
+    traced_val_discard.save("J_traced_value_discard.pt") # type: ignore
+    traced_val_pick.save("J_traced_value_pick.pt")       # type: ignore
+    traced_val_koikoi.save("J_traced_value_koikoi.pt")   # type: ignore
 
     play_agent = koikoilearn.Agent(action_net['discard'], action_net['pick'], action_net['koikoi'],
                                    random_action_prob=[0.1, 0.1, 0.1, 0.1])    
@@ -336,9 +339,9 @@ if __name__ == '__main__':
     lr = 1e-5
     device_str = "cuda:0" if torch.cuda.is_available() else "cpu"
     trainer = {
-        'discard': koikoicore.KoiKoiTrainer("traced_value_discard.pt", lr, device_str),
-        'pick': koikoicore.KoiKoiTrainer("traced_value_pick.pt", lr, device_str),
-        'koikoi': koikoicore.KoiKoiTrainer("traced_value_koikoi.pt", lr, device_str)
+        'discard': koikoicore.KoiKoiTrainer("J_traced_value_discard.pt", lr, device_str),
+        'pick': koikoicore.KoiKoiTrainer("J_traced_value_pick.pt", lr, device_str),
+        'koikoi': koikoicore.KoiKoiTrainer("J_traced_value_koikoi.pt", lr, device_str)
     }
 
     score = [0.0]
@@ -356,11 +359,9 @@ if __name__ == '__main__':
         
         losses = koikoicore.run_simulation_and_train(
             cpu_count, n_core_games, n_core_games,          
-            11000,  # cap_d (discard)
-            1400,   # cap_p (pick)
-            1600,   # cap_k (koikoi)
+            11000, 1400, 1600,
             1.0, wp_mat_np,
-            "traced_discard.pt", "traced_pick.pt", "traced_koikoi.pt", device_str,
+            "J_traced_discard.pt", "J_traced_pick.pt", "J_traced_koikoi.pt", device_str,
             trainer['discard'], trainer['pick'], trainer['koikoi'],
             batch_size, sync_models
         )
@@ -384,7 +385,7 @@ if __name__ == '__main__':
         if loop % n_loop_arena_test == 0:
             
             for key in ['discard', 'pick', 'koikoi']:
-                action_net[key].load_state_dict(torch.jit.load(f"traced_{key}.pt", map_location='cpu').state_dict())
+                action_net[key].load_state_dict(torch.jit.load(f"J_traced_{key}.pt", map_location='cpu').state_dict())
             
             test_agent = koikoilearn.Agent(action_net['discard'], action_net['pick'], action_net['koikoi'])
 
@@ -412,7 +413,7 @@ if __name__ == '__main__':
         if stop_event.is_set():
             print_log(f'\n{time_str()} 最新モデル保存中', log_path)
             for key in ['discard', 'pick', 'koikoi']:
-                trainer[key].save_model(f'{rl_folder}/{key}_final_stop.pt')
+                trainer[key].save_model(f'{rl_folder}/J_{key}_final_stop.pt')
                 
             koikoicore.destroy_sim_manager()
             print_log(f'{time_str()} プログラム終了', log_path)

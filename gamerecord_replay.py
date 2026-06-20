@@ -71,36 +71,36 @@ for rounds in range(startRound,realRounds+1):
     # update GUI                        
     # score board
     window = GUI.ClearBoardGUI(window)                   
-    window['RoundCounter'].update(str(rounds)+' / '+str(numRound))
-    window['gameNum'].update('Replay')
+    window['RoundCounter'].update(str(rounds)+' / '+str(numRound)) # type: ignore
+    window['gameNum'].update('Replay') # type: ignore
     if playerView == 1:
         window['myName'].update(player1Name)
         window['opName'].update(player2Name)
-        window['myPoints'].update(str(player1Pts)+' Points')
-        window['opPoints'].update(str(player2Pts)+' Points')
+        window['myPoints'].update(str(player1Pts)+' Points') # type: ignore
+        window['opPoints'].update(str(player2Pts)+' Points') # type: ignore
     else:
         window['myName'].update(player2Name)
         window['opName'].update(player1Name)
-        window['myPoints'].update(str(player2Pts)+' Points')
-        window['opPoints'].update(str(player1Pts)+' Points')
+        window['myPoints'].update(str(player2Pts)+' Points') # type: ignore
+        window['opPoints'].update(str(player1Pts)+' Points') # type: ignore
         
 
     if dealer == playerView:
-        window['opDealer'].update('')
-        window['myDealer'].update('Dealer')
+        window['opDealer'].update('') # type: ignore
+        window['myDealer'].update('Dealer') # type: ignore
     else:
-        window['myDealer'].update('')
-        window['opDealer'].update('Dealer')
+        window['myDealer'].update('') # type: ignore
+        window['opDealer'].update('Dealer') # type: ignore
 
     for i in range(1,rounds):
         window['PointsRound'+str(i)].update(game['record']['round'+str(i)]['basic']['player'+str(playerView)+'RoundPts'])
     
     for i in range(2-int(dealer==playerView),17,2):
-        window['OpenPileCard'+str(i)].update(r'resource/cardpngsmall/'+str(pileCard[-i][0])+'-'+str(pileCard[-i][1])+'.png',visible=True)
+        window['OpenPileCard'+str(i)].update(r'resource/cardpngsmall/'+str(pileCard[-i][0])+'-'+str(pileCard[-i][1])+'.png',visible=True) # type: ignore
     for i in range(1+int(dealer==playerView),17,2):
-        window['OpenPileCard'+str(i)].update(r'resource/cardpngsmallgrey/'+str(pileCard[-i][0])+'-'+str(pileCard[-i][1])+'.png',visible=True)
+        window['OpenPileCard'+str(i)].update(r'resource/cardpngsmallgrey/'+str(pileCard[-i][0])+'-'+str(pileCard[-i][1])+'.png',visible=True) # type: ignore
     for i in range(17,25):
-        window['OpenPileCard'+str(i)].update(r'resource/cardpngsmalldark/'+str(pileCard[-i][0])+'-'+str(pileCard[-i][1])+'.png',visible=True)
+        window['OpenPileCard'+str(i)].update(r'resource/cardpngsmalldark/'+str(pileCard[-i][0])+'-'+str(pileCard[-i][1])+'.png',visible=True) # type: ignore
     
     window = GUI.UpdateHandCardsGUI(window, 'My', myHandCard, boardCard)
     window = GUI.UpdateHandCardsGUI(window, 'Op', opHandCard, boardCard)
@@ -113,9 +113,9 @@ for rounds in range(startRound,realRounds+1):
         discardCard = game['record']['round'+str(rounds)]['turn'+str(turns)]['discardCard']
         collectCard = game['record']['round'+str(rounds)]['turn'+str(turns)]['collectCard']
         
-        window['Hint'].update('-> Click To Continue')
+        window['Hint'].update('-> Click To Continue') # type: ignore
         while True:
-            event, values = window.read()
+            event, values = window.read() # type: ignore
             if event == 'Save & Quit' or event == None:
                 window.Close()
                 sys.exit(0)
@@ -150,7 +150,7 @@ for rounds in range(startRound,realRounds+1):
         boardCard = UpdateBoardCard(boardCard, discardCard, collectCard)
         
         while True:
-            event, values = window.read()
+            event, values = window.read() # type: ignore
             if event == 'Save & Quit' or event == None:
                 window.Close()
                 sys.exit(0)        
@@ -170,7 +170,7 @@ for rounds in range(startRound,realRounds+1):
         window = GUI.UpdateYakuGUI(window, 'Op', yakuList, opRoundPts)
         
         while True:
-            event, values = window.read()
+            event, values = window.read() # type: ignore
             if event == 'Save & Quit' or event == None:
                 window.Close()
                 sys.exit(0)        
@@ -184,10 +184,10 @@ for rounds in range(startRound,realRounds+1):
         # GUI show pile card
         window = GUI.updatePileCardGUI(window, drawCard)
         window = GUI.updateBoardCardsHighlightGUI(window, boardCard, drawCard)
-        window['OpenPileCard'+str(turns)].update(r'resource/cardpngsmall/null.png')
+        window['OpenPileCard'+str(turns)].update(r'resource/cardpngsmall/null.png') # type: ignore
         
         while True:
-            event, values = window.read()
+            event, values = window.read() # type: ignore
             if event == 'Save & Quit' or event == None:
                 window.Close()
                 sys.exit(0)        

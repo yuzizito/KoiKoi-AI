@@ -59,7 +59,7 @@ class Agent():
         
         # 1. GPU上での純粋な forward 時間を計測
         t1 = time.perf_counter()
-        with torch.inference_mode(), torch.amp.autocast('cuda', dtype=torch.bfloat16):
+        with torch.inference_mode(), torch.autocast(device_type='cuda', dtype=torch.bfloat16):
             output_tensor = self.model[state](feature_gpu)
         self.t_forward += (time.perf_counter() - t1)
         
@@ -88,7 +88,7 @@ class Agent():
         
         # 2. GPU上での純粋な一括 forward（JITモデルが呼ばれます）
         t1 = time.perf_counter()
-        with torch.inference_mode(), torch.amp.autocast('cuda', dtype=torch.bfloat16):
+        with torch.inference_mode(), torch.autocast(device_type='cuda', dtype=torch.bfloat16):
             output_tensor = self.model[state](feature_gpu)
         self.t_forward += (time.perf_counter() - t1)
         
@@ -250,7 +250,7 @@ class AgentForTest():
         """【単発推論用】"""
         # 1. GPU上での純粋な forward 時間を計測
         t1 = time.perf_counter()
-        with torch.inference_mode(), torch.amp.autocast('cuda', dtype=torch.bfloat16):
+        with torch.inference_mode(), torch.autocast(device_type='cuda', dtype=torch.bfloat16):
             output_tensor = self.model[state](feature_gpu)
         self.t_forward += (time.perf_counter() - t1)
         

@@ -140,7 +140,7 @@ def draw_attn_bipartite(input_words, output_words, attentions, threshold, action
     show_label=False
     if show_label:
         nx.draw_networkx_labels(G, pos)
-    edges.cmap = color_map
+    edges.cmap = color_map # type: ignore
 
     return
 
