@@ -1108,6 +1108,7 @@ public:
 
             // 修正点: 現在のポテンシャルから、最終結果（割引済み）への差分を報酬とする
             float pbrs_reward = (mc_return - current_potential) * 10.0f;
+        //    float pbrs_reward = mc_return * 10.0f; # 最終結果だけの評価
             
             // 削除してしまっていた変数の定義を復元
             int t16_limit = std::max<int>(1, std::min<int>(16, slot.snap.turn_16));
@@ -1183,9 +1184,8 @@ public:
                     }
 
                     // 4. GPU推論はただ1つのスレッドがまとめて担当！
-                    torch::Tensor f_gpu = feat_tensor[type].slice(0, 0, n)
-                                            .to(torch::kBFloat16)
-                                            .to(device, /*non_blocking=*/true);
+                //    torch::Tensor f_gpu = feat_tensor[type].slice(0, 0, n).to(device, true).to(torch::kBFloat16);
+                    torch::Tensor f_gpu = feat_tensor[type].slice(0, 0, n).to(device, true).to(torch::kFloat32);
                     
                     // GPUにはモデルの forward のみを任せる
                     torch::Tensor output;
@@ -1195,7 +1195,7 @@ public:
 
                     // ★ CPU負荷削減の要: 推論結果を直ちにCPU(Float32)に持ってくる
                     // これ以降の細かい分岐や乱数生成は、GPUカーネルを起動するよりCPUで行った方が圧倒的に速い
-                    torch::Tensor output_cpu = output.to(torch::kFloat32).cpu();
+                    torch::Tensor output_cpu = output.cpu();
                     float* out_ptr = output_cpu.data_ptr<float>();
                     bool* mask_ptr = mask_tensor[type].data_ptr<bool>(); // すでにPinnedメモリ上にある
 
@@ -1320,71 +1320,88 @@ public:
         float total_loss = 0.0f;
         int num_batches = 0;
 
-        // ★ 通信効率化の要: ダブルバッファリング
-        // バッファを2セット用意し、CPUの構築とGPUの計算を完全に並行稼働（オーバーラップ）させる
+        // ★ VRAMスワップ撲滅の要：マイクロバッチ化
+        // 4096をそのままGPUに送るのではなく、512ずつに分割して処理・累積します
+        int64_t micro_batch_size = 1024; 
+        
         auto opt_pinned = torch::TensorOptions().dtype(torch::kFloat32).pinned_memory(true);
+        
+        // ★ Pinned Memory のサイズも 1/8 に激減し、メインメモリ・共有VRAMの占有が消滅します
         torch::Tensor batch_states[2] = {
-            torch::empty({batch_size, rows, cols}, opt_pinned),
-            torch::empty({batch_size, rows, cols}, opt_pinned)
+            torch::empty({micro_batch_size, rows, cols}, opt_pinned),
+            torch::empty({micro_batch_size, rows, cols}, opt_pinned)
         };
         torch::Tensor batch_rewards[2] = {
-            torch::empty({batch_size}, opt_pinned),
-            torch::empty({batch_size}, opt_pinned)
+            torch::empty({micro_batch_size}, opt_pinned),
+            torch::empty({micro_batch_size}, opt_pinned)
         };
         
         const float* src_states_ptr = states.data_ptr<float>();
         const float* src_rewards_ptr = rewards.data_ptr<float>();
 
         py::gil_scoped_release release;
-        int buf_idx = 0; // バッファの切り替え用インデックス
+        int buf_idx = 0;
 
         for (int64_t i = 0; i < num_samples; i += batch_size) {
             int64_t current_batch_size = std::min(static_cast<int64_t>(batch_size), num_samples - i);
+            optimizer->zero_grad();
             
-            float* dst_states_ptr = batch_states[buf_idx].data_ptr<float>();
-            float* dst_rewards_ptr = batch_rewards[buf_idx].data_ptr<float>();
+            float batch_loss = 0.0f;
 
-            // CPU 側での高速なミニバッチ組み立て
-            for (int64_t b = 0; b < current_batch_size; ++b) {
-                int64_t src_idx = idx_ptr[i + b];
-                std::memcpy(dst_states_ptr + b * rows * cols, 
-                            src_states_ptr + src_idx * rows * cols, 
-                            rows * cols * sizeof(float));
-                dst_rewards_ptr[b] = src_rewards_ptr[src_idx];
+            // 巨大なバッチをマイクロバッチに分割してループ
+            for (int64_t j = 0; j < current_batch_size; j += micro_batch_size) {
+                int64_t m_size = std::min(micro_batch_size, current_batch_size - j);
+                
+                float* dst_states_ptr = batch_states[buf_idx].data_ptr<float>();
+                float* dst_rewards_ptr = batch_rewards[buf_idx].data_ptr<float>();
+
+                for (int64_t b = 0; b < m_size; ++b) {
+                    int64_t src_idx = idx_ptr[i + j + b];
+                    std::memcpy(dst_states_ptr + b * rows * cols, 
+                                src_states_ptr + src_idx * rows * cols, 
+                                rows * cols * sizeof(float));
+                    dst_rewards_ptr[b] = src_rewards_ptr[src_idx];
+                }
+
+                auto state_gpu = batch_states[buf_idx].slice(0, 0, m_size)
+                                             .to(torch::kFloat32)
+                                             .to(device, /*non_blocking=*/true);
+
+            //    auto state_gpu = batch_states[buf_idx].slice(0, 0, m_size)
+            //                                 .to(torch::kBFloat16)
+            //                                 .to(device, /*non_blocking=*/true);
+                                             
+                auto reward_gpu = batch_rewards[buf_idx].slice(0, 0, m_size)
+                                               .to(device, /*non_blocking=*/true);
+
+                std::vector<torch::jit::IValue> inputs;
+                inputs.push_back(state_gpu);
+                
+                torch::Tensor q_values = model.forward(inputs).toTensor().view({-1});
+                torch::Tensor reward_flat = reward_gpu.view({-1});
+                
+                auto loss = torch::nn::functional::smooth_l1_loss(
+                    q_values,
+                    reward_flat, 
+                    torch::nn::functional::SmoothL1LossFuncOptions().beta(30.0)
+                );
+
+                // 全体バッチに対するこのマイクロバッチの割合を計算して勾配をスケール
+                // （数学的に 4096を一括処理したのと全く同じ更新量になります）
+                float scale = static_cast<float>(m_size) / current_batch_size;
+                auto scaled_loss = loss * scale;
+                
+                // backward() を呼ぶと、計算が終わった不要な中間データが即座にVRAMから解放されます
+                scaled_loss.backward();
+
+                batch_loss += loss.item<float>() * scale;
+                buf_idx = 1 - buf_idx; // ダブルバッファの切り替え
             }
 
-            optimizer->zero_grad();
-
-            // ★ 通信効率化の要: PCIe転送量の半減
-            // to(device) する「前」に to(torch::kBFloat16) を呼び、
-            // CPU側で2バイトに圧縮してからPCIeバスを通す。
-            auto state_gpu = batch_states[buf_idx].slice(0, 0, current_batch_size)
-                                         .to(torch::kBFloat16)
-                                         .to(device, /*non_blocking=*/true);
-                                         
-            auto reward_gpu = batch_rewards[buf_idx].slice(0, 0, current_batch_size)
-                                           .to(device, /*non_blocking=*/true);
-
-            std::vector<torch::jit::IValue> inputs;
-            inputs.push_back(state_gpu);
-            
-            torch::Tensor q_values = model.forward(inputs).toTensor().view({-1});
-            torch::Tensor reward_flat = reward_gpu.view({-1});
-            
-            auto loss = torch::nn::functional::smooth_l1_loss(
-                q_values.to(torch::kFloat32), 
-                reward_flat, 
-                torch::nn::functional::SmoothL1LossFuncOptions().beta(30.0)
-            );
-
-            loss.backward();
+            // マイクロバッチ全ての累積が終わってから1回だけ重みを更新
             optimizer->step();
-
-            total_loss += loss.item<float>();
+            total_loss += batch_loss;
             num_batches++;
-            
-            // バッファを切り替え（0 -> 1 -> 0 -> 1...）
-            buf_idx = 1 - buf_idx;
         }
         
         return num_batches > 0 ? total_loss / num_batches : 0.0f;

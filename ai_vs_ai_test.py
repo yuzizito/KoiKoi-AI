@@ -54,7 +54,7 @@ arena = koikoilearn.Arena(
     game_state_kwargs={'player_name': ['RL', 'SL'], 'record_path': RECORD_PATH, 'save_record': True}
 )
 
-print("[RL vs SL] AI同士の対戦を開始します...")
+print("[User vs Guan] AI同士の対戦を開始します...")
 arena.multi_game_test(100)
 
-print(f"\n対戦結果 -> RL の勝利数: {arena.test_win_num[1]} / SL の勝利数: {arena.test_win_num[2]} / 引き分け: {arena.test_win_num[0]}")
+print(f"\n対戦結果 -> User の勝利数: {arena.test_win_num[1]} / Guan の勝利数: {arena.test_win_num[2]} / 引き分け: {arena.test_win_num[0]}")

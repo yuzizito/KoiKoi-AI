@@ -8,7 +8,6 @@ Created on Sun Jul  4 21:11:56 2021
 
 import random
 import numpy as np
-import time
 import torch
 import koikoigame
 
@@ -19,7 +18,7 @@ class Agent():
             'discard-pick': pick_model, 
             'draw-pick': pick_model, 
             'koikoi': koikoi_model,
-            'pick': pick_model  # <--- 追加
+            'pick': pick_model
         }
         for key in self.model.keys():
             self.model[key].eval()
@@ -32,7 +31,7 @@ class Agent():
             'discard-pick': card_list, 
             'draw-pick': card_list, 
             'koikoi': (False, True),
-            'pick': card_list  # <--- 追加
+            'pick': card_list
         }
         
         self.random_action_prob = {'discard':random_action_prob[0],
@@ -41,59 +40,88 @@ class Agent():
                                    'draw-pick':random_action_prob[2],
                                    'koikoi':random_action_prob[3]}
 
-        # 計測タイマー
-        self.t_feat_gen = 0.0     # CPU上での特徴量組み立て時間
-        self.t_cpu_to_gpu = 0.0   # CPUからGPUへのテンソル転送時間
-        self.t_forward = 0.0      # GPU上での純粋なモデル順伝播時間
-        self.t_post_proc = 0.0    # GPU上でのマスク処理・argmax・.item()引き戻し時間
-
     def _move_to_gpu(self, feature_cpu):
-        t_start = time.perf_counter()
         feature_gpu = feature_cpu.to('cuda:0', non_blocking=True)
-        self.t_cpu_to_gpu += (time.perf_counter() - t_start)
         return feature_gpu
 
     def __predict(self, state, feature_gpu, mask):
         """【単発推論用】"""
         device = feature_gpu.device
         
-        # 1. GPU上での純粋な forward 時間を計測
-        t1 = time.perf_counter()
-        with torch.inference_mode(), torch.autocast(device_type='cuda', dtype=torch.bfloat16):
+        with torch.inference_mode():
             output_tensor = self.model[state](feature_gpu)
-        self.t_forward += (time.perf_counter() - t1)
         
-        # 2. 後処理時間を計測 (マスク、argmax、.item() 以外はCPUに戻さない)
-        t2 = time.perf_counter()
         output = output_tensor.squeeze(0)
         
         mask_np = np.array(mask, dtype=np.bool_)
         mask_tensor = torch.from_numpy(mask_np).to(device, non_blocking=True)
+        
+        # --- ★ 修正: 属性の存在チェックと動的初期化を追加 ---
+#        if not hasattr(self, 'recorded_diffs'):
+#            self.recorded_diffs = []
+#        if not hasattr(self, 'recorded_stds'):
+#            self.recorded_stds = []
+            
+#        valid_q = output[mask_tensor]
+#        if valid_q.numel() > 1:  # 選択肢が2つ以上ある局面のみカウント
+#            q_max = valid_q.max().item()
+#            q_min = valid_q.min().item()
+#            self.recorded_diffs.append(q_max - q_min)
+#            self.recorded_stds.append(valid_q.std().item())
+            
+            # 2000手ごとに平均値を1行だけ出力
+#            if len(self.recorded_diffs) >= 2000:
+#                avg_diff = np.mean(self.recorded_diffs)
+#                avg_std = np.mean(self.recorded_stds)
+#                print(f">> [Q-Stats Avg per 1000 steps ({state})] Mean Diff: {avg_diff:.4f} | Mean Std: {avg_std:.4f}")
+#                self.recorded_diffs.clear()
+#                self.recorded_stds.clear()
+        # --------------------------------------------------------
+        
         min_val = torch.finfo(output.dtype).min
         output = output.masked_fill(~mask_tensor, min_val)
         
         best_index = output.argmax().item()
         action_output = self.action_dict[state][best_index]
         
-        self.t_post_proc += (time.perf_counter() - t2)
         return action_output
+    
+    def get_q_details(self, state, feature_gpu, mask):
+        """【検証用】上位3つの行動とQ値を取得する"""
+        device = feature_gpu.device
+        with torch.inference_mode():
+            output_tensor = self.model[state](feature_gpu)
+            
+        output = output_tensor.squeeze(0)
+        mask_np = np.array(mask, dtype=np.bool_)
+        mask_tensor = torch.from_numpy(mask_np).to(device, non_blocking=True)
+        
+        min_val = torch.finfo(output.dtype).min
+        output = output.masked_fill(~mask_tensor, min_val)
+        
+        # Top 3を取得 (合法手が3つ未満の場合はその数だけ)
+        valid_count = mask_tensor.sum().item()
+        k = min(3, valid_count)
+        topk_vals, topk_indices = torch.topk(output, k)
+        
+        details = []
+        for i in range(k):
+            idx = topk_indices[i].item()
+            val = topk_vals[i].item()
+            action = self.action_dict[state][idx]
+            details.append({"action": action, "q": val})
+            
+        return details
     
     def predict_batch(self, state, features_cpu, masks_np):
         if features_cpu is None or features_cpu.size(0) == 0:
             return []
             
-        # 1. 結合されたバッチを 1回 でGPUへ転送
         feature_gpu = self._move_to_gpu(features_cpu)
         device = feature_gpu.device
         
-        # 2. GPU上での純粋な一括 forward（JITモデルが呼ばれます）
-        t1 = time.perf_counter()
-        with torch.inference_mode(), torch.autocast(device_type='cuda', dtype=torch.bfloat16):
+        with torch.inference_mode():
             output_tensor = self.model[state](feature_gpu)
-        self.t_forward += (time.perf_counter() - t1)
-        
-        # 3. GPU完結型のバッチ後処理
-        t2 = time.perf_counter()
         
         masks_tensor = torch.from_numpy(masks_np).to(device, non_blocking=True)
         
@@ -104,7 +132,6 @@ class Agent():
         best_indices_cpu = best_indices.cpu().tolist()
         actions = [self.action_dict[state][idx] for idx in best_indices_cpu]
             
-        self.t_post_proc += (time.perf_counter() - t2)
         return actions
     
     def auto_action(self, game_state, use_mask=True, for_test=False):
@@ -133,9 +160,7 @@ class Agent():
             state = game_state.round_state.state
             
             # 【責務1】特徴量の作成（完全にCPU上の処理）
-            t0 = time.perf_counter()
             feature_cpu = game_state.feature_tensor.unsqueeze(0)
-            self.t_feat_gen += (time.perf_counter() - t0)
             
             # 【責務2】GPUへの転送
             feature_gpu = self._move_to_gpu(feature_cpu)
@@ -232,33 +257,19 @@ class AgentForTest():
                                    'draw-pick':random_action_prob[2],
                                    'koikoi':random_action_prob[3]}
         
-        # ★ 精密計測用のタイマー変数を追加
-        self.t_feat_gen = 0.0
-        self.t_forward = 0.0
-        self.t_post_proc = 0.0
         self.last_feature = {'discard': None, 'discard-pick': None, 'draw-pick': None, 'koikoi': None}
 
     def _move_to_gpu(self, feature_cpu):
-        # テンソルを非同期でGPUへ転送するメソッドをAgentForTestにも追加
-        t_start = time.perf_counter()
         feature_gpu = feature_cpu.to('cuda:0', non_blocking=True)
-        # 既存のエージェントと同様にタイマー合算の互換性を維持する場合は下記を有効に
-        # self.t_cpu_to_gpu = getattr(self, 't_cpu_to_gpu', 0.0) + (time.perf_counter() - t_start)
         return feature_gpu
 
     def __predict(self, state, feature_gpu, game_state):
         """【単発推論用】"""
-        # 1. GPU上での純粋な forward 時間を計測
-        t1 = time.perf_counter()
-        with torch.inference_mode(), torch.autocast(device_type='cuda', dtype=torch.bfloat16):
+        with torch.inference_mode():
             output_tensor = self.model[state](feature_gpu)
-        self.t_forward += (time.perf_counter() - t1)
         
-        # 2. C++側での後処理時間を計測
-        t2 = time.perf_counter()
-        
-        # GPUのテンソルをCPUに戻し、NumPyのfloat32配列にする
-        logits_np = output_tensor.squeeze(0).float().cpu().numpy()
+        # GPUのテンソルをCPUに戻す
+        logits_np = output_tensor.squeeze(0).cpu().numpy()
         
         # state_type を判定
         if state == 'discard':
@@ -279,7 +290,6 @@ class AgentForTest():
         else:
             action_output = best_index
             
-        self.t_post_proc += (time.perf_counter() - t2)
         return action_output
     
     def auto_action(self, game_state, use_mask=True, for_test=True):
@@ -306,10 +316,7 @@ class AgentForTest():
         if game_state.round_state.wait_action == True:
             state = game_state.round_state.state
             
-            t0 = time.perf_counter()
             feature_cpu = game_state.feature_tensor.unsqueeze(0)
-            self.t_feat_gen += (time.perf_counter() - t0)
-            
             feature_gpu = self._move_to_gpu(feature_cpu)
             
             # ★ 変更: maskの取得をなくし、game_stateをそのまま渡す

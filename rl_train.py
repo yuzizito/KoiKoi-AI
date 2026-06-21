@@ -2,7 +2,6 @@ import torch.nn.modules.linear as my_linear
 setattr(my_linear, '_LinearWithBias', my_linear.Linear)
 
 import torch
-torch.set_float32_matmul_precision('high')
 import numpy as np
 import random
 from collections import namedtuple
@@ -22,8 +21,7 @@ from koikoinet2L import DiscardModel, PickModel, KoiKoiModel, TargetQNet
 
 # --- 環境設定・スレッド制御 ---
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
-omp_threads = max(1, multiprocessing.cpu_count() // 2)
-os.environ['OMP_NUM_THREADS'] = str(omp_threads + 3)
+os.environ['OMP_NUM_THREADS'] = '8'
 os.environ['MKL_NUM_THREADS'] = '1'
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 torch.set_num_threads(1)
@@ -32,7 +30,7 @@ import torch.nn.modules.linear as my_linear
 # --- 定数定義（ファイル先頭へ集約） ---
 LOG_PATH = 'log_rl.txt'
 RL_FOLDER = 'model_rl'
-START_LOOP_NUM = 1
+START_LOOP_NUM = 0
 LEARNING_RATE = 1e-4
 BATCH_SIZE = 4096
 CPU_COUNT = 2
@@ -41,9 +39,9 @@ N_CORE_GAMES = LOOP_GAMES // CPU_COUNT
 CAP_D = LOOP_GAMES // CPU_COUNT * 72
 CAP_P = LOOP_GAMES // CPU_COUNT * 12
 CAP_K = LOOP_GAMES // CPU_COUNT * 8
-N_LOOP_ACTION_NET_UPDATE = 20
-N_LOOP_ARENA_TEST = 40
-ARENA_WORKERS = 3
+N_LOOP_ACTION_NET_UPDATE = 10
+N_LOOP_ARENA_TEST = 50
+ARENA_WORKERS = 4
 
 SAVED_MODEL_PATH = {
     'discard': f'{RL_FOLDER}/discard_state.pt', 
@@ -66,6 +64,26 @@ win_prob_mat = None
 
 TraceSlot = namedtuple('TraceSlot', ['key','state','action'])
 Transition = namedtuple('Transition', ['state','action','reward'])
+
+
+# --------------------------------------------------------------　検証用　要削除
+
+def get_card_domain_info(card_idx):
+    """カードインデックスからドメイン情報(月と札種別)を返す"""
+    suit = card_idx // 4 + 1
+    brights = {0, 8, 28, 40, 44}
+    seeds = {4, 12, 16, 20, 24, 29, 32, 36, 41}
+    ribbons = {1, 5, 9, 13, 17, 21, 25, 33, 37, 42}
+    
+    if card_idx in brights: type_str = "BRIGHTS"
+    elif card_idx in seeds: type_str = "SEEDS  "
+    elif card_idx in ribbons: type_str = "RIBBONS"
+    else: type_str = "WASTE  "
+    
+    return f"{suit:02d}M-{type_str}"
+
+# --------------------------------------------------------------
+
 
 # --- 共通ユーティリティ関数 ---
 def time_str():
@@ -150,9 +168,9 @@ def init_worker():
     master_discard_net, master_pick_net, master_koikoi_net = get_master_net()
     
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    master_discard_net = master_discard_net.to(device).bfloat16().eval()
-    master_pick_net = master_pick_net.to(device).bfloat16().eval()
-    master_koikoi_net = master_koikoi_net.to(device).bfloat16().eval()
+    master_discard_net = master_discard_net.to(device).float().eval()
+    master_pick_net = master_pick_net.to(device).float().eval()
+    master_koikoi_net = master_koikoi_net.to(device).float().eval()
     
     master_agent = koikoilearn.Agent(master_discard_net, master_pick_net, master_koikoi_net)
 
@@ -188,7 +206,7 @@ def test_result_analysis(result,loop):
     win_rate = win_num / np.sum(win_num)
     score = win_rate[0]*0.5 + win_rate[1]
     point = np.mean(result[:,3])
-    print_log(f'■■■  arena   win {int(win_num[1])}   lose {int(win_num[2])}  draw {int(win_num[0])}   score {point:.1f}pt  ■■■', LOG_PATH)
+    print_log(f'■■■  arena {loop:05}   win {int(win_num[1])}   lose {int(win_num[2])}  draw {int(win_num[0])}   score {point:.1f}pt  ■■■', LOG_PATH)
     return score
 
 if __name__ == '__main__':
@@ -204,6 +222,39 @@ if __name__ == '__main__':
     master_discard_net, master_pick_net, master_koikoi_net = get_master_net()
     master_agent = koikoilearn.Agent(master_discard_net, master_pick_net, master_koikoi_net)
 
+
+    # === ①起動時: 固定の100局面（discard）を抽出・保存（修正版） ===
+    print_log(">>> 固定局面セット（100局面）を生成中...", LOG_PATH)
+    fixed_discard_states = []
+    dummy_game = koikoigame.KoiKoiGameState()
+    while len(fixed_discard_states) < 100:
+        if dummy_game.game_over:
+            dummy_game = koikoigame.KoiKoiGameState()
+            continue
+        if dummy_game.round_state.round_over:
+            dummy_game.new_round()
+            continue
+            
+        # アクション待ち状態の時だけ、かつ 'discard' の時だけ局面を記録
+        if dummy_game.round_state.wait_action:
+            if dummy_game.round_state.state == 'discard':
+                feat_cpu = dummy_game.feature_tensor.unsqueeze(0).clone()
+                mask_np = dummy_game.round_state.action_mask.copy()
+                fixed_discard_states.append((feat_cpu, mask_np))
+            
+            # 有効なランダム行動を取得
+            action = master_agent.auto_random_action(dummy_game)
+        else:
+            # アクション待ちでないフェーズ（山札処理など）は None で進める
+            action = None
+            
+        # 常にステップを進める
+        dummy_game.round_state.step(action)
+            
+    prev_fixed_actions = []
+    # ======================================================================
+
+
     # ==========================================
     # 1. モデルの準備 (ValueNetとActionNetの両方を保持)
     # ==========================================
@@ -213,16 +264,16 @@ if __name__ == '__main__':
     value_net['pick'], action_net['pick'] = get_value_action_net(f'{RL_FOLDER}/pick_state.pt', TargetQNet().cpu(), PickModel)
     value_net['koikoi'], action_net['koikoi'] = get_value_action_net(f'{RL_FOLDER}/koikoi_state.pt', TargetQNet().cpu(), KoiKoiModel)
     
-    example_input_normal = torch.zeros((1, 300, 48), dtype=torch.bfloat16, device=DEVICE)
-    example_input_koikoi = torch.zeros((1, 300, 50), dtype=torch.bfloat16, device=DEVICE)
+    example_input_normal = torch.zeros((1, 300, 48), dtype=torch.float32, device=DEVICE)
+    example_input_koikoi = torch.zeros((1, 300, 50), dtype=torch.float32, device=DEVICE) 
 
     # ==========================================
     # 2. 【追加】C++エンジンに渡すための一時JITモデルの初期エクスポート
     # ==========================================
     def export_temporary_jit_models():
         for key in ['discard', 'pick', 'koikoi']:
-            action_net[key].to(DEVICE).bfloat16().eval()
-            value_net[key].to(DEVICE).bfloat16().train()
+            action_net[key].to(DEVICE).float().eval()
+            value_net[key].to(DEVICE).float().train()
             
         with torch.inference_mode():
             torch.jit.trace(action_net['discard'], example_input_normal, check_trace=False).save("traced_discard.pt") # type: ignore
@@ -244,7 +295,7 @@ if __name__ == '__main__':
     # ==========================================
     
     for key in ['discard', 'pick', 'koikoi']:
-        value_net[key] = value_net[key].to(device).bfloat16().train()
+        value_net[key] = value_net[key].to(device).float().train()
 
     traced_val_discard = torch.jit.trace(value_net['discard'], example_input_normal, check_trace=False)
     traced_val_pick    = torch.jit.trace(value_net['pick'], example_input_normal, check_trace=False)
@@ -324,18 +375,76 @@ if __name__ == '__main__':
         
         elapsed_time = time.perf_counter() - loop_start_time
         
-        print_log(f'loop {loop:05}  time {elapsed_time:.1f}s  sample:loss discard {s_d:05}:{l_d:.2f}  pick {s_p:05}:{l_p:.2f}  koikoi {s_k:05}:{l_k:.2f}', LOG_PATH)
+        print_log(f'loop {loop:05}  time {elapsed_time:02.1f}s    sample:loss  discard {s_d:05}:{l_d:.2f}  pick {s_p:05}:{l_p:.2f}  koikoi {s_k:05}:{l_k:.2f}', LOG_PATH)
         
         # 5. アリーナ評価
         if loop % N_LOOP_ARENA_TEST == 0:
             
             for key in ['discard', 'pick', 'koikoi']:
-                # アリーナ評価の時「だけ」、Python側のNativeモデルに重みを同期するためファイルを介す
                 trainer[key].save_model(f"traced_{key}.pt")
                 updated_jit = torch.jit.load(f"traced_{key}.pt", map_location='cpu')
                 action_net[key].load_state_dict(updated_jit.state_dict())
             
             test_agent = koikoilearn.Agent(action_net['discard'], action_net['pick'], action_net['koikoi'])
+            
+
+            # === ★検証用ログ出力の開始 ===
+            for key in test_agent.model.keys():
+                test_agent.model[key] = test_agent.model[key].to(DEVICE).float()
+
+            current_top1_actions = []
+            q_diffs = []
+            
+            print_log(f"\n--- [Loop {loop:05}] Action Analysis ---", LOG_PATH)
+            
+            for i, (feat_cpu, mask_np) in enumerate(fixed_discard_states):
+                feat_gpu = test_agent._move_to_gpu(feat_cpu)
+                q_details = test_agent.get_q_details('discard', feat_gpu, mask_np)
+                
+                top1_action = q_details[0]['action']
+                top1_q = q_details[0]['q']
+                current_top1_actions.append(top1_action)
+                
+                if len(q_details) > 1:
+                    top2_q = q_details[1]['q']
+                    diff = top1_q - top2_q
+                else:
+                    diff = 0.0
+                q_diffs.append(diff)
+                
+                # 代表局面(最初の15局)の詳細出力
+                if i < 15:
+                    log_str = f" 局{i+1:02d}: "
+                    for rank, d in enumerate(q_details):
+                        act = d['action']
+                        q = d['q']
+                        info = get_card_domain_info(act)
+                        log_str += f"[T{rank+1}] 札{act:02d} {info} (Q={q:6.3f}) | "
+                    if len(q_details) > 1:
+                        log_str += f"差={diff:6.3f}"
+                    print_log(log_str, LOG_PATH)
+            
+            # 統計情報の出力
+            if len(prev_fixed_actions) > 0:
+                changed = sum(1 for a, b in zip(current_top1_actions, prev_fixed_actions) if a != b)
+                churn_rate = (changed / len(fixed_discard_states)) * 100
+                print_log(f"★ Policy Churn (行動変化率): {churn_rate:.1f}%", LOG_PATH)
+            else:
+                print_log("★ Policy Churn: 初期記録のため算出なし", LOG_PATH)
+                
+            prev_fixed_actions = current_top1_actions
+            
+            if len(q_diffs) > 0:
+                mean_d = np.mean(q_diffs)
+                med_d = np.median(q_diffs)
+                p90_d = np.percentile(q_diffs, 90)
+                max_d = np.max(q_diffs)
+                print_log(f"★ Top1-Top2差分: Mean={mean_d:.4f} | Median={med_d:.4f} | P90={p90_d:.4f} | Max={max_d:.4f}", LOG_PATH)
+            
+            for key in test_agent.model.keys():
+                test_agent.model[key] = test_agent.model[key].cpu()
+            # ============================================
+            
             
             result = []
             pool = mp.Pool(ARENA_WORKERS, initializer=init_worker)
