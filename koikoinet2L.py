@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sat Sep 11 10:34:35 2021
-
-@author: shguan3
-"""
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -28,14 +21,11 @@ class KoiKoiEncoderBlock(nn.Module):
         
     def forward(self, x): 
         x = self.f2(F.relu(self.f1(x)))
-
         x = x.permute(0, 2, 1)
         x = F.layer_norm(x, [x.size(-1)]) 
-
         x = self.attn_encoder(x)
-        x = x.permute(0, 2, 1)  # 元の (BATCH, nEmb, length) に戻す
+        x = x.permute(0, 2, 1)
         return x
-
 
 class DiscardModel(nn.Module):
     def __init__(self):
@@ -48,7 +38,6 @@ class DiscardModel(nn.Module):
         x = self.out(x).squeeze(1)
         return x
 
-
 class PickModel(nn.Module):
     def __init__(self):
         super(PickModel, self).__init__()
@@ -59,7 +48,6 @@ class PickModel(nn.Module):
         x = self.encoder_block(x)
         x = self.out(x).squeeze(1)
         return x
-    
 
 class KoiKoiModel(nn.Module):
     def __init__(self):
@@ -71,7 +59,6 @@ class KoiKoiModel(nn.Module):
         x = self.encoder_block(x)
         x = self.out(x[:, :, [0, 1]]).squeeze(1)
         return x
-
 
 class TargetQNet(nn.Module):
     def __init__(self):

@@ -1,60 +1,29 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-import random
 import json
 import time
 import numpy as np
 import torch
+import random
 import koikoicore
 
-class DefaultVar():
-    DEFAULT_ROUND_TOTAL = 8
-    DEFAULT_INIT_POINT = 30
+MAX_ROUND = 6  # 1〜8の整数で設定可能
 
-class KoiKoiRoundState():
-    _cached_card_key = None
-    _card_suit_array = None
-    
-    @classmethod
-    def _init_caches(cls):
-        if cls._cached_card_key is None:
-            card_dict = {
-                'Crane':{(1,1)}, 'Curtain':{(3,1)}, 'Moon':{(8,1)},
-                'Rainman':{(11,1)}, 'Phoenix':{(12,1)}, 'Sake':{(9,1)},
-                'BoarDeerButterfly':{(6,1),(7,1),(10,1)}, 'Seed':{(2,1),(4,1),(5,1),(6,1),(7,1),(8,2),(9,1),(10,1),(11,2)},
-                'RedRibbon':{(1,2),(2,2),(3,2)}, 'BlueRibbon':{(6,2),(9,2),(10,2)},
-                'RedAndBlue':{(1,2),(2,2),(3,2),(6,2),(9,2),(10,2)}, 'Ribbon':{(1,2),(2,2),(3,2),(4,2),(5,2),(6,2),(7,2),(9,2),(10,2),(11,3)}, 
-                'Dross':{(1,3),(1,4),(2,3),(2,4),(3,3),(3,4),(4,3),(4,4),(5,3),(5,4),(6,3),(6,4),(7,3),(7,4),(8,3),(8,4),(9,3),(9,4),(10,3),(10,4),(11,4),(12,2),(12,3),(12,4),(9,1)}
-            }
-            cls._cached_card_key = np.array([
-                koikoicore.cards_to_multi_hot_np([list(c) for c in card_set]) for _, card_set in card_dict.items()
-            ], dtype=np.float32)
-            
-        if cls._card_suit_array is None:
-            arr = np.zeros([12, 48], dtype=np.float32)
-            for ii in range(12):
-                arr[ii, 4*ii:4*ii+4] = 1.0
-            cls._card_suit_array = arr
-
+class KoiKoiRoundState:
     def __init__(self, dealer=None):
-        self.hand = {1:[], 2:[]}
-        self.pile = {1:[], 2:[]}
+        self.hand = {1: [], 2: []}
+        self.pile = {1: [], 2: []}
         self.field_slot = []
         self.stock = []
         self.show = []
         self.collect = []
         self.turn_16 = 1
-        self.dealer = random.randint(1,2) if dealer is None else dealer
-        self.koikoi = {1:[0]*8, 2:[0]*8}
+        self.dealer = random.randint(1, 2) if dealer is None else dealer
+        self.koikoi = {1: [0]*8, 2: [0]*8}
         self.winner = None
         self.exhausted = False
         self.log = {}
         self.turn_point = 0
         self.state = 'init'
         self.wait_action = False        
-        
-        # 型チェッカーおよびランタイム用のログバッファ初期化
-        self._card_log_buf = np.zeros((17, 8, 48), dtype=np.float32)
         
         self.cpp_state = koikoicore.KoiKoiStateManager()
         self.__deal_card()
@@ -76,18 +45,18 @@ class KoiKoiRoundState():
     
     @property
     def field(self):
-        return sorted([slot for slot in self.field_slot if slot != -1])
+        return sorted(slot for slot in self.field_slot if slot != -1)
     
     @property
     def pairing_card(self):
         if not self.show:
             return []
-        target_suit = self.show[0] // 4
+        target_suit = self.show[0] // 4 # type: ignore
         return [card for card in self.field if card // 4 == target_suit]
     
     @property
     def koikoi_num(self):
-        return {1:sum(self.koikoi[1]), 2:sum(self.koikoi[2])}
+        return {1: sum(self.koikoi[1]), 2: sum(self.koikoi[2])}
     
     @property
     def round_over(self):
@@ -96,39 +65,36 @@ class KoiKoiRoundState():
     @property
     def round_point(self):
         if self.winner is None:
-            return {1:None, 2:None}
-        elif self.exhausted:
-            return {1:1, 2:-1} if self.dealer == 1 else {1:-1, 2:1}
-        elif self.winner == 1:
-            return {1:self.yaku_point(1), 2:-self.yaku_point(1)}
-        else:
-            return {1:-self.yaku_point(2), 2:self.yaku_point(2)}
+            return {1: None, 2: None}
+        if self.exhausted:
+            return {1: 1, 2: -1} if self.dealer == 1 else {1: -1, 2: 1}
+        
+        pts = self.yaku_point(self.winner)
+        return {1: pts, 2: -pts} if self.winner == 1 else {1: -pts, 2: pts}
     
     def __deal_card(self):
         while True:
             cards = list(range(48))
             random.shuffle(cards)
             
-            self.hand[1] = sorted(cards[0:8])
+            self.hand[1] = sorted(cards[:8])
             self.hand[2] = sorted(cards[8:16])
             self.field_slot = sorted(cards[16:24]) + [-1] * 10
             self.stock = cards[24:]
             
             flag = True
-            for suit_idx in range(12):
-                counts = [
-                    sum(1 for c in self.hand[1] if c // 4 == suit_idx),
-                    sum(1 for c in self.hand[2] if c // 4 == suit_idx),
-                    sum(1 for c in self.field if c // 4 == suit_idx)
-                ]
-                if 4 in counts:
-                    flag = False        
+            for suit in range(12):
+                c1 = sum(1 for c in self.hand[1] if c // 4 == suit)
+                c2 = sum(1 for c in self.hand[2] if c // 4 == suit)
+                cf = sum(1 for c in self.field if c // 4 == suit)
+                if c1 == 4 or c2 == 4 or cf == 4:
+                    flag = False
+                    break
             if flag:
                 break
         
         self.log['basic'] = {'initBoard': self.field.copy()}
         
-        # C++のステートマネージャー初期化
         h1 = sum(1 << c for c in self.hand[1])
         h2 = sum(1 << c for c in self.hand[2])
         f = sum(1 << c for c in self.field_slot if c != -1)
@@ -139,13 +105,14 @@ class KoiKoiRoundState():
         self.wait_action = True
     
     def __collect_card(self, card):
-        if len(self.pairing_card) == 0:
+        pairs = self.pairing_card
+        if not pairs:
             self.collect = []
-            self.field_slot[self.field_slot.index(-1)] = self.show[0]
-        elif len(self.pairing_card) in [1, 3]:
-            self.collect = self.show + self.pairing_card
-            for paired_card in self.pairing_card:
-                self.field_slot[self.field_slot.index(paired_card)] = -1
+            self.field_slot[self.field_slot.index(-1)] = self.show[0] # type: ignore
+        elif len(pairs) in (1, 3):
+            self.collect = self.show + pairs
+            for pc in pairs:
+                self.field_slot[self.field_slot.index(pc)] = -1
             self.pile[self.turn_player].extend(self.collect)
         else:
             self.collect = self.show + [card]
@@ -153,83 +120,60 @@ class KoiKoiRoundState():
             self.pile[self.turn_player].extend(self.collect)
     
     def yaku_point(self, player):
-        return self.cpp_state.get_yaku_point(player, self.koikoi_num[player])
-    
-    def _to_multi_hot(self, cards):
-        arr = np.zeros(48, dtype=np.float32)
-        if cards:
-            arr[cards] = 1.0
-        return arr
+        return self.cpp_state.get_yaku_point(player, sum(self.koikoi[player]))
     
     def discard(self, card=None):        
         self.turn_point = self.yaku_point(self.turn_player)
-        ind = self.hand[self.turn_player].index(card)
-        self.show = [self.hand[self.turn_player].pop(ind)]
+        self.hand[self.turn_player].remove(card)
+        self.show = [card]
         
-        self.log[f'turn{self.turn_16}'] = {'pairCard': self.pairing_card.copy()}
+        pairs = self.pairing_card
+        self.log[f'turn{self.turn_16}'] = {'pairCard': pairs.copy()}
         
-        pair_bb = sum(1 << c for c in self.pairing_card)
-        self.cpp_state.discard(self.turn_player, card, pair_bb)
+        pair_bb = sum(1 << c for c in pairs)
+        self.cpp_state.discard(self.turn_player, card, pair_bb, self.turn_16)
 
-        idx = 0 if self.pairing_card else 1
-        self._card_log_buf[self.turn_16, idx, :] = self._to_multi_hot(self.show)
         self.state = 'discard-pick'
-        self.wait_action = len(self.pairing_card) == 2
-        return self.state
+        self.wait_action = (len(pairs) == 2)
         
     def discard_pick(self, card=None):
         self.__collect_card(card)
         
-        coll_bb = sum(1 << c for c in self.collect)
+        coll_bb = sum(1 << c for c in self.collect) # type: ignore
         field_bb = sum(1 << c for c in self.field_slot if c != -1)
-        self.cpp_state.discard_pick(self.turn_player, coll_bb, field_bb)
+        self.cpp_state.discard_pick(self.turn_player, coll_bb, field_bb, self.turn_16)
 
-        if self.collect:
-            fc = [c for c in self.collect if c != self.show[0]]
-            p_discard = self._to_multi_hot(self.log[f'turn{self.turn_16}']['pairCard'])
-            self._card_log_buf[self.turn_16, 2, :] = self._to_multi_hot(fc)
-            self._card_log_buf[self.turn_16, 3, :] = p_discard - self._to_multi_hot(fc)
-            
         self.state = 'draw'
         self.wait_action = False
-        return self.state
         
     def draw(self, card=None):
         self.show = [self.stock.pop()]
-        self.log[f'turn{self.turn_16}']['pairCard2'] = self.pairing_card.copy()
+        pairs = self.pairing_card
+        self.log[f'turn{self.turn_16}']['pairCard2'] = pairs.copy()
         
-        pair_bb = sum(1 << c for c in self.pairing_card)
-        self.cpp_state.draw(self.show[0], pair_bb)
+        pair_bb = sum(1 << c for c in pairs)
+        self.cpp_state.draw(self.show[0], pair_bb, self.turn_16)
 
-        idx = 4 if self.pairing_card else 5
-        self._card_log_buf[self.turn_16, idx, :] = self._to_multi_hot(self.show)
         self.state = 'draw-pick'
-        self.wait_action = len(self.pairing_card) == 2
-        return self.state
+        self.wait_action = (len(pairs) == 2)
         
     def draw_pick(self, card=None):
         self.__collect_card(card)
         
-        coll_bb = sum(1 << c for c in self.collect)
+        coll_bb = sum(1 << c for c in self.collect) # type: ignore
         field_bb = sum(1 << c for c in self.field_slot if c != -1)
-        self.cpp_state.draw_pick(self.turn_player, coll_bb, field_bb)
+        self.cpp_state.draw_pick(self.turn_player, coll_bb, field_bb, self.turn_16)
 
-        if self.collect:
-            fc = [c for c in self.collect if c != self.show[0]]
-            p_discard = self._to_multi_hot(self.log[f'turn{self.turn_16}']['pairCard2'])
-            self._card_log_buf[self.turn_16, 6, :] = self._to_multi_hot(fc)
-            self._card_log_buf[self.turn_16, 7, :] = p_discard - self._to_multi_hot(fc)
-            
         self.state = 'koikoi'
         self.wait_action = (self.yaku_point(self.turn_player) > self.turn_point) and (self.turn_8 < 8)
-        return self.state
     
     def claim_koikoi(self, is_koikoi=None):
         if (self.yaku_point(self.turn_player) > self.turn_point) and (self.turn_8 == 8):
             is_koikoi = False
-        self.koikoi[self.turn_player][self.turn_8-1] = int(is_koikoi==True)
+            
+        self.koikoi[self.turn_player][self.turn_8-1] = int(is_koikoi is True)
         
-        if is_koikoi == False:
+        if is_koikoi is False:
             self.state = 'round-over'
             self.wait_action = False
             self.winner = self.turn_player
@@ -242,7 +186,6 @@ class KoiKoiRoundState():
             self.turn_16 += 1
             self.state = 'discard'
             self.wait_action = True
-        return self.state
 
     def step(self, action):
         if self.state == 'discard':
@@ -260,50 +203,34 @@ class KoiKoiRoundState():
     def action_mask(self):
         if self.state == 'discard':
             state_type = 0
-        elif self.state in ['discard-pick', 'draw-pick']:
+        elif self.state in ('discard-pick', 'draw-pick'):
             state_type = 1
         else:
             state_type = 2
         return self.cpp_state.get_action_mask(state_type, self.turn_player)
     
     def yaku(self, player):
-        bb = 0
-        for c in self.pile[player]:
-            bb |= (1 << c)
-        return koikoicore.evaluate_yaku_by_bitboard(bb, self.koikoi_num[player])
+        return self.cpp_state.get_yaku_list(player, sum(self.koikoi[player]))
 
-class KoiKoiGameState():
-    _order_cache = {
-        i: np.array([x for x in range(i, 0, -1)] + [x for x in range(i + 1, 17)], dtype=np.intp)
-        for i in range(1, 17)
-    }
-    _cache_buf = None
-
-    def __init__(self, round_num=1, round_total=DefaultVar.DEFAULT_ROUND_TOTAL,
-                 init_point=[DefaultVar.DEFAULT_INIT_POINT, DefaultVar.DEFAULT_INIT_POINT],
-                 init_dealer=None, player_name=['Player1', 'Player2'], 
+class KoiKoiGameState:
+    def __init__(self, round_num=1, round_total=MAX_ROUND,
+                 init_point=(30, 30), init_dealer=None,
+                 player_name=('Player1', 'Player2'), 
                  record_path='', save_record=False):
         
         self.round_total = round_total
-        self.init_point = init_point
+        self.init_point = list(init_point)
         self.init_dealer = init_dealer        
-        self.player_name = {1:player_name[0], 2:player_name[1]}
+        self.player_name = {1: player_name[0], 2: player_name[1]}
         self.record_path = record_path
         self.save_record = save_record
         
         self.round_state = KoiKoiRoundState(dealer=self.init_dealer)
         self.round = round_num
-        self.point = {1:init_point[0], 2:init_point[1]}
+        self.point = {1: self.init_point[0], 2: self.init_point[1]}
         self.game_over = False
         self.winner = None
         self.log = {}
-        
-        if KoiKoiGameState._cache_buf is None:
-            KoiKoiRoundState._init_caches()
-            cb = np.zeros((25, 48), dtype=np.float32)
-            cb[0:13, :] = KoiKoiRoundState._cached_card_key
-            cb[13:25, :] = KoiKoiRoundState._card_suit_array
-            KoiKoiGameState._cache_buf = cb
             
         self.__init_record()
         
@@ -315,28 +242,38 @@ class KoiKoiGameState():
         
     def new_round(self):
         assert self.round_state.state == 'round-over'
-        self.point[1] += self.round_state.round_point[1]
-        self.point[2] += self.round_state.round_point[2]
+        pts = self.round_state.round_point
+        self.point[1] += pts[1]
+        self.point[2] += pts[2]
         self.__round_result_record()
         
         if self.point[1] <= 0 or self.point[2] <= 0 or self.round == self.round_total:
             self.game_over = True
-            self.winner = 1 if self.point[1] > self.point[2] else (2 if self.point[1] < self.point[2] else 0)
+            if self.point[1] > self.point[2]:
+                self.winner = 1
+            elif self.point[1] < self.point[2]:
+                self.winner = 2
+            else:
+                self.winner = 0
             self.__game_result_record()
         else:
             self.round_state.new_round()
             self.round += 1
     
     def __init_record(self):
-        self.log['info'] = {'startTime':time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime()), 
-                            'endTime':None,
-                            'player1Name':self.player_name[1],
-                            'player2Name':self.player_name[2],
-                            'player1InitPts':self.point[1], 
-                            'player2InitPts':self.point[2], 
-                            'numRound':self.round_total}
-        self.log['result'] = {'isOver':False, 'gameWinner':None, 
-                              'player1EndPts':None, "player2EndPts":None}
+        self.log['info'] = {
+            'startTime': time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime()), 
+            'endTime': None,
+            'player1Name': self.player_name[1],
+            'player2Name': self.player_name[2],
+            'player1InitPts': self.point[1], 
+            'player2InitPts': self.point[2], 
+            'numRound': self.round_total
+        }
+        self.log['result'] = {
+            'isOver': False, 'gameWinner': None, 
+            'player1EndPts': None, 'player2EndPts': None
+        }
         self.log['record'] = {}
     
     def __round_result_record(self):
@@ -352,15 +289,16 @@ class KoiKoiGameState():
         if 'Dealer' not in round_log['basic']:
             round_log['basic']['Dealer'] = self.round_state.dealer
             
-        self.log['record']['round'+str(self.round)] = round_log
+        self.log['record'][f'round{self.round}'] = round_log
     
     def __game_result_record(self):
         self.log['info']['endTime'] = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
-        self.log['result'] = {'isOver':True, 'gameWinner':self.winner,
-                              'player1EndPts':self.point[1], "player2EndPts":self.point[2]}
+        self.log['result'] = {
+            'isOver': True, 'gameWinner': self.winner,
+            'player1EndPts': self.point[1], 'player2EndPts': self.point[2]
+        }
         if self.save_record:
-            filename = self.record_path + self.log['info']['startTime'] + ' ' \
-                + self.log['info']['player1Name'] + ' vs ' + self.log['info']['player2Name'] + '.json'
+            filename = f"{self.record_path}{self.log['info']['startTime']} {self.player_name[1]} vs {self.player_name[2]}.json"
             with open(filename, 'w') as f:
                 json.dump(self.log, f)
        
@@ -378,12 +316,10 @@ class KoiKoiGameState():
             is_koikoi, 
             self.point[turn_p], self.point[idle_p],
             self.round, rs.turn_16, rs.dealer,
-            rs.koikoi_num[turn_p], rs.koikoi_num[idle_p],
+            sum(rs.koikoi[turn_p]), sum(rs.koikoi[idle_p]),
             f_turn, f_idle,
             turn_p, idle_p,
-            rs._card_log_buf,
-            KoiKoiGameState._order_cache[rs.turn_16],
-            KoiKoiGameState._cache_buf
+            MAX_ROUND
         )
     
     @property

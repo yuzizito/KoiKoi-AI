@@ -1,337 +1,146 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Jul  4 21:11:56 2021
-
-@author: guansanghai
-"""
-
 import random
-import numpy as np
 import torch
+import numpy as np
 import koikoigame
 
-class Agent():
-    def __init__(self, discard_model, pick_model, koikoi_model, random_action_prob=[0.,0.,0.,0.]):
+class Agent:
+    def __init__(self, discard_model, pick_model, koikoi_model, random_action_prob=None):
         self.model = {
             'discard': discard_model, 
             'discard-pick': pick_model, 
             'draw-pick': pick_model, 
-            'koikoi': koikoi_model,
-            'pick': pick_model
+            'koikoi': koikoi_model
         }
-        for key in self.model.keys():
-            self.model[key].eval()
+        for model in self.model.values():
+            model.eval()
 
-        # 新形式：0〜47 の1次元整数リストを生成
-        card_list = list(range(48))
-        
-        self.action_dict = {
-            'discard': card_list, 
-            'discard-pick': card_list, 
-            'draw-pick': card_list, 
-            'koikoi': (False, True),
-            'pick': card_list
+        if random_action_prob is None:
+            random_action_prob = [0.0, 0.0, 0.0, 0.0]
+            
+        self.random_action_prob = {
+            'discard': random_action_prob[0],
+            'discard-pick': random_action_prob[1],
+            'draw': 0.0,
+            'draw-pick': random_action_prob[2],
+            'koikoi': random_action_prob[3]
         }
-        
-        self.random_action_prob = {'discard':random_action_prob[0],
-                                   'discard-pick':random_action_prob[1],
-                                   'draw':0,
-                                   'draw-pick':random_action_prob[2],
-                                   'koikoi':random_action_prob[3]}
 
-    def _move_to_gpu(self, feature_cpu):
-        feature_gpu = feature_cpu.to('cuda:0', non_blocking=True)
-        return feature_gpu
-
-    def __predict(self, state, feature_gpu, mask):
-        """【単発推論用】"""
-        device = feature_gpu.device
+    def __predict(self, state, feature_cpu, game_state):
+        """モデル推論とC++バックエンドを利用した最適アクションの選択"""
+        # 動的にモデルのデバイスを取得して転送
+        device = next(self.model[state].parameters()).device
+        feature_device = feature_cpu.to(device, non_blocking=True)
         
         with torch.inference_mode():
-            output_tensor = self.model[state](feature_gpu)
+            output_tensor = self.model[state](feature_device)
         
-        output = output_tensor.squeeze(0)
-        
-        mask_np = np.array(mask, dtype=np.bool_)
-        mask_tensor = torch.from_numpy(mask_np).to(device, non_blocking=True)
-        
-        # --- ★ 修正: 属性の存在チェックと動的初期化を追加 ---
-#        if not hasattr(self, 'recorded_diffs'):
-#            self.recorded_diffs = []
-#        if not hasattr(self, 'recorded_stds'):
-#            self.recorded_stds = []
-            
-#        valid_q = output[mask_tensor]
-#        if valid_q.numel() > 1:  # 選択肢が2つ以上ある局面のみカウント
-#            q_max = valid_q.max().item()
-#            q_min = valid_q.min().item()
-#            self.recorded_diffs.append(q_max - q_min)
-#            self.recorded_stds.append(valid_q.std().item())
-            
-            # 2000手ごとに平均値を1行だけ出力
-#            if len(self.recorded_diffs) >= 2000:
-#                avg_diff = np.mean(self.recorded_diffs)
-#                avg_std = np.mean(self.recorded_stds)
-#                print(f">> [Q-Stats Avg per 1000 steps ({state})] Mean Diff: {avg_diff:.4f} | Mean Std: {avg_std:.4f}")
-#                self.recorded_diffs.clear()
-#                self.recorded_stds.clear()
-        # --------------------------------------------------------
-        
-        min_val = torch.finfo(output.dtype).min
-        output = output.masked_fill(~mask_tensor, min_val)
-        
-        best_index = output.argmax().item()
-        action_output = self.action_dict[state][best_index]
-        
-        return action_output
-    
-    def get_q_details(self, state, feature_gpu, mask):
-        """【検証用】上位3つの行動とQ値を取得する"""
-        device = feature_gpu.device
-        with torch.inference_mode():
-            output_tensor = self.model[state](feature_gpu)
-            
-        output = output_tensor.squeeze(0)
-        mask_np = np.array(mask, dtype=np.bool_)
-        mask_tensor = torch.from_numpy(mask_np).to(device, non_blocking=True)
-        
-        min_val = torch.finfo(output.dtype).min
-        output = output.masked_fill(~mask_tensor, min_val)
-        
-        # Top 3を取得 (合法手が3つ未満の場合はその数だけ)
-        valid_count = mask_tensor.sum().item()
-        k = min(3, valid_count)
-        topk_vals, topk_indices = torch.topk(output, k)
-        
-        details = []
-        for i in range(k):
-            idx = topk_indices[i].item()
-            val = topk_vals[i].item()
-            action = self.action_dict[state][idx]
-            details.append({"action": action, "q": val})
-            
-        return details
-    
-    def predict_batch(self, state, features_cpu, masks_np):
-        if features_cpu is None or features_cpu.size(0) == 0:
-            return []
-            
-        feature_gpu = self._move_to_gpu(features_cpu)
-        device = feature_gpu.device
-        
-        with torch.inference_mode():
-            output_tensor = self.model[state](feature_gpu)
-        
-        masks_tensor = torch.from_numpy(masks_np).to(device, non_blocking=True)
-        
-        min_val = torch.finfo(output_tensor.dtype).min
-        output_tensor = output_tensor.masked_fill(~masks_tensor, min_val)
-        
-        best_indices = output_tensor.argmax(dim=1)
-        best_indices_cpu = best_indices.cpu().tolist()
-        actions = [self.action_dict[state][idx] for idx in best_indices_cpu]
-            
-        return actions
-    
-    def auto_action(self, game_state, use_mask=True, for_test=False):
-        p = random.random()
-        if game_state.round_state.wait_action == False:
-            return None
-        if (for_test == True) and (game_state.round_state.state == 'koikoi'):
-            turn_player = game_state.round_state.turn_player
-            end_point = game_state.point[turn_player] \
-                + game_state.round_state.yaku_point(turn_player)
-            if game_state.round == 8 and end_point < 30:
-                return True
-            if game_state.round == 8 and end_point > 30:
-                return False
-            if end_point >= 60:
-                return False
-        if p > self.random_action_prob[game_state.round_state.state]:
-            with torch.inference_mode():
-                return self.auto_definitely_action(game_state, use_mask)
-        else:
-            return self.auto_random_action(game_state)
-    
-    def auto_definitely_action(self, game_state, use_mask=True):
-        action_output = None
-        if game_state.round_state.wait_action == True:
-            state = game_state.round_state.state
-            
-            # 【責務1】特徴量の作成（完全にCPU上の処理）
-            feature_cpu = game_state.feature_tensor.unsqueeze(0)
-            
-            # 【責務2】GPUへの転送
-            feature_gpu = self._move_to_gpu(feature_cpu)
-            
-            # 【責務3】推論の実行
-            mask = game_state.round_state.action_mask
-            action_output = self.__predict(state, feature_gpu, mask)     
-        return action_output
-    
-    def auto_random_action(self, game_state):
-        action_output = None
-        if game_state.round_state.wait_action == True:
-            state = game_state.round_state.state
-            if state == 'discard':
-                turn_player = game_state.round_state.turn_player
-                action_output = random.choice(game_state.round_state.hand[turn_player])
-            elif state in ['discard-pick', 'draw-pick']:
-                action_output = random.choice(game_state.round_state.pairing_card)
-            elif state == 'koikoi':
-                action_output = random.choice([True, False])
-        return action_output
-        
-        
-class Arena():
-    def __init__(self, agent_1, agent_2, game_state_kwargs={}):
-        self.agent_1 = agent_1
-        self.agent_2 = agent_2
-        self.game_state_kwargs = game_state_kwargs
-        
-        self.test_point = {1:[], 2:[]}
-        self.test_winner = []
-    
-    def multi_game_test(self, num_game, clear_result=True): 
-        def n_count(l,x):
-            return np.sum(np.array(l)==x)
-        if clear_result:
-            self.clear_test_result()
-        for ii in range(num_game):
-            self.__duel()
-        self.test_win_num = [n_count(self.test_winner,ii) for ii in [0,1,2]]
-        self.test_win_rate = [n/sum(self.test_win_num) for n in self.test_win_num]
-        return
-        
-    def __duel(self):
-        self.game_state = koikoigame.KoiKoiGameState(**self.game_state_kwargs)
-        while True:
-            if self.game_state.game_over == True:
-                break
-            elif self.game_state.round_state.round_over == True:
-                self.game_state.new_round()
-            else:
-                if self.game_state.round_state.turn_player == 1:
-                    action = self.agent_1.auto_action(self.game_state)
-                    self.game_state.round_state.step(action)
-                else:
-                    action = self.agent_2.auto_action(self.game_state)
-                    self.game_state.round_state.step(action)
-        self.test_point[1].append(self.game_state.point[1])
-        self.test_point[2].append(self.game_state.point[2])
-        self.test_winner.append(self.game_state.winner)
-        return
-    
-    def test_result_str(self):
-        assert len(self.test_winner) > 0
-        win_num = self.test_win_num
-        win_rate = self.test_win_rate
-        s = f'{sum(win_num)} games tested, '
-        s += f'{win_num[1]} wins, {win_num[2]} loses, {win_num[0]} draws '
-        s += f'({win_rate[1]:.2f}, {win_rate[2]:.2f}, {win_rate[0]:.2f}), '
-        s += f'{np.mean(self.test_point[1]):.1f} points'
-        return s
-                    
-    def clear_test_result(self):
-        self.test_point = {1:[], 2:[]}
-        self.test_winner = []
-        return 
-
-
-class AgentForTest():
-    def __init__(self, discard_model, pick_model, koikoi_model, random_action_prob=[0.,0.,0.,0.]):
-        self.model = {'discard':discard_model, 'discard-pick':pick_model, 
-                      'draw-pick':pick_model, 'koikoi':koikoi_model}
-        for key in self.model.keys():
-            self.model[key].eval()
-
-        # 新形式：0〜47 の1次元整数リストを生成
-        card_list = list(range(48))
-        self.action_dict = {'discard':card_list, 'discard-pick':card_list, 
-                            'draw-pick':card_list, 'koikoi':(False, True)}
-        
-        self.random_action_prob = {'discard':random_action_prob[0],
-                                   'discard-pick':random_action_prob[1],
-                                   'draw':0,
-                                   'draw-pick':random_action_prob[2],
-                                   'koikoi':random_action_prob[3]}
-        
-        self.last_feature = {'discard': None, 'discard-pick': None, 'draw-pick': None, 'koikoi': None}
-
-    def _move_to_gpu(self, feature_cpu):
-        feature_gpu = feature_cpu.to('cuda:0', non_blocking=True)
-        return feature_gpu
-
-    def __predict(self, state, feature_gpu, game_state):
-        """【単発推論用】"""
-        with torch.inference_mode():
-            output_tensor = self.model[state](feature_gpu)
-        
-        # GPUのテンソルをCPUに戻す
+        # GPUからCPUに変換
         logits_np = output_tensor.squeeze(0).cpu().numpy()
         
-        # state_type を判定
-        if state == 'discard':
-            state_type = 0
-        elif state in ['discard-pick', 'draw-pick']:
-            state_type = 1
-        else: # koikoi
-            state_type = 2
-            
+        state_types = {'discard': 0, 'discard-pick': 1, 'draw-pick': 1, 'koikoi': 2}
+        state_type = state_types[state]
         turn_p = game_state.round_state.turn_player
         
-        # ★ C++側でマスクチェックとargmaxを一瞬で行う
+        # C++側でマスクチェックとargmaxを一瞬で行う
         best_index = game_state.round_state.cpp_state.get_best_action(state_type, turn_p, logits_np)
         
-        # こいこいの場合はboolean、それ以外は整数を返す
-        if state == 'koikoi':
-            action_output = bool(best_index)
-        else:
-            action_output = best_index
-            
-        return action_output
+        # こいこいの場合はboolean、それ以外はカードのインデックス(整数)を返す
+        return bool(best_index) if state == 'koikoi' else best_index
     
-    def auto_action(self, game_state, use_mask=True, for_test=True):
-        p = random.random()
-        if game_state.round_state.wait_action == False:
+    def auto_action(self, game_state, for_test=True):
+        """現在のゲーム状態から自動でアクションを決定する"""
+        rs = game_state.round_state
+        if not rs.wait_action:
             return None
-        if (for_test == True) and (game_state.round_state.state == 'koikoi'):
-            turn_player = game_state.round_state.turn_player
-            end_point = game_state.point[turn_player] \
-                + game_state.round_state.yaku_point(turn_player)
-            if game_state.round == 8 and end_point < 30:
-                return True
-            if game_state.round == 8 and end_point > 30:
-                return False
+            
+        state = rs.state
+        
+        # テスト・検証時の強制終了ロジック
+        if for_test and state == 'koikoi':
+            turn_player = rs.turn_player
+            end_point = game_state.point[turn_player] + rs.yaku_point(turn_player)
+            from koikoigame import MAX_ROUND
+            
             if end_point >= 60:
                 return False
-        if p > self.random_action_prob[game_state.round_state.state]:
-            return self.auto_definitely_action(game_state, use_mask)
-        else:
-            return self.auto_random_action(game_state)
-    
-    def auto_definitely_action(self, game_state, use_mask=True):
-        action_output = None
-        if game_state.round_state.wait_action == True:
-            state = game_state.round_state.state
+            if game_state.round == MAX_ROUND:
+                return end_point < 30
+                
+        # ランダム行動（探索）の判定
+        if random.random() <= self.random_action_prob.get(state, 0.0):
+            return self._auto_random_action(game_state, state)
             
-            feature_cpu = game_state.feature_tensor.unsqueeze(0)
-            feature_gpu = self._move_to_gpu(feature_cpu)
-            
-            # ★ 変更: maskの取得をなくし、game_stateをそのまま渡す
-            action_output = self.__predict(state, feature_gpu, game_state)     
-        return action_output
+        # 決定論的（モデル推論）行動
+        feature_cpu = game_state.feature_tensor.unsqueeze(0)
+        return self.__predict(state, feature_cpu, game_state)
     
-    def auto_random_action(self, game_state):
-        action_output = None
-        if game_state.round_state.wait_action == True:
-            state = game_state.round_state.state
-            if state == 'discard':
-                turn_player = game_state.round_state.turn_player
-                action_output = random.choice(game_state.round_state.hand[turn_player])
-            elif state in ['discard-pick', 'draw-pick']:
-                action_output = random.choice(game_state.round_state.pairing_card)
-            elif state == 'koikoi':
-                action_output = random.choice([True, False])
-        return action_output      
+    def _auto_random_action(self, game_state, state):
+        """ランダムな有効アクションを選択する"""
+        rs = game_state.round_state
+        if state == 'discard':
+            return random.choice(rs.hand[rs.turn_player])
+        elif state in ('discard-pick', 'draw-pick'):
+            return random.choice(rs.pairing_card)
+        elif state == 'koikoi':
+            return random.choice([True, False])
+        return None
+    
+# 他のスクリプトからの呼び出し（後方互換性）のためのエイリアス
+AgentForTest = Agent
+    
+class Arena:
+    def __init__(self, agent_1, agent_2, game_state_kwargs=None):
+        self.agent_1 = agent_1
+        self.agent_2 = agent_2
+        self.game_state_kwargs = game_state_kwargs or {}
+        
+        self.test_point = {1: [], 2: []}
+        self.test_winner = []
+        self.test_win_num = [0, 0, 0]
+        self.test_win_rate = [0.0, 0.0, 0.0]
+    
+    def multi_game_test(self, num_game, clear_result=True): 
+        """複数回の対戦テストを実行して結果を集計する"""
+        if clear_result:
+            self.test_point = {1: [], 2: []}
+            self.test_winner = []
+            
+        for _ in range(num_game):
+            self._duel()
+            
+        # 結果の集計 (0: 引き分け, 1: P1勝利, 2: P2勝利)
+        for i in range(3):
+            self.test_win_num[i] = self.test_winner.count(i)
+            
+        total_games = sum(self.test_win_num)
+        if total_games > 0:
+            self.test_win_rate = [n / total_games for n in self.test_win_num]
+        
+    def _duel(self):
+        """1ゲーム分の対戦を行う"""
+        game = koikoigame.KoiKoiGameState(**self.game_state_kwargs)
+        
+        while not game.game_over:
+            if game.round_state.round_over:
+                game.new_round()
+            else:
+                agent = self.agent_1 if game.round_state.turn_player == 1 else self.agent_2
+                action = agent.auto_action(game, for_test=True)
+                game.round_state.step(action)
+                
+        self.test_point[1].append(game.point[1])
+        self.test_point[2].append(game.point[2])
+        self.test_winner.append(game.winner)
+    
+    def test_result_str(self):
+        """テスト結果のサマリーを文字列で返す"""
+        if not self.test_winner:
+            return "No games tested."
+            
+        total = sum(self.test_win_num)
+        w_1, w_2, d = self.test_win_num[1], self.test_win_num[2], self.test_win_num[0]
+        r_1, r_2, r_d = self.test_win_rate[1], self.test_win_rate[2], self.test_win_rate[0]
+        mean_pt = np.mean(self.test_point[1])
+        
+        return (f"{total} games tested, {w_1} wins, {w_2} loses, {d} draws "
+                f"({r_1:.2f}, {r_2:.2f}, {r_d:.2f}), {mean_pt:.1f} points")
