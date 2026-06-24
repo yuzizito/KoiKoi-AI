@@ -27,26 +27,31 @@ setattr(my_linear, '_LinearWithBias', my_linear.Linear)
 
 # --- 定数定義 ---
 LOG_PATH = 'log.txt'
-RL_FOLDER = 'model_agent'
+MODEL_FOLDER = 'model_agent'
 START_LOOP_NUM = 0
-LEARNING_RATE = 1e-4
-BATCH_SIZE = 4096
+LEARNING_RATE = 5e-5
+BATCH_SIZE = 2048
 
 CPU_COUNT = 2
-LOOP_GAMES = 1024
+LOOP_GAMES = 512
 N_CORE_GAMES = LOOP_GAMES // CPU_COUNT
-CAP_D = LOOP_GAMES // CPU_COUNT * 68
-CAP_P = LOOP_GAMES // CPU_COUNT * 9
-CAP_K = LOOP_GAMES // CPU_COUNT * 8
 
-N_LOOP_ACTION_NET_UPDATE = 10
+# ★ 修正: 両プレイヤーデータ保存(2倍)に対応するためのバッファ容量拡張
+CAP_D = LOOP_GAMES // CPU_COUNT * 130
+CAP_P = LOOP_GAMES // CPU_COUNT * 18
+CAP_K = LOOP_GAMES // CPU_COUNT * 16
+
+N_LOOP_ACTION_NET_UPDATE = 20
 N_LOOP_ARENA_TEST = 50
 ARENA_WORKERS = 4
 
+MAX_POOL_SIZE = 5
+SAMPLE_PER_THREAD = 500
+
 ARENA_OPPONENT_PATHS = {
-    'discard': 'model_agent/discard_arena.pt',
-    'pick': 'model_agent/pick_arena.pt',
-    'koikoi': 'model_agent/koikoi_arena.pt'
+    'discard': 'model_agent/arena/discard.pt',
+    'pick': 'model_agent/arena/pick.pt',
+    'koikoi': 'model_agent/arena/koikoi.pt'
 }
 PHASES = ['discard', 'pick', 'koikoi']
 
@@ -104,7 +109,6 @@ def get_value_action_net(action_net_path, value_net, action_model_class):
     
     if os.path.exists(action_net_path):
         try:
-            # 永続化されたネイティブの state_dict をロード
             state_dict = torch.load(action_net_path, map_location='cpu', weights_only=True)
             if isinstance(state_dict, torch.nn.Module):
                 state_dict = state_dict.state_dict()
@@ -152,7 +156,6 @@ def wait_for_exit_key():
 
 def parallel_arena_test(state_dicts, n_games):
     """単一プロセスでのアリーナテスト実行"""
-    # 子プロセス内でネイティブモデルをインスタンス化して重みをロード
     models = {
         'discard': DiscardModel().cpu(),
         'pick': PickModel().cpu(),
@@ -185,8 +188,8 @@ def test_result_analysis(result, loop):
     return score
 
 if __name__ == '__main__':
-    if not os.path.isdir(RL_FOLDER):
-        os.mkdir(RL_FOLDER)
+    if not os.path.isdir(MODEL_FOLDER):
+        os.mkdir(MODEL_FOLDER)
         
     exit_thread = threading.Thread(target=wait_for_exit_key, daemon=True)
     exit_thread.start()
@@ -197,16 +200,14 @@ if __name__ == '__main__':
     master_discard_net, master_pick_net, master_koikoi_net = get_master_net()
     master_agent = koikoilearn.Agent(master_discard_net, master_pick_net, master_koikoi_net)
 
-    # 1. ネイティブモデル（通常の nn.Module）の準備
     value_net, action_net = {}, {}
-    value_net['discard'], action_net['discard'] = get_value_action_net(f'{RL_FOLDER}/discard_state.pt', TargetQNet().cpu(), DiscardModel)
-    value_net['pick'], action_net['pick'] = get_value_action_net(f'{RL_FOLDER}/pick_state.pt', TargetQNet().cpu(), PickModel)
-    value_net['koikoi'], action_net['koikoi'] = get_value_action_net(f'{RL_FOLDER}/koikoi_state.pt', TargetQNet().cpu(), KoiKoiModel)
+    value_net['discard'], action_net['discard'] = get_value_action_net(f'{MODEL_FOLDER}/discard.pt', TargetQNet().cpu(), DiscardModel)
+    value_net['pick'], action_net['pick'] = get_value_action_net(f'{MODEL_FOLDER}/pick.pt', TargetQNet().cpu(), PickModel)
+    value_net['koikoi'], action_net['koikoi'] = get_value_action_net(f'{MODEL_FOLDER}/koikoi.pt', TargetQNet().cpu(), KoiKoiModel)
     
     example_input_normal = torch.zeros((1, 300, 48), dtype=torch.float32, device=DEVICE)
     example_input_koikoi = torch.zeros((1, 300, 50), dtype=torch.float32, device=DEVICE) 
 
-    # 2. メモリ上での JIT トレースオブジェクトの生成
     traced_action_net = {}
     traced_value_net = {}
     
@@ -219,7 +220,6 @@ if __name__ == '__main__':
         value_net[key].to(DEVICE).float().train()
         traced_value_net[key] = torch.jit.trace(value_net[key], ex_input, check_trace=False)
 
-    # 3. C++ トレーナーの初期化に、メモリ上の JIT モデルを直接渡す
     trainer = {
         key: koikoicore.KoiKoiTrainer(traced_value_net[key]._c, LEARNING_RATE, DEVICE_STR)
         for key in PHASES
@@ -228,12 +228,11 @@ if __name__ == '__main__':
     score = [0.0]
     wp_mat_np = win_prob_mat.astype(np.float32) if win_prob_mat is not None else np.zeros((2, 9, 61), dtype=np.float32)
     
-    # 4. 初回の並列シミュレーション開始
     results = koikoicore.run_parallel_simulations(
         CPU_COUNT, N_CORE_GAMES, N_CORE_GAMES,          
         CAP_D, CAP_P, CAP_K, 1.0, wp_mat_np,
         traced_action_net['discard']._c, traced_action_net['pick']._c, traced_action_net['koikoi']._c,
-        DEVICE_STR, MAX_ROUND
+        DEVICE_STR, MAX_ROUND, 0
     )
 
     executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
@@ -245,7 +244,6 @@ if __name__ == '__main__':
             samples[key] = sum(d.get(key, {}).get('actions', torch.empty(0)).shape[0] for d in data if isinstance(d, dict))
         return samples, losses
     
-    # --- データを安全にコピーする関数 ---
     def clone_sim_results(results_list):
         cloned = []
         for r_dict in results_list:
@@ -261,27 +259,55 @@ if __name__ == '__main__':
                     c_dict[k] = v
             cloned.append(c_dict)
         return cloned
+    
+    replay_buffer_pool = []
+
+    def extract_sampled_dict(r_dict, sample_size):
+        sampled = {}
+        for k in PHASES:
+            if k not in r_dict: continue
+            states = r_dict[k]['states']
+            actions = r_dict[k]['actions']
+            rewards = r_dict[k]['rewards']
+            total_n = states.shape[0]
+            if total_n == 0:
+                sampled[k] = r_dict[k]
+                continue
+            
+            n_select = min(sample_size, total_n)
+            perm = torch.randperm(total_n)[:n_select]
+            sampled[k] = {
+                'states': states[perm].clone(),
+                'actions': actions[perm].clone(),
+                'rewards': rewards[perm].clone()
+            }
+        return sampled
         
     for loop in range(START_LOOP_NUM, 10000):
         loop_start_time = time.perf_counter()
         sync_models = (loop % N_LOOP_ACTION_NET_UPDATE == 0)
         
-        # バックグラウンド学習
-        safe_results = clone_sim_results(results)
-        future = executor.submit(background_training, safe_results)
+        training_data = clone_sim_results(results)
+        for pool_data in replay_buffer_pool:
+            training_data.extend(pool_data)
         
-        # フォアグラウンドシミュレーション
+        future = executor.submit(background_training, training_data)
+        
         next_results = koikoicore.run_parallel_simulations(
             CPU_COUNT, N_CORE_GAMES, N_CORE_GAMES,          
             CAP_D, CAP_P, CAP_K, 1.0, wp_mat_np,
             traced_action_net['discard']._c, traced_action_net['pick']._c, traced_action_net['koikoi']._c,
-            DEVICE_STR, MAX_ROUND
+            DEVICE_STR, MAX_ROUND, loop
         )
         
+        sampled_results = [extract_sampled_dict(r, SAMPLE_PER_THREAD) for r in results]
+        replay_buffer_pool.append(sampled_results)
+        if len(replay_buffer_pool) > MAX_POOL_SIZE:
+            replay_buffer_pool.pop(0)
+            
         samples, losses = future.result()
         results = next_results
         
-        # モデルの同期処理 (C++の重み更新。Python側の traced_action_net にも即時自動反映される)
         if sync_models:
             for key in PHASES:
                 trainer[key].sync_to_inference_model(key)
@@ -289,9 +315,7 @@ if __name__ == '__main__':
         elapsed_time = time.perf_counter() - loop_start_time
         print_log(f'loop {loop:05}  time {elapsed_time:04.1f}s    loss  discard {losses["discard"]:.2f}  pick {losses["pick"]:.2f}  koikoi {losses["koikoi"]:.2f}')
         
-        # アリーナ評価
         if loop % N_LOOP_ARENA_TEST == 0:
-            # JITモデルからテンソル(state_dict)のみを抽出・CPU化し、プロセス間通信のPickleエラーを回避
             current_state_dicts = {
                 key: {k: v.cpu() for k, v in traced_action_net[key].state_dict().items()}
                 for key in PHASES
@@ -309,13 +333,10 @@ if __name__ == '__main__':
             s = test_result_analysis(arena_results, loop)
             score.append(s)
             
-        # 終了シグナル検知時の処理
         if stop_event.is_set():
             print_log(f'\n{time_str()} チェックポイントを保存中...')
             for key in PHASES:
-                # C++の学習結果は traced_value_net にオンメモリで反映済みなので
-                # 直接 state_dict を取り出して保存するだけでOK
-                torch.save(traced_value_net[key].state_dict(), f'{RL_FOLDER}/{key}_state.pt')
+                torch.save(traced_value_net[key].state_dict(), f'{MODEL_FOLDER}/{key}.pt')
                 
             koikoicore.destroy_sim_manager()
             print_log(f'{time_str()} プログラムを安全に終了しました。')

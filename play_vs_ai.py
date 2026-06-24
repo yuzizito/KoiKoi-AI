@@ -41,9 +41,9 @@ game_state = KoiKoiGameState(player_name=[YOUR_NAME, AI_NAME], record_path=RECOR
 
 # 最新の Agent クラスを使用
 ai_agent = koikoilearn.Agent(
-    load_native_model('model_agent/discard_state.pt', DiscardModel),
-    load_native_model('model_agent/pick_state.pt', PickModel),
-    load_native_model('model_agent/koikoi_state.pt', KoiKoiModel)
+    load_native_model('model_agent/discard.pt', DiscardModel),
+    load_native_model('model_agent/pick.pt', PickModel),
+    load_native_model('model_agent/koikoi.pt', KoiKoiModel)
 )
 
 window = gui.InitGUI()

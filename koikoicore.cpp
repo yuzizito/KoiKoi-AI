@@ -232,7 +232,7 @@ struct Snapshot {
     int point_idle;
     int round_num;
     int turn_16;
-    int dealer;
+    bool is_dealer; // ★ 修正: 親情報の主観フラグ化
     int koikoi_num_turn;
     int koikoi_num_idle;
     uint8_t f_turn;
@@ -273,7 +273,13 @@ inline void write_feature_core(
     int mapped_rnd = snap.round_num + (8 - max_round);
     if(mapped_rnd >= 1 && mapped_rnd <= 8) t55[9 + mapped_rnd - 1] = 1.0f;
     if(snap.turn_16 >= 1 && snap.turn_16 <= 16) t55[17 + snap.turn_16 - 1] = 1.0f;
-    if(snap.dealer >= 1 && snap.dealer <= 2) t55[33 + snap.dealer - 1] = 1.0f;
+    
+    // ★ 修正: 親情報の主観フラグ評価
+    if(snap.is_dealer) {
+        t55[33] = 1.0f;
+    } else {
+        t55[34] = 1.0f;
+    }
 
     float k1 = static_cast<float>(snap.koikoi_num_turn); 
     float k2 = static_cast<float>(snap.koikoi_num_idle);
@@ -490,7 +496,7 @@ public:
         snap.point_idle = point_idle;
         snap.round_num = round_num;
         snap.turn_16 = turn_16;
-        snap.dealer = dealer;
+        snap.is_dealer = (dealer == turn_p); // ★ 修正: 親情報の主観フラグ化
         snap.koikoi_num_turn = koikoi_num_turn;
         snap.koikoi_num_idle = koikoi_num_idle;
         snap.f_turn = f_turn;
@@ -638,7 +644,10 @@ public:
 
     void reset_game() {
         round_num = 1; point[1] = 30; point[2] = 30;
-        dealer = 1; winner = dealer;
+        // ★ 修正: 初期ディーラーの完全ランダム化
+        std::uniform_int_distribution<int> dist(1, 2);
+        dealer = dist(rng);
+        winner = dealer;
         state = GameState::ROUND_OVER;
     }
 
@@ -852,7 +861,13 @@ public:
           buf_discard(cap_d, 300, 48), buf_pick(cap_p, 300, 48), buf_koikoi(cap_k, 300, 50),
           win_prob_mat(wp_mat), device(dev_str)
     {
-        envs.resize(n_envs);
+        // ★ 修正: 各並列環境に異なるシードを与えて初期化
+        envs.reserve(n_envs);
+        std::random_device rd;
+        for(int i = 0; i < n_envs; ++i) {
+            envs.emplace_back(rd());
+        }
+
         for(int p=1; p<=2; ++p) {
             traces[p].resize(n_envs);
         }
@@ -933,41 +948,38 @@ public:
         return win_prob_mat[(is_d * 9 + mapped_rnd) * 61 + n_pt];
     }
 
+    // ★ 修正: Player 1 と Player 2 の終局報酬を個別に算出しバッファへ投入
     void process_round_over(int i, int max_round) {
         auto& env = envs[i];
-        auto& trace = traces[1][i];
-        int final_pt = env.point[1] + env.round_point(1);
-        float final_potential = get_potential(1, env.round_num + 1, final_pt, env.dealer, env.winner, env.exhausted, max_round);
+        
+        for (int p_id = 1; p_id <= 2; ++p_id) {
+            auto& trace = traces[p_id][i];
+            if (trace.empty()) continue;
 
-        for (size_t rs = 0; rs < trace.size(); ++rs) {
-            int current_idx = static_cast<int>(trace.size() - 1 - rs);
-            auto& slot = trace[current_idx];
-            
-            float reward = 0.0f;
-            float next_q = 0.0f;
-            
-            if (current_idx == static_cast<int>(trace.size() - 1)) {
-                reward = final_potential * 10.0f;
-                next_q = 0.0f; 
-            } else {
-                reward = 0.0f; 
-                next_q = trace[current_idx + 1].q_val; 
+            int final_pt = env.point[p_id] + env.round_point(p_id);
+            float final_potential = get_potential(p_id, env.round_num + 1, final_pt, env.dealer, env.winner, env.exhausted, max_round);
+
+            for (size_t rs = 0; rs < trace.size(); ++rs) {
+                int current_idx = static_cast<int>(trace.size() - 1 - rs);
+                auto& slot = trace[current_idx];
+                
+                float reward = (current_idx == static_cast<int>(trace.size() - 1)) ? (final_potential * 10.0f) : 0.0f;
+                float next_q = (current_idx == static_cast<int>(trace.size() - 1)) ? 0.0f : trace[current_idx + 1].q_val;
+                
+                float target_q = reward + discount * next_q;
+                const float* log_ptr = &env.state_manager.card_log_buf[0][0][0];
+
+                if (slot.state_type == 0) buf_discard.push_reconstructed(slot.snap, slot.action, target_q, log_ptr, max_round);
+                else if (slot.state_type == 1) buf_pick.push_reconstructed(slot.snap, slot.action, target_q, log_ptr, max_round);
+                else buf_koikoi.push_reconstructed(slot.snap, slot.action, target_q, log_ptr, max_round);
             }
-            
-            float target_q = reward + discount * next_q;
-            const float* log_ptr = &env.state_manager.card_log_buf[0][0][0];
-
-            if (slot.state_type == 0) buf_discard.push_reconstructed(slot.snap, slot.action, target_q, log_ptr, max_round);
-            else if (slot.state_type == 1) buf_pick.push_reconstructed(slot.snap, slot.action, target_q, log_ptr, max_round);
-            else buf_koikoi.push_reconstructed(slot.snap, slot.action, target_q, log_ptr, max_round);
+            trace.clear();
         }
-        traces[1][i].clear();
-        traces[2][i].clear(); 
         
         env.point[1] += env.round_point(1); env.point[2] += env.round_point(2);
     }
 
-    void play_games(int max_round) {
+    void play_games(int max_round, int current_loop) {
         std::vector<int> req_env_idx[3];
         float* feat_ptrs[3] = { feat_tensor[0].data_ptr<float>(), feat_tensor[1].data_ptr<float>(), feat_tensor[2].data_ptr<float>() };
         bool* mask_ptrs[3] = { mask_tensor[0].data_ptr<bool>(), mask_tensor[1].data_ptr<bool>(), mask_tensor[2].data_ptr<bool>() };
@@ -1016,7 +1028,9 @@ public:
                     int64_t act_ptr[8192]; 
                     float q_val_ptr[8192];
 
-                    select_actions_epsilon_greedy(type, n, out_ptr, mask_ptr, act_ptr, q_val_ptr);
+                    select_actions_epsilon_greedy(type, n, out_ptr, mask_ptr, act_ptr, q_val_ptr, current_loop);
+                    
+                    // ★ 修正: 勝者と敗者の両プレイヤーの軌跡データを記録
                     apply_actions_and_record(p_id, type, req_env_idx[type], act_ptr, q_val_ptr, max_round);
                 }
             }
@@ -1038,7 +1052,7 @@ private:
         snap.point_idle = env.point[pi];
         snap.round_num = env.round_num;
         snap.turn_16 = env.turn_16;
-        snap.dealer = env.dealer;
+        snap.is_dealer = (env.dealer == pt); // ★ 修正: 主観フラグ化
         snap.koikoi_num_turn = env.koikoi_num(pt);
         snap.koikoi_num_idle = env.koikoi_num(pi);
         snap.f_turn = 0; for(int j=0; j<8; ++j) if(env.koikoi[pt][j]) snap.f_turn |= (1 << j);
@@ -1066,8 +1080,10 @@ private:
         finished_games += local_finished;
     }
 
-    void select_actions_epsilon_greedy(int type, int n, const float* out_ptr, const bool* mask_ptr, int64_t* act_ptr, float* q_val_ptr) {
-        float epsilon = 0.1f;
+    void select_actions_epsilon_greedy(int type, int n, const float* out_ptr, const bool* mask_ptr, int64_t* act_ptr, float* q_val_ptr, int current_loop) {
+        // 1000ループでほぼ0.05に落ち着く指数減衰曲線
+        float epsilon = 0.05f + 0.95f * std::exp(-static_cast<float>(current_loop) / 200.0f);
+
         std::uniform_real_distribution<float> dist(0.0f, 1.0f);
         int cols = (type == 2) ? 2 : 48;
 
@@ -1111,14 +1127,14 @@ private:
             int action = static_cast<int>(act_ptr[i]);
             auto& env = envs[env_idx];
 
-            if (p_id == 1) {
-                TraceSlot slot;
-                slot.state_type = type;
-                slot.action = action;
-                slot.q_val = q_val_ptr[i];
-                slot.snap = capture_snapshot(env, 1, 2, type, max_round);
-                traces[1][env_idx].push_back(slot);
-            }
+            TraceSlot slot;
+            slot.state_type = type;
+            slot.action = action;
+            slot.q_val = q_val_ptr[i];
+            int idle_id = (p_id == 1) ? 2 : 1;
+            slot.snap = capture_snapshot(env, p_id, idle_id, type, max_round);
+            traces[p_id][env_idx].push_back(slot);
+
             env.step(action);
         }
     }
@@ -1300,6 +1316,7 @@ struct SimConfig {
     float disc;
     std::string dev_str;
     int max_round;
+    int current_loop;
 
     bool operator==(const SimConfig& o) const {
         return num_threads == o.num_threads && n_envs == o.n_envs &&
@@ -1404,7 +1421,7 @@ private:
             }
 
             try {
-                sims[worker_id]->play_games(current_config.max_round);
+                sims[worker_id]->play_games(current_config.max_round, current_config.current_loop);
             } catch (...) {
                 std::lock_guard<std::mutex> lock(pool_mtx);
                 worker_exceptions[worker_id] = std::current_exception();
@@ -1427,7 +1444,7 @@ py::list run_parallel_simulations(
     int num_threads, int n_envs_per_thread, int target_games_per_thread,
     int cap_d, int cap_p, int cap_k, float disc, py::array_t<float> wp_mat,
     torch::jit::Module discard_model, torch::jit::Module pick_model, torch::jit::Module koikoi_model,
-    std::string dev_str, int max_round) 
+    std::string dev_str, int max_round, int current_loop) 
 {
     torch::Device device(dev_str);
 
@@ -1444,7 +1461,7 @@ py::list run_parallel_simulations(
         }
     }
 
-    SimConfig config = {num_threads, n_envs_per_thread, target_games_per_thread, cap_d, cap_p, cap_k, disc, dev_str, max_round};
+    SimConfig config = {num_threads, n_envs_per_thread, target_games_per_thread, cap_d, cap_p, cap_k, disc, dev_str, max_round, current_loop};
     
     if (g_sim_manager && g_sim_manager->current_config != config) {
         g_sim_manager.reset();
