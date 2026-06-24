@@ -17,10 +17,12 @@ import networkx as nx
 
 from torch_text_mha import MultiheadAttentionContainer, InProjContainer, ScaledDotProduct
 
+NEMB = 256
+
 
 NetParameter = {
     'nInput':300,
-    'nEmb':256,
+    'nEmb':NEMB,
     'nFw':512,
     'nAttnHead':4,
     'nLayer':2}
@@ -69,10 +71,10 @@ class AttnWeightModel(nn.Module):
 
 
 def get_mha_container():
-    in_proj_container = InProjContainer(torch.nn.Linear(256, 256),
-                                    torch.nn.Linear(256, 256),
-                                    torch.nn.Linear(256, 256))
-    out_proj = torch.nn.Linear(256, 256)
+    in_proj_container = InProjContainer(torch.nn.Linear(NEMB, NEMB),
+                                    torch.nn.Linear(NEMB, NEMB),
+                                    torch.nn.Linear(NEMB, NEMB))
+    out_proj = torch.nn.Linear(NEMB, NEMB)
     mha_container = MultiheadAttentionContainer(
         nhead = 4, in_proj_container = in_proj_container, 
         attention_layer = ScaledDotProduct(), out_proj = out_proj)
@@ -92,12 +94,12 @@ def transfer_mha(model, mha_container, n_layer):
     od = model.state_dict()
     ud = mha_container.state_dict()
     s = f'encoder_block.attn_encoder.layers.{n_layer}.self_attn'
-    ud['in_proj_container.query_proj.weight'] = od[f'{s}.in_proj_weight'][0:256,:]
-    ud['in_proj_container.query_proj.bias'] = od[f'{s}.in_proj_bias'][0:256]
-    ud['in_proj_container.key_proj.weight'] = od[f'{s}.in_proj_weight'][256:512,:]
-    ud['in_proj_container.key_proj.bias'] = od[f'{s}.in_proj_bias'][256:512]
-    ud['in_proj_container.value_proj.weight'] = od[f'{s}.in_proj_weight'][512:768,:]
-    ud['in_proj_container.value_proj.bias'] = od[f'{s}.in_proj_bias'][512:768]
+    ud['in_proj_container.query_proj.weight'] = od[f'{s}.in_proj_weight'][0:NEMB,:]
+    ud['in_proj_container.query_proj.bias'] = od[f'{s}.in_proj_bias'][0:NEMB]
+    ud['in_proj_container.key_proj.weight'] = od[f'{s}.in_proj_weight'][NEMB:NEMB*2,:]
+    ud['in_proj_container.key_proj.bias'] = od[f'{s}.in_proj_bias'][NEMB:NEMB*2]
+    ud['in_proj_container.value_proj.weight'] = od[f'{s}.in_proj_weight'][NEMB*2:NEMB*3,:]
+    ud['in_proj_container.value_proj.bias'] = od[f'{s}.in_proj_bias'][NEMB*2:NEMB*3]
     ud['out_proj.weight'] = od[f'{s}.out_proj.weight']
     ud['out_proj.bias'] = od[f'{s}.out_proj.bias']
     mha_container.load_state_dict(ud)

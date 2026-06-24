@@ -1,13 +1,13 @@
 import os
 import torch
 import koikoilearn
-from koikoinet2L import DiscardModel, PickModel, KoiKoiModel
+from koikoinet3L import DiscardModel, PickModel, KoiKoiModel
 
 import torch.nn.modules.linear as my_linear
 setattr(my_linear, '_LinearWithBias', my_linear.Linear)
 
-A_PATHS = {'discard': 'model_agent/discard_state.pt', 'pick': 'model_agent/pick_state.pt', 'koikoi': 'model_agent/koikoi_state.pt'}
-B_PATHS = {'discard': 'model_agent/discard_gu.pt', 'pick': 'model_agent/pick_gu.pt', 'koikoi': 'model_agent/koikoi_gu.pt'}
+A_PATHS = {'discard': 'model/discard.pt', 'pick': 'model/pick.pt', 'koikoi': 'model/koikoi.pt'}
+B_PATHS = {'discard': 'model/discard2.pt', 'pick': 'model/pick2.pt', 'koikoi': 'model/koikoi2.pt'}
 RECORD_PATH = 'gamerecords_agents/'
 
 os.makedirs(RECORD_PATH, exist_ok=True)

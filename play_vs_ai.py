@@ -4,7 +4,7 @@ import torch
 import koikoigui as gui
 from koikoigame import KoiKoiGameState
 import koikoilearn
-from koikoinet2L import DiscardModel, PickModel, KoiKoiModel
+from koikoinet3L import DiscardModel, PickModel, KoiKoiModel
 
 import torch.nn.modules.linear as my_linear
 setattr(my_linear, '_LinearWithBias', my_linear.Linear)
@@ -41,9 +41,9 @@ game_state = KoiKoiGameState(player_name=[YOUR_NAME, AI_NAME], record_path=RECOR
 
 # 最新の Agent クラスを使用
 ai_agent = koikoilearn.Agent(
-    load_native_model('model_agent/discard.pt', DiscardModel),
-    load_native_model('model_agent/pick.pt', PickModel),
-    load_native_model('model_agent/koikoi.pt', KoiKoiModel)
+    load_native_model('model/discard.pt', DiscardModel),
+    load_native_model('model/pick.pt', PickModel),
+    load_native_model('model/koikoi.pt', KoiKoiModel)
 )
 
 window = gui.InitGUI()
