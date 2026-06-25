@@ -74,35 +74,6 @@ struct KoiKoiMasks {
 };
 static const KoiKoiMasks MASKS;
 
-struct KoiKoiConstants {
-    float cache_buf[25][48];
-    int order[17][16];
-
-    KoiKoiConstants() {
-        std::memset(cache_buf, 0, sizeof(cache_buf));
-        std::vector<std::vector<int>> dict = {
-            {0}, {8}, {28}, {40}, {44}, {32},
-            {20, 24, 36},
-            {4, 12, 16, 20, 24, 29, 32, 36, 41},
-            {1, 5, 9}, {21, 33, 37},
-            {1, 5, 9, 21, 33, 37},
-            {1, 5, 9, 13, 17, 21, 25, 33, 37, 42},
-            {2, 3, 6, 7, 10, 11, 14, 15, 18, 19, 22, 23, 26, 27, 30, 31, 32, 34, 35, 38, 39, 43, 45, 46, 47}
-        };
-        for(size_t i=0; i<dict.size(); ++i) {
-            for(int c : dict[i]) cache_buf[i][c] = 1.0f;
-        }
-        for(int i=0; i<12; ++i) for(int j=0; j<4; ++j) cache_buf[13+i][i*4+j] = 1.0f;
-
-        for(int i=1; i<=16; ++i) {
-            int idx = 0;
-            for(int x=i; x>=1; --x) order[i][idx++] = x;
-            for(int x=i+1; x<=16; ++x) order[i][idx++] = x;
-        }
-    }
-};
-static const KoiKoiConstants CONSTANTS;
-
 template<typename T, int Capacity>
 struct FixedVec {
     T data_[Capacity];
@@ -221,24 +192,24 @@ std::vector<std::tuple<int, std::string, int>> evaluate_yaku_by_bitboard(uint64_
 
 struct Snapshot {
     uint64_t bb_hand;
-    uint64_t bb_init_board;
     uint64_t bb_unseen;
     uint64_t bb_my_pile;
     uint64_t bb_field;
     uint64_t bb_op_pile;
-    uint64_t bb_show;
-    uint64_t bb_pairing;
+    
+    // --- 新規追加: 信念状態・履歴トラッキング ---
+    uint64_t bb_my_discard;
+    uint16_t suit_op_played;
+    uint16_t suit_op_ignored;
+
     int point_turn;
     int point_idle;
     int round_num;
     int turn_16;
-    bool is_dealer; // ★ 修正: 親情報の主観フラグ化
+    bool is_dealer;
     int koikoi_num_turn;
     int koikoi_num_idle;
-    uint8_t f_turn;
-    uint8_t f_idle;
     uint8_t state_type;
-    uint8_t is_draw_pick;
 };
 
 struct TraceSlot {
@@ -249,140 +220,97 @@ struct TraceSlot {
 };
 
 inline void write_feature_core(
-    float* dest, int cols, int off,
-    const Snapshot& snap,
-    const float* log_buf_ptr,
-    bool apply_mask, int action_to_align,
-    int max_round)
+    float* dest, const Snapshot& snap, int action_to_align, int max_round)
 {
-    std::memset(dest, 0, 300 * cols * sizeof(float));
+    // [24, 48] のゼロクリア
+    std::memset(dest, 0, 24 * 48 * sizeof(float));
 
-    auto sgn = [](float x) { return (x > 0) ? 1.0f : ((x < 0) ? -1.0f : 0.0f); };
-    auto calc_diff_feat = [&](float pt_diff, float* out) {
-        float sq = std::sqrt(std::abs(pt_diff));
-        out[0] = sq * sgn(pt_diff);
-        out[1] = pt_diff * 0.5f;
-        out[2] = pt_diff * sq * 0.1f;
-    };
-
-    float t55[55] = {0.0f};
-    calc_diff_feat(static_cast<float>(snap.point_turn - snap.point_idle) * 0.5f, &t55[0]);
-    calc_diff_feat(static_cast<float>(get_yaku_point_by_bitboard(snap.bb_my_pile, snap.koikoi_num_turn)), &t55[3]);
-    calc_diff_feat(static_cast<float>(get_yaku_point_by_bitboard(snap.bb_op_pile, snap.koikoi_num_idle)), &t55[6]);
-
-    int mapped_rnd = snap.round_num + (8 - max_round);
-    if(mapped_rnd >= 1 && mapped_rnd <= 8) t55[9 + mapped_rnd - 1] = 1.0f;
-    if(snap.turn_16 >= 1 && snap.turn_16 <= 16) t55[17 + snap.turn_16 - 1] = 1.0f;
-    
-    // ★ 修正: 親情報の主観フラグ評価
-    if(snap.is_dealer) {
-        t55[33] = 1.0f;
-    } else {
-        t55[34] = 1.0f;
-    }
-
-    float k1 = static_cast<float>(snap.koikoi_num_turn); 
-    float k2 = static_cast<float>(snap.koikoi_num_idle);
-    t55[35] = std::abs(k1) * sgn(k1); t55[36] = (k1 * k1) * sgn(k1);
-    t55[37] = std::abs(k2) * sgn(k2); t55[38] = (k2 * k2) * sgn(k2);
-
-    for (int i = 0; i < 8; ++i) {
-        t55[39 + i] = static_cast<float>((snap.f_turn >> i) & 1);
-        t55[47 + i] = static_cast<float>((snap.f_idle >> i) & 1);
-    }
-
-    float yaku_feat[65] = {0.0f};
-    const uint64_t m[13] = {
-        MASKS.crane, MASKS.curtain, MASKS.moon, MASKS.rainman, MASKS.phoenix, MASKS.sake,
-        MASKS.boar_deer_butterfly, MASKS.seed, MASKS.red_ribbon, MASKS.blue_ribbon,
-        MASKS.red_blue_ribbon, MASKS.ribbon, MASKS.dross
-    };
-
-    for (int i = 0; i < 13; ++i) {
-        yaku_feat[i]      = static_cast<float>(popcount(m[i] & snap.bb_hand));
-        yaku_feat[i + 13] = static_cast<float>(popcount(m[i] & snap.bb_field));
-        yaku_feat[i + 26] = static_cast<float>(popcount(m[i] & snap.bb_my_pile));
-        yaku_feat[i + 39] = static_cast<float>(popcount(m[i] & snap.bb_op_pile));
-        yaku_feat[i + 52] = static_cast<float>(popcount(m[i] & snap.bb_unseen));
-    }
-
-    auto fill_rows = [&](int start_row, int end_row, const float* src) {
-        for (int r = start_row; r < end_row; ++r) {
-            float val = src[r - start_row];
-            if (val != 0.0f) {
-                std::fill_n(dest + r * cols + off, 48, val);
-            }
-        }
-    };
-
-    fill_rows(17, 72, t55);
-    fill_rows(72, 137, yaku_feat);
-
-    for (int r = 0; r < 25; ++r) {
-        std::memcpy(dest + (137 + r) * cols + off, CONSTANTS.cache_buf[r], 48 * sizeof(float));
-    }
-
-    auto set_bits = [&](int row, uint64_t bb) {
-        float* row_ptr = dest + row * cols + off;
+    auto set_row_bb = [&](int row, uint64_t bb, float val = 1.0f) {
         while (bb) {
             int c = ctz64(bb);
-            row_ptr[c] = 1.0f; 
-            bb &= bb - 1; 
+            dest[row * 48 + c] = val;
+            bb &= bb - 1;
         }
     };
 
-    set_bits(162, snap.bb_hand); set_bits(165, snap.bb_hand);
-    set_bits(163, snap.bb_init_board);
-    set_bits(164, snap.bb_unseen); set_bits(169, snap.bb_unseen);
-    set_bits(166, snap.bb_my_pile);
-    set_bits(167, snap.bb_field);
-    set_bits(168, snap.bb_op_pile);
-    set_bits(170, snap.bb_show);
-    set_bits(171, snap.bb_pairing);
+    // 1. 物理的なカード配置（C0〜C5）
+    set_row_bb(0, snap.bb_hand);
+    set_row_bb(1, snap.bb_field);
+    set_row_bb(2, snap.bb_my_pile);
+    set_row_bb(3, snap.bb_op_pile);
+    set_row_bb(4, snap.bb_unseen);
+    set_row_bb(5, snap.bb_my_discard);
 
-    int out_r = 172;
-    int t16 = std::max(1, std::min(16, static_cast<int>(snap.turn_16)));
-    
-    for (int j = 0; j < 16; ++j) {
-        int t = CONSTANTS.order[t16][j];
-        
-        if (apply_mask && t > snap.turn_16) {
-            out_r += 8; 
-            continue;
+    // 2. 札属性・役ポテンシャル（C6〜C14）
+    set_row_bb(6, MASKS.light);
+    set_row_bb(7, MASKS.seed);
+    set_row_bb(8, MASKS.ribbon);
+    set_row_bb(9, MASKS.dross);
+
+    // C10: 月の残り枚数（未知の札を月ごとに集計して正規化）
+    for (int m = 0; m < 12; ++m) {
+        uint64_t month_bb = 0xFULL << (m * 4);
+        int unseen_count = popcount(snap.bb_unseen & month_bb);
+        float val = unseen_count / 4.0f;
+        for (int i = 0; i < 4; ++i) dest[10 * 48 + (m * 4 + i)] = val;
+    }
+
+    // C11〜C14: 役リーチフラグ（場札を獲得したと仮定した場合の役ポイント変動をチェック）
+    int current_pt = get_yaku_point_by_bitboard(snap.bb_my_pile, snap.koikoi_num_turn);
+    uint64_t field_tmp = snap.bb_field;
+    while (field_tmp) {
+        int c = ctz64(field_tmp);
+        int next_pt = get_yaku_point_by_bitboard(snap.bb_my_pile | (1ULL << c), snap.koikoi_num_turn);
+        if (next_pt > current_pt) {
+            if ((1ULL << c) & MASKS.light) dest[11 * 48 + c] = 1.0f;
+            if ((1ULL << c) & MASKS.seed)  dest[12 * 48 + c] = 1.0f;
+            if ((1ULL << c) & MASKS.ribbon) dest[13 * 48 + c] = 1.0f;
+            if ((1ULL << c) & MASKS.dross) dest[14 * 48 + c] = 1.0f;
         }
+        field_tmp &= field_tmp - 1;
+    }
 
-        int max_sr = 8;
-        if (apply_mask && t == snap.turn_16) {
-            if (snap.state_type == 0) {
-                max_sr = 0; 
-            } else if (snap.state_type == 1) {
-                max_sr = snap.is_draw_pick ? 6 : 2;
-            }
+    // 3. 信念状態 / Belief State（C15, C16）
+    for (int m = 0; m < 12; ++m) {
+        // C15: 無視された月（相手が持っていない可能性が高い）
+        if ((snap.suit_op_ignored >> m) & 1) {
+            for (int i = 0; i < 4; ++i) dest[15 * 48 + (m * 4 + i)] = -1.0f;
         }
-
-        for (int sr = 0; sr < 8; ++sr) {
-            if (sr < max_sr) {
-                std::memcpy(dest + out_r * cols + off, log_buf_ptr + t * 384 + sr * 48, 48 * sizeof(float));
-            }
-            out_r++;
+        // C16: 生出しされた月（相手が手札からプレイした）
+        if ((snap.suit_op_played >> m) & 1) {
+            for (int i = 0; i < 4; ++i) dest[16 * 48 + (m * 4 + i)] = 1.0f;
         }
     }
 
-    if (snap.state_type == 2) {
-        for(int r = 0; r < 137; ++r) { 
-            dest[r * cols + 0] = dest[r * cols + 2]; 
-            dest[r * cols + 1] = dest[r * cols + 3]; 
-        }
-        dest[0 * cols + 0] = 1.0f; dest[1 * cols + 1] = 1.0f;
+    // 4. グローバルコンテキスト（C17〜C23）
+    float c17 = snap.point_turn / 60.0f;
+    float c18 = snap.point_idle / 60.0f;
+    int my_yaku = get_yaku_point_by_bitboard(snap.bb_my_pile, snap.koikoi_num_turn);
+    int op_yaku = get_yaku_point_by_bitboard(snap.bb_op_pile, snap.koikoi_num_idle);
+    float c19 = (float)my_yaku / (op_yaku + 1.0f);
+    float c20 = (float)snap.koikoi_num_turn / (snap.koikoi_num_idle + 1.0f);
+    float c21 = snap.turn_16 / 16.0f;
+    float c22 = snap.is_dealer ? 1.0f : -1.0f;
+    float c23 = (float)snap.round_num / max_round;
+
+    for (int i = 0; i < 48; ++i) {
+        dest[17 * 48 + i] = c17;
+        dest[18 * 48 + i] = c18;
+        dest[19 * 48 + i] = c19;
+        dest[20 * 48 + i] = c20;
+        dest[21 * 48 + i] = c21;
+        dest[22 * 48 + i] = c22;
+        dest[23 * 48 + i] = c23;
     }
 
-    if (action_to_align > 0 && action_to_align < cols) {
-        float temp[50];
-        for (int r = 0; r < 300; ++r) {
-            float* row_ptr = dest + r * cols;
-            std::memcpy(temp, row_ptr, cols * sizeof(float));
-            row_ptr[0] = temp[action_to_align];
-            std::memcpy(row_ptr + 1, temp, action_to_align * sizeof(float));
+    // [重要] Q-Target学習のために選択したアクションをColumn 0に寄せる既存仕様を継承
+    // （アクション評価時のみ発動し、普段の推論時は action_to_align = -1 のため作動しません）
+    if (action_to_align > 0 && action_to_align < 48) {
+        float temp;
+        for (int r = 0; r < 24; ++r) {
+            temp = dest[r * 48];
+            dest[r * 48] = dest[r * 48 + action_to_align];
+            dest[r * 48 + action_to_align] = temp;
         }
     }
 }
@@ -393,51 +321,48 @@ public:
     uint64_t bb_pile[3] = {0};
     uint64_t bb_field = 0;
     uint64_t bb_stock = 0;
-    uint64_t bb_initBoard = 0;
     uint64_t bb_show = 0;
     uint64_t bb_pairing = 0;
     
-    float card_log_buf[17][8][48] = {0.0f};
+    // --- 新仕様トラッキング ---
+    uint64_t bb_discard_hist[3] = {0};
+    uint16_t suit_played[3] = {0};
+    uint16_t suit_ignored[3] = {0};
 
     KoiKoiStateManager() {}
 
     void init_board(uint64_t hand1, uint64_t hand2, uint64_t field, uint64_t stock) {
-        bb_hand[1] = hand1;
-        bb_hand[2] = hand2;
-        bb_field = field;
-        bb_initBoard = field;
-        bb_stock = stock;
-        bb_pile[1] = 0;
-        bb_pile[2] = 0;
-        bb_show = 0;
-        bb_pairing = 0;
-        std::memset(card_log_buf, 0, sizeof(card_log_buf));
-    }
-
-    void log_bitboard(int t16, int idx, uint64_t bb) {
-        if (t16 < 1 || t16 > 16) return;
-        float* row = card_log_buf[t16][idx];
-        std::memset(row, 0, 48 * sizeof(float));
-        while(bb) {
-            int c = ctz64(bb);
-            row[c] = 1.0f;
-            bb &= bb - 1;
-        }
+        bb_hand[1] = hand1; bb_hand[2] = hand2;
+        bb_field = field; bb_stock = stock;
+        bb_pile[1] = 0; bb_pile[2] = 0;
+        bb_show = 0; bb_pairing = 0;
+        
+        bb_discard_hist[1] = 0; bb_discard_hist[2] = 0;
+        suit_played[1] = 0; suit_played[2] = 0;
+        suit_ignored[1] = 0; suit_ignored[2] = 0;
     }
 
     void discard(int p, int card, uint64_t pairing, int turn_16) {
         bb_hand[p] &= ~(1ULL << card);
         bb_show = (1ULL << card);
         bb_pairing = pairing;
-        log_bitboard(turn_16, pairing ? 0 : 1, bb_show);
+        
+        // 信念状態トラッキングの更新
+        bb_discard_hist[p] |= (1ULL << card);
+        int suit = card / 4;
+        suit_played[p] |= (1 << suit);
+        
+        uint16_t field_suits = 0;
+        uint64_t f = bb_field;
+        while (f) {
+            field_suits |= (1 << (ctz64(f) / 4));
+            f &= f - 1;
+        }
+        // 場札があるのにあえて別の月を出した場合、その月の札は持っていない可能性が高いと推論
+        suit_ignored[p] |= (field_suits & ~(1 << suit));
     }
 
     void discard_pick(int p, uint64_t collect, uint64_t field_rem, int turn_16) {
-        if (collect) {
-            uint64_t fc = collect & ~bb_show;
-            log_bitboard(turn_16, 2, fc);
-            log_bitboard(turn_16, 3, bb_pairing & ~fc);
-        }
         bb_pile[p] |= collect;
         bb_field = field_rem;
         bb_show = 0;
@@ -448,15 +373,9 @@ public:
         bb_stock &= ~(1ULL << card);
         bb_show = (1ULL << card);
         bb_pairing = pairing;
-        log_bitboard(turn_16, pairing ? 4 : 5, bb_show);
     }
 
     void draw_pick(int p, uint64_t collect, uint64_t field_rem, int turn_16) {
-        if (collect) {
-            uint64_t fc = collect & ~bb_show;
-            log_bitboard(turn_16, 6, fc);
-            log_bitboard(turn_16, 7, bb_pairing & ~fc);
-        }
         bb_pile[p] |= collect;
         bb_field = field_rem;
         bb_show = 0;
@@ -471,43 +390,39 @@ public:
         return evaluate_yaku_by_bitboard(bb_pile[p], koikoi_num);
     }
 
+    // 引数のシグネチャは Python (koikoigame.py) との互換性を保つためにそのままにします
     py::array_t<float> get_feature(
         bool is_koikoi, int point_turn, int point_idle,
         int round_num, int turn_16, int dealer,
         int koikoi_num_turn, int koikoi_num_idle,
-        uint8_t f_turn, uint8_t f_idle,
         int turn_p, int idle_p,
         int max_round) 
     {
-        int cols = is_koikoi ? 50 : 48;
-        int offset = is_koikoi ? 2 : 0;
-        auto result = py::array_t<float>({300, cols});
+        // 新仕様 [24, 48]
+        auto result = py::array_t<float>({24, 48});
         
         Snapshot snap;
         snap.bb_hand = bb_hand[turn_p];
-        snap.bb_init_board = bb_initBoard;
         snap.bb_unseen = bb_stock | bb_hand[idle_p];
         snap.bb_my_pile = bb_pile[turn_p];
         snap.bb_field = bb_field;
         snap.bb_op_pile = bb_pile[idle_p];
-        snap.bb_show = bb_show;
-        snap.bb_pairing = bb_pairing;
+        
+        snap.bb_my_discard = bb_discard_hist[turn_p];
+        snap.suit_op_played = suit_played[idle_p];
+        snap.suit_op_ignored = suit_ignored[idle_p];
+        
         snap.point_turn = point_turn;
         snap.point_idle = point_idle;
         snap.round_num = round_num;
         snap.turn_16 = turn_16;
-        snap.is_dealer = (dealer == turn_p); // ★ 修正: 親情報の主観フラグ化
+        snap.is_dealer = (dealer == turn_p);
         snap.koikoi_num_turn = koikoi_num_turn;
         snap.koikoi_num_idle = koikoi_num_idle;
-        snap.f_turn = f_turn;
-        snap.f_idle = f_idle;
         snap.state_type = is_koikoi ? 2 : 0;
-        snap.is_draw_pick = 0;
 
-        write_feature_core(
-            result.mutable_data(), cols, offset, snap,
-            &card_log_buf[0][0][0], false, -1, max_round
-        );
+        // 推論時は action_to_align は -1
+        write_feature_core(result.mutable_data(), snap, -1, max_round);
         return result;
     }
 
@@ -517,8 +432,7 @@ public:
         auto buf = result.mutable_unchecked<1>();
         
         if (state_type == 2) {
-            buf(0) = true;
-            buf(1) = true;
+            buf(0) = true; buf(1) = true;
             return result;
         }
 
@@ -582,8 +496,7 @@ public:
 
     void clear() { current_size = 0; }
 
-    void push_reconstructed(const Snapshot& snap, int action, float reward,
-                            const float* log_buf_ptr, int max_round) {
+    void push_reconstructed(const Snapshot& snap, int action, float reward, int max_round) {
         int idx;
         #pragma omp atomic capture
         {
@@ -601,8 +514,8 @@ public:
         actions_ptr[idx] = action;
         rewards_ptr[idx] = reward;
 
-        write_feature_core(dest, cols, snap.state_type == 2 ? 2 : 0, snap,
-                           log_buf_ptr, true, action, max_round);
+        // Q-Net学習用に選ばれたアクションの列を0にスワップする
+        write_feature_core(dest, snap, action, max_round);
     }
 
     py::dict finalize() {
@@ -858,10 +771,10 @@ public:
 
     BatchSimulator(int n_envs, int target, int cap_d, int cap_p, int cap_k, float disc, const std::vector<float>& wp_mat, std::string dev_str)
         : num_envs(n_envs), target_games(target), discount(disc),
-          buf_discard(cap_d, 300, 48), buf_pick(cap_p, 300, 48), buf_koikoi(cap_k, 300, 50),
+          // ★ 新仕様 [24, 48] に完全統一
+          buf_discard(cap_d, 24, 48), buf_pick(cap_p, 24, 48), buf_koikoi(cap_k, 24, 48),
           win_prob_mat(wp_mat), device(dev_str)
     {
-        // ★ 修正: 各並列環境に異なるシードを与えて初期化
         envs.reserve(n_envs);
         std::random_device rd;
         for(int i = 0; i < n_envs; ++i) {
@@ -875,9 +788,9 @@ public:
         auto opt_f32_pinned = torch::TensorOptions().dtype(torch::kFloat32).pinned_memory(true);
         auto opt_bool_pinned = torch::TensorOptions().dtype(torch::kBool).pinned_memory(true);
 
-        feat_tensor[0] = torch::empty({num_envs, 300, 48}, opt_f32_pinned);
-        feat_tensor[1] = torch::empty({num_envs, 300, 48}, opt_f32_pinned);
-        feat_tensor[2] = torch::empty({num_envs, 300, 50}, opt_f32_pinned);
+        feat_tensor[0] = torch::empty({num_envs, 24, 48}, opt_f32_pinned);
+        feat_tensor[1] = torch::empty({num_envs, 24, 48}, opt_f32_pinned);
+        feat_tensor[2] = torch::empty({num_envs, 24, 48}, opt_f32_pinned);
 
         mask_tensor[0] = torch::empty({num_envs, 48}, opt_bool_pinned);
         mask_tensor[1] = torch::empty({num_envs, 48}, opt_bool_pinned);
@@ -910,17 +823,10 @@ public:
 
     void build_feature_into(int i, float* feat, int type, int max_round) {
         auto& env = envs[i]; 
-        int cols = (type == 2) ? 50 : 48; 
-        int off = (type == 2) ? 2 : 0;
         int pt = env.turn_player(); 
         int pi = env.idle_player();
-
         Snapshot snap = capture_snapshot(env, pt, pi, type, max_round);
-
-        write_feature_core(
-            feat, cols, off, snap,
-            &env.state_manager.card_log_buf[0][0][0], false, -1, max_round
-        );
+        write_feature_core(feat, snap, -1, max_round);
     }
 
     void build_mask_into(int i, bool* mk, int type) {
@@ -948,10 +854,8 @@ public:
         return win_prob_mat[(is_d * 9 + mapped_rnd) * 61 + n_pt];
     }
 
-    // ★ 修正: Player 1 と Player 2 の終局報酬を個別に算出しバッファへ投入
     void process_round_over(int i, int max_round) {
         auto& env = envs[i];
-        
         for (int p_id = 1; p_id <= 2; ++p_id) {
             auto& trace = traces[p_id][i];
             if (trace.empty()) continue;
@@ -965,17 +869,14 @@ public:
                 
                 float reward = (current_idx == static_cast<int>(trace.size() - 1)) ? (final_potential * 10.0f) : 0.0f;
                 float next_q = (current_idx == static_cast<int>(trace.size() - 1)) ? 0.0f : trace[current_idx + 1].q_val;
-                
                 float target_q = reward + discount * next_q;
-                const float* log_ptr = &env.state_manager.card_log_buf[0][0][0];
 
-                if (slot.state_type == 0) buf_discard.push_reconstructed(slot.snap, slot.action, target_q, log_ptr, max_round);
-                else if (slot.state_type == 1) buf_pick.push_reconstructed(slot.snap, slot.action, target_q, log_ptr, max_round);
-                else buf_koikoi.push_reconstructed(slot.snap, slot.action, target_q, log_ptr, max_round);
+                if (slot.state_type == 0) buf_discard.push_reconstructed(slot.snap, slot.action, target_q, max_round);
+                else if (slot.state_type == 1) buf_pick.push_reconstructed(slot.snap, slot.action, target_q, max_round);
+                else buf_koikoi.push_reconstructed(slot.snap, slot.action, target_q, max_round);
             }
             trace.clear();
         }
-        
         env.point[1] += env.round_point(1); env.point[2] += env.round_point(2);
     }
 
@@ -1008,9 +909,8 @@ public:
                     #pragma omp parallel for
                     for (int i = 0; i < n; ++i) {
                         int env_idx = req_env_idx[type][i];
-                        int cols = (type == 2) ? 50 : 48;
                         int m_cols = (type == 2) ? 2 : 48;
-                        build_feature_into(env_idx, feat_ptrs[type] + i * 300 * cols, type, max_round);
+                        build_feature_into(env_idx, feat_ptrs[type] + i * 24 * 48, type, max_round);
                         build_mask_into(env_idx, mask_ptrs[type] + i * m_cols, type);
                     }
 
@@ -1029,8 +929,6 @@ public:
                     float q_val_ptr[8192];
 
                     select_actions_epsilon_greedy(type, n, out_ptr, mask_ptr, act_ptr, q_val_ptr, current_loop);
-                    
-                    // ★ 修正: 勝者と敗者の両プレイヤーの軌跡データを記録
                     apply_actions_and_record(p_id, type, req_env_idx[type], act_ptr, q_val_ptr, max_round);
                 }
             }
@@ -1041,24 +939,23 @@ private:
     Snapshot capture_snapshot(const KoiKoiEnv& env, int pt, int pi, int type, int max_round) {
         Snapshot snap;
         snap.bb_hand = env.state_manager.bb_hand[pt];
-        snap.bb_init_board = env.state_manager.bb_initBoard;
         snap.bb_unseen = env.state_manager.bb_stock | env.state_manager.bb_hand[pi];
         snap.bb_my_pile = env.state_manager.bb_pile[pt];
         snap.bb_field = env.state_manager.bb_field;
         snap.bb_op_pile = env.state_manager.bb_pile[pi];
-        snap.bb_show = env.state_manager.bb_show;
-        snap.bb_pairing = env.state_manager.bb_pairing;
+        
+        snap.bb_my_discard = env.state_manager.bb_discard_hist[pt];
+        snap.suit_op_played = env.state_manager.suit_played[pi];
+        snap.suit_op_ignored = env.state_manager.suit_ignored[pi];
+        
         snap.point_turn = env.point[pt];
         snap.point_idle = env.point[pi];
         snap.round_num = env.round_num;
         snap.turn_16 = env.turn_16;
-        snap.is_dealer = (env.dealer == pt); // ★ 修正: 主観フラグ化
+        snap.is_dealer = (env.dealer == pt);
         snap.koikoi_num_turn = env.koikoi_num(pt);
         snap.koikoi_num_idle = env.koikoi_num(pi);
-        snap.f_turn = 0; for(int j=0; j<8; ++j) if(env.koikoi[pt][j]) snap.f_turn |= (1 << j);
-        snap.f_idle = 0; for(int j=0; j<8; ++j) if(env.koikoi[pi][j]) snap.f_idle |= (1 << j);
         snap.state_type = type;
-        snap.is_draw_pick = (env.state == GameState::DRAW_PICK) ? 1 : 0;
         return snap;
     }
 
@@ -1081,9 +978,7 @@ private:
     }
 
     void select_actions_epsilon_greedy(int type, int n, const float* out_ptr, const bool* mask_ptr, int64_t* act_ptr, float* q_val_ptr, int current_loop) {
-        // 1000ループでほぼ0.05に落ち着く指数減衰曲線
         float epsilon = 0.05f + 0.95f * std::exp(-static_cast<float>(current_loop) / 200.0f);
-
         std::uniform_real_distribution<float> dist(0.0f, 1.0f);
         int cols = (type == 2) ? 2 : 48;
 
@@ -1098,8 +993,7 @@ private:
                     act_ptr[i] = valid_actions[action_dist(envs[0].rng)];
                     q_val_ptr[i] = out_ptr[i * cols + act_ptr[i]]; 
                 } else {
-                    act_ptr[i] = 0; 
-                    q_val_ptr[i] = 0.0f;
+                    act_ptr[i] = 0; q_val_ptr[i] = 0.0f;
                 }
             } else {
                 float max_val = -1e9f;
@@ -1108,13 +1002,11 @@ private:
                     if (mask_ptr[i * cols + c]) {
                         float val = out_ptr[i * cols + c];
                         if (val > max_val) {
-                            max_val = val;
-                            best_a = c;
+                            max_val = val; best_a = c;
                         }
                     }
                 }
-                act_ptr[i] = best_a;
-                q_val_ptr[i] = max_val;
+                act_ptr[i] = best_a; q_val_ptr[i] = max_val;
             }
         }
     }

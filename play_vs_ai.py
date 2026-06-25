@@ -4,14 +4,14 @@ import torch
 import koikoigui as gui
 from koikoigame import KoiKoiGameState
 import koikoilearn
-from koikoinet3L import DiscardModel, PickModel, KoiKoiModel
+from koikoinet_v2 import DiscardModel, PickModel, KoiKoiModel
 
 import torch.nn.modules.linear as my_linear
 setattr(my_linear, '_LinearWithBias', my_linear.Linear)
 
 YOUR_NAME = 'Player'
 AI_NAME = 'Com'
-RECORD_PATH = 'gamerecords_player/rl/'
+RECORD_PATH = 'gamerecords_player/'
 
 os.makedirs(RECORD_PATH, exist_ok=True)
 DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -41,9 +41,9 @@ game_state = KoiKoiGameState(player_name=[YOUR_NAME, AI_NAME], record_path=RECOR
 
 # 最新の Agent クラスを使用
 ai_agent = koikoilearn.Agent(
-    load_native_model('model/discard.pt', DiscardModel),
-    load_native_model('model/pick.pt', PickModel),
-    load_native_model('model/koikoi.pt', KoiKoiModel)
+    load_native_model('model_v2/discard.pt', DiscardModel),
+    load_native_model('model_v2/pick.pt', PickModel),
+    load_native_model('model_v2/koikoi.pt', KoiKoiModel)
 )
 
 window = gui.InitGUI()

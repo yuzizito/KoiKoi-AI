@@ -1,3 +1,5 @@
+# author: shguan3
+
 import json
 import time
 import numpy as np
@@ -308,16 +310,12 @@ class KoiKoiGameState:
         is_koikoi = (rs.state == 'koikoi')
         turn_p = rs.turn_player
         idle_p = rs.idle_player
-        
-        f_turn = sum(v << i for i, v in enumerate(rs.koikoi[turn_p]))
-        f_idle = sum(v << i for i, v in enumerate(rs.koikoi[idle_p]))
 
         return rs.cpp_state.get_feature(
             is_koikoi, 
             self.point[turn_p], self.point[idle_p],
             self.round, rs.turn_16, rs.dealer,
             sum(rs.koikoi[turn_p]), sum(rs.koikoi[idle_p]),
-            f_turn, f_idle,
             turn_p, idle_p,
             MAX_ROUND
         )

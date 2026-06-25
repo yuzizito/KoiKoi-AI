@@ -14,20 +14,11 @@ from koikoigame import MAX_ROUND
 import koikoilearn
 import koikoicore
 
-# --- 変更箇所 (1): アーキテクチャと蒸留の切り替え設定 ---
-USE_3L_MODEL = True
-USE_DISTILLATION = True
-KD_ALPHA = 1.0  # TeacherのQ値をどれくらい混ぜるか (1.0で完全コピー、0.0で通常の強化学習)
-
-if USE_3L_MODEL:
-    from koikoinet3L import DiscardModel, PickModel, KoiKoiModel, TargetQNet
-else:
-    from koikoinet2L import DiscardModel, PickModel, KoiKoiModel, TargetQNet
-# --------------------------------------------------------
+from koikoinet_v2 import DiscardModel, PickModel, KoiKoiModel, TargetQNet
 
 # --- 環境設定・スレッド制御 ---
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
-os.environ['OMP_NUM_THREADS'] = '8'
+os.environ['OMP_NUM_THREADS'] = '15'
 os.environ['MKL_NUM_THREADS'] = '1'
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 torch.set_num_threads(1)
@@ -36,39 +27,31 @@ import torch.nn.modules.linear as my_linear
 setattr(my_linear, '_LinearWithBias', my_linear.Linear)
 
 # --- 定数定義 ---
-LOG_PATH = 'log.txt'
 START_LOOP_NUM = 0
-LEARNING_RATE = 1e-4
-BATCH_SIZE = 1024
+LEARNING_RATE = 1e-5
+BATCH_SIZE = 4096
 
-# --- 変更箇所 (2): 保存先フォルダ ---
-if USE_3L_MODEL:
-    MODEL_FOLDER = 'model'
-else:
-    MODEL_FOLDER = 'model_agent'
-# ------------------------------------
-
-CPU_COUNT = 2
-LOOP_GAMES = 512
+CPU_COUNT = 1
+LOOP_GAMES = 256
 N_CORE_GAMES = LOOP_GAMES // CPU_COUNT
-
-# ★ 修正: 両プレイヤーデータ保存(2倍)に対応するためのバッファ容量拡張
-CAP_D = LOOP_GAMES // CPU_COUNT * 144
-CAP_P = LOOP_GAMES // CPU_COUNT * 24
-CAP_K = LOOP_GAMES // CPU_COUNT * 24
+CAP_D = LOOP_GAMES // CPU_COUNT * 180
+CAP_P = LOOP_GAMES // CPU_COUNT * 70
+CAP_K = LOOP_GAMES // CPU_COUNT * 70
 
 N_LOOP_ACTION_NET_UPDATE = 20
 N_LOOP_ARENA_TEST = 50
 ARENA_WORKERS = 4
 
-MAX_POOL_SIZE = 10
-SAMPLE_PER_THREAD = 1000
+MAX_POOL_SIZE = 16
+SAMPLE_PER_THREAD = 800
 
-ARENA_OPPONENT_PATHS = {
-    'discard': 'model_agent/arena/discard.pt',
-    'pick': 'model_agent/arena/pick.pt',
-    'koikoi': 'model_agent/arena/koikoi.pt'
+MODEL_FOLDER = 'model_v2'
+OPPONENT_PATHS = {
+    'discard': 'model_v2/arena/discard.pt',
+    'pick': 'model_v2/arena/pick.pt',
+    'koikoi': 'model_v2/arena/koikoi.pt'
 }
+LOG_PATH = 'log.txt'
 PHASES = ['discard', 'pick', 'koikoi']
 
 DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -100,18 +83,16 @@ def _patch_model_attributes(model):
 def get_master_net():
     """アリーナ評価のベンチマーク（対戦相手）モデルをロードする"""
     
-    # ★ 変更: マスターモデルは常に既存の2Lモデルを使用するよう明示的にインポート ---
-    from koikoinet2L import DiscardModel as MasterDiscard, PickModel as MasterPick, KoiKoiModel as MasterKoiKoi
+    from koikoinet_v2 import DiscardModel as MasterDiscard, PickModel as MasterPick, KoiKoiModel as MasterKoiKoi
     
     models = {
         'discard': MasterDiscard().cpu(),
         'pick': MasterPick().cpu(),
         'koikoi': MasterKoiKoi().cpu()
     }
-    # ------------------------------------------------------
     
     for key, model in models.items():
-        path = ARENA_OPPONENT_PATHS[key]
+        path = OPPONENT_PATHS[key]
         if not os.path.exists(path):
             raise FileNotFoundError(f"アリーナ対戦相手用のモデルが見つかりません: {path}")
             
@@ -212,21 +193,6 @@ if __name__ == '__main__':
     if not os.path.isdir(MODEL_FOLDER):
         os.mkdir(MODEL_FOLDER)
         
-    # --- 変更箇所 (3): Teacherモデル(既存2L)のロード ---
-    if USE_DISTILLATION:
-        from koikoinet2L import TargetQNet as TeacherQNet
-        teacher_net = {key: TeacherQNet().to(DEVICE).eval() for key in PHASES}
-        for key in PHASES:
-            # 常に既存の2Lモデルのディレクトリから読み込む
-            teacher_path = f'model_agent/{key}.pt'
-            if os.path.exists(teacher_path):
-                teacher_net[key].load_state_dict(torch.load(teacher_path, map_location=DEVICE, weights_only=True))
-                print(f"[Distillation] 既存の教師モデルをロードしました: {teacher_path}")
-            else:
-                print(f"[Warning] 既存の教師モデルが見つかりません: {teacher_path}")
-            _patch_model_attributes(teacher_net[key])
-    # ----------------------------------------------------
-        
     exit_thread = threading.Thread(target=wait_for_exit_key, daemon=True)
     exit_thread.start()
         
@@ -241,8 +207,8 @@ if __name__ == '__main__':
     value_net['pick'], action_net['pick'] = get_value_action_net(f'{MODEL_FOLDER}/pick.pt', TargetQNet().cpu(), PickModel)
     value_net['koikoi'], action_net['koikoi'] = get_value_action_net(f'{MODEL_FOLDER}/koikoi.pt', TargetQNet().cpu(), KoiKoiModel)
     
-    example_input_normal = torch.zeros((1, 300, 48), dtype=torch.float32, device=DEVICE)
-    example_input_koikoi = torch.zeros((1, 300, 50), dtype=torch.float32, device=DEVICE) 
+    example_input_normal = torch.zeros((1, 24, 48), dtype=torch.float32, device=DEVICE)
+    example_input_koikoi = torch.zeros((1, 24, 48), dtype=torch.float32, device=DEVICE)
 
     traced_action_net = {}
     traced_value_net = {}
@@ -274,32 +240,6 @@ if __name__ == '__main__':
     executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
     def background_training(data):
-        
-        # --- 変更箇所 (4): 蒸留処理 (ターゲットQ値のブレンド) ---
-        if USE_DISTILLATION:
-            with torch.no_grad():
-                for d in data:
-                    if not isinstance(d, dict): continue
-                    for key in PHASES:
-                        if key in d and d[key]['states'].numel() > 0:
-                            states_cpu = d[key]['states']
-                            original_rewards = d[key]['rewards']
-                            
-                            # メモリ溢れ（OOM）を防ぐためミニバッチで推論
-                            teacher_q_list = []
-                            mb_size = 1024
-                            for i in range(0, states_cpu.size(0), mb_size):
-                                mb_states = states_cpu[i:i+mb_size].to(DEVICE)
-                                # 出力が [B, 1] になるため、.view(-1) で [B] に平坦化して次元を合わせる
-                                mb_q = teacher_net[key](mb_states).view(-1)
-                                teacher_q_list.append(mb_q)
-                                
-                            teacher_q = torch.cat(teacher_q_list, dim=0).cpu()
-                            
-                            # TeacherのQ値と、C++が出した本来のTDターゲットをブレンド
-                            blended_rewards = KD_ALPHA * teacher_q + (1.0 - KD_ALPHA) * original_rewards
-                            d[key]['rewards'] = blended_rewards
-        # --------------------------------------------------------
         
         losses, samples = {}, {}
         for key in PHASES:
