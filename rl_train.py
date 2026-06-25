@@ -9,7 +9,6 @@ import torch
 import torch.multiprocessing as mp
 import numpy as np
 
-import koikoigame
 from koikoigame import MAX_ROUND
 import koikoilearn
 import koikoicore
@@ -83,12 +82,10 @@ def _patch_model_attributes(model):
 def get_master_net():
     """アリーナ評価のベンチマーク（対戦相手）モデルをロードする"""
     
-    from koikoinet_v2 import DiscardModel as MasterDiscard, PickModel as MasterPick, KoiKoiModel as MasterKoiKoi
-    
     models = {
-        'discard': MasterDiscard().cpu(),
-        'pick': MasterPick().cpu(),
-        'koikoi': MasterKoiKoi().cpu()
+        'discard': DiscardModel().cpu(),
+        'pick': PickModel().cpu(),
+        'koikoi': KoiKoiModel().cpu()
     }
     
     for key, model in models.items():
@@ -240,28 +237,34 @@ if __name__ == '__main__':
     executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
     def background_training(data):
-        
         losses, samples = {}, {}
         for key in PHASES:
-            losses[key] = trainer[key].train_from_results(data, key, BATCH_SIZE)
-            samples[key] = sum(d.get(key, {}).get('actions', torch.empty(0)).shape[0] for d in data if isinstance(d, dict))
+            state_list = []
+            reward_list = []
+            
+            # Design Intent: Python側でデータを抽出し、PyTorchの高速な結合処理を利用する
+            for d in data:
+                if isinstance(d, dict) and key in d:
+                    s = d[key].get('states')
+                    r = d[key].get('rewards')
+                    
+                    # Validation: テンソルが存在し、かつ空でないことを確認
+                    if s is not None and s.numel() > 0:
+                        state_list.append(s)
+                        reward_list.append(r)
+            
+            if state_list:
+                all_states = torch.cat(state_list, dim=0)
+                all_rewards = torch.cat(reward_list, dim=0)
+                
+                # Design Intent: 純粋なテンソルのみを渡すことで、C++側は即座にGILを解放して計算に専念できる
+                losses[key] = trainer[key].train_epoch(all_states, all_rewards, BATCH_SIZE)
+                samples[key] = all_states.shape[0]
+            else:
+                losses[key] = 0.0
+                samples[key] = 0
+                
         return samples, losses
-    
-    def clone_sim_results(results_list):
-        cloned = []
-        for r_dict in results_list:
-            c_dict = {}
-            for k, v in r_dict.items():
-                if v['states'].numel() > 0:
-                    c_dict[k] = {
-                        'states': v['states'].clone(),
-                        'actions': v['actions'].clone(),
-                        'rewards': v['rewards'].clone()
-                    }
-                else:
-                    c_dict[k] = v
-            cloned.append(c_dict)
-        return cloned
     
     replay_buffer_pool = []
 
@@ -290,7 +293,7 @@ if __name__ == '__main__':
         loop_start_time = time.perf_counter()
         sync_models = (loop % N_LOOP_ACTION_NET_UPDATE == 0)
         
-        training_data = clone_sim_results(results)
+        training_data = list(results)
         for pool_data in replay_buffer_pool:
             training_data.extend(pool_data)
         

@@ -482,8 +482,8 @@ public:
     float* rewards_ptr;
 
     KoiKoiTraceBuffer(int cap, int r, int c) : capacity(cap), rows(r), cols(c), current_size(0) {
-        auto opt_f32 = torch::TensorOptions().dtype(torch::kFloat32).pinned_memory(true);
-        auto opt_i64 = torch::TensorOptions().dtype(torch::kInt64).pinned_memory(true);
+        auto opt_f32 = torch::TensorOptions().dtype(torch::kFloat32);
+        auto opt_i64 = torch::TensorOptions().dtype(torch::kInt64);
         
         states_tensor = torch::empty({capacity, rows, cols}, opt_f32);
         actions_tensor = torch::empty({capacity}, opt_i64);
@@ -525,9 +525,9 @@ public:
             result["actions"] = torch::empty({0});
             result["rewards"] = torch::empty({0});
         } else {
-            result["states"] = states_tensor.slice(0, 0, current_size);
-            result["actions"] = actions_tensor.slice(0, 0, current_size);
-            result["rewards"] = rewards_tensor.slice(0, 0, current_size);
+            result["states"] = states_tensor.slice(0, 0, current_size).clone();
+            result["actions"] = actions_tensor.slice(0, 0, current_size).clone();
+            result["rewards"] = rewards_tensor.slice(0, 0, current_size).clone();
         }
         return result;
     }
@@ -1073,6 +1073,10 @@ public:
     }
 
     float train_epoch(torch::Tensor states, torch::Tensor rewards, int batch_size) {
+        
+        states = states.contiguous();
+        rewards = rewards.contiguous();
+        
         int64_t num_samples = states.size(0);
         int rows = states.size(1);
         int cols = states.size(2);
@@ -1149,33 +1153,6 @@ public:
         return num_batches > 0 ? total_loss / num_batches : 0.0f;
     }
 
-    float train_from_results(py::list results, const std::string& key, int batch_size) {
-        std::vector<torch::Tensor> state_list;
-        std::vector<torch::Tensor> reward_list;
-        
-        for (auto item : results) {
-            py::dict res_dict = item.cast<py::dict>();
-            if (!res_dict.contains(key.c_str())) continue;
-            
-            py::dict data = res_dict[key.c_str()].cast<py::dict>();
-            
-            torch::Tensor s_tensor = data["states"].cast<torch::Tensor>();
-            torch::Tensor r_tensor = data["rewards"].cast<torch::Tensor>();
-            
-            if (s_tensor.size(0) > 0) {
-                state_list.push_back(s_tensor);
-                reward_list.push_back(r_tensor);
-            }
-        }
-        
-        if (state_list.empty()) return 0.0f;
-        
-        auto all_states = torch::cat(state_list, 0);
-        auto all_rewards = torch::cat(reward_list, 0);
-        
-        return train_epoch(all_states, all_rewards, batch_size);
-    }
-
     void sync_and_save_action_model(const std::string& action_model_path) {
         try {
             auto action_model = torch::jit::load(action_model_path, device);
@@ -1208,7 +1185,6 @@ struct SimConfig {
     float disc;
     std::string dev_str;
     int max_round;
-    int current_loop;
 
     bool operator==(const SimConfig& o) const {
         return num_threads == o.num_threads && n_envs == o.n_envs &&
@@ -1221,6 +1197,7 @@ struct SimConfig {
 class SimulationManager {
 public:
     std::vector<std::unique_ptr<BatchSimulator>> sims;
+    int current_loop_exec = 0;
     SimConfig current_config;
 
     std::vector<std::thread> workers;
@@ -1275,9 +1252,10 @@ public:
         }
     }
 
-    void run_simulation_parallel() {
+    void run_simulation_parallel(int loop_num) {
         {
             std::lock_guard<std::mutex> lock(pool_mtx);
+            current_loop_exec = loop_num;
             std::fill(worker_exceptions.begin(), worker_exceptions.end(), nullptr);
             done_workers = 0;
             generation++; 
@@ -1313,7 +1291,7 @@ private:
             }
 
             try {
-                sims[worker_id]->play_games(current_config.max_round, current_config.current_loop);
+                sims[worker_id]->play_games(current_config.max_round, current_loop_exec);
             } catch (...) {
                 std::lock_guard<std::mutex> lock(pool_mtx);
                 worker_exceptions[worker_id] = std::current_exception();
@@ -1353,7 +1331,7 @@ py::list run_parallel_simulations(
         }
     }
 
-    SimConfig config = {num_threads, n_envs_per_thread, target_games_per_thread, cap_d, cap_p, cap_k, disc, dev_str, max_round, current_loop};
+    SimConfig config = {num_threads, n_envs_per_thread, target_games_per_thread, cap_d, cap_p, cap_k, disc, dev_str, max_round};
     
     if (g_sim_manager && g_sim_manager->current_config != config) {
         g_sim_manager.reset();
@@ -1367,7 +1345,7 @@ py::list run_parallel_simulations(
 
     {
         py::gil_scoped_release release;
-        g_sim_manager->run_simulation_parallel();
+        g_sim_manager->run_simulation_parallel(current_loop);
     }
 
     py::list results;
@@ -1416,7 +1394,6 @@ PYBIND11_MODULE(koikoicore, m) {
     py::class_<KoiKoiTrainer>(m, "KoiKoiTrainer")
         .def(py::init<torch::jit::Module, float, std::string>())
         .def("train_epoch", &KoiKoiTrainer::train_epoch)
-        .def("train_from_results", &KoiKoiTrainer::train_from_results)
         .def("sync_and_save_action_model", &KoiKoiTrainer::sync_and_save_action_model)
         .def("sync_to_inference_model", &KoiKoiTrainer::sync_to_inference_model);
 }
