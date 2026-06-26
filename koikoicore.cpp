@@ -215,8 +215,21 @@ struct Snapshot {
 struct TraceSlot {
     int state_type; 
     int action;
-    float q_val;
+    float old_value;            // 追加: 収集時のValue (Critic) 出力
+    float old_logits[48];       // 追加: 収集時のPolicy (Actor) 出力
+    bool legal_mask[48];        // 追加: 合法手マスク
     Snapshot snap;
+};
+
+struct ExplorationParams {
+    float temperature;
+    float epsilon;
+    float uniform_noise_rate;
+
+    bool operator==(const ExplorationParams& o) const {
+        return temperature == o.temperature && epsilon == o.epsilon && uniform_noise_rate == o.uniform_noise_rate;
+    }
+    bool operator!=(const ExplorationParams& o) const { return !(*this == o); }
 };
 
 inline void write_feature_core(
@@ -477,26 +490,43 @@ public:
     torch::Tensor actions_tensor;
     torch::Tensor rewards_tensor;
 
+    torch::Tensor old_logits_tensor;
+    torch::Tensor old_values_tensor;
+    torch::Tensor legal_masks_tensor;
+
     float* states_ptr;
     int64_t* actions_ptr;
     float* rewards_ptr;
+    float* old_logits_ptr;
+    float* old_values_ptr;
+    bool* legal_masks_ptr;
 
     KoiKoiTraceBuffer(int cap, int r, int c) : capacity(cap), rows(r), cols(c), current_size(0) {
         auto opt_f32 = torch::TensorOptions().dtype(torch::kFloat32);
         auto opt_i64 = torch::TensorOptions().dtype(torch::kInt64);
+        auto opt_bool = torch::TensorOptions().dtype(torch::kBool);
         
         states_tensor = torch::empty({capacity, rows, cols}, opt_f32);
         actions_tensor = torch::empty({capacity}, opt_i64);
         rewards_tensor = torch::empty({capacity}, opt_f32);
+        
+        // --- 追加 ---
+        old_logits_tensor = torch::empty({capacity, 48}, opt_f32);
+        old_values_tensor = torch::empty({capacity}, opt_f32);
+        legal_masks_tensor = torch::empty({capacity, 48}, opt_bool);
 
         states_ptr = states_tensor.data_ptr<float>();
         actions_ptr = actions_tensor.data_ptr<int64_t>();
         rewards_ptr = rewards_tensor.data_ptr<float>();
+        
+        old_logits_ptr = old_logits_tensor.data_ptr<float>();
+        old_values_ptr = old_values_tensor.data_ptr<float>();
+        legal_masks_ptr = legal_masks_tensor.data_ptr<bool>();
     }
 
     void clear() { current_size = 0; }
 
-    void push_reconstructed(const Snapshot& snap, int action, float reward, int max_round) {
+    void push_reconstructed(const TraceSlot& slot, float mc_return, int max_round) {
         int idx;
         #pragma omp atomic capture
         {
@@ -510,12 +540,16 @@ public:
             return;
         }
 
-        float* dest = states_ptr + idx * rows * cols;
-        actions_ptr[idx] = action;
-        rewards_ptr[idx] = reward;
+        float* dest_state = states_ptr + idx * rows * cols;
+        actions_ptr[idx] = slot.action;
+        rewards_ptr[idx] = mc_return; // MC Return
+        
+        old_values_ptr[idx] = slot.old_value;
+        std::memcpy(old_logits_ptr + idx * 48, slot.old_logits, 48 * sizeof(float));
+        std::memcpy(legal_masks_ptr + idx * 48, slot.legal_mask, 48 * sizeof(bool));
 
-        // Q-Net学習用に選ばれたアクションの列を0にスワップする
-        write_feature_core(dest, snap, action, max_round);
+        // 特徴量の書き込み (NeuRDでは action_to_align は不要なため -1 固定)
+        write_feature_core(dest_state, slot.snap, -1, max_round);
     }
 
     py::dict finalize() {
@@ -524,10 +558,16 @@ public:
             result["states"] = torch::empty({0, rows, cols});
             result["actions"] = torch::empty({0});
             result["rewards"] = torch::empty({0});
+            result["old_logits"] = torch::empty({0, 48});
+            result["old_values"] = torch::empty({0});
+            result["legal_masks"] = torch::empty({0, 48}, torch::kBool);
         } else {
             result["states"] = states_tensor.slice(0, 0, current_size).clone();
             result["actions"] = actions_tensor.slice(0, 0, current_size).clone();
             result["rewards"] = rewards_tensor.slice(0, 0, current_size).clone();
+            result["old_logits"] = old_logits_tensor.slice(0, 0, current_size).clone();
+            result["old_values"] = old_values_tensor.slice(0, 0, current_size).clone();
+            result["legal_masks"] = legal_masks_tensor.slice(0, 0, current_size).clone();
         }
         return result;
     }
@@ -769,11 +809,13 @@ public:
     torch::Tensor feat_tensor[3];
     torch::Tensor mask_tensor[3];
 
-    BatchSimulator(int n_envs, int target, int cap_d, int cap_p, int cap_k, float disc, const std::vector<float>& wp_mat, std::string dev_str)
+    ExplorationParams exp_params;
+
+    BatchSimulator(int n_envs, int target, int cap_d, int cap_p, int cap_k, float disc, const std::vector<float>& wp_mat, std::string dev_str, ExplorationParams ep)
         : num_envs(n_envs), target_games(target), discount(disc),
           // ★ 新仕様 [24, 48] に完全統一
           buf_discard(cap_d, 24, 48), buf_pick(cap_p, 24, 48), buf_koikoi(cap_k, 24, 48),
-          win_prob_mat(wp_mat), device(dev_str)
+          win_prob_mat(wp_mat), device(dev_str), exp_params(ep) // ← 【追加】
     {
         envs.reserve(n_envs);
         std::random_device rd;
@@ -860,27 +902,27 @@ public:
             auto& trace = traces[p_id][i];
             if (trace.empty()) continue;
 
+            // Design Intent: Python側で多様なスケーリングを試せるように、ここでは「生の獲得予定ポイント（差分ベースの期待値）」等を返すことも可能。
+            // 既存の win_prob_mat を活用したポテンシャル値をベースとする場合
             int final_pt = env.point[p_id] + env.round_point(p_id);
             float final_potential = get_potential(p_id, env.round_num + 1, final_pt, env.dealer, env.winner, env.exhausted, max_round);
+            
+            // Raw Return として設定（Python側の scale_returns で勝敗[-1, 1]等に変換される前提）
+            float mc_return = final_potential; 
 
             for (size_t rs = 0; rs < trace.size(); ++rs) {
-                int current_idx = static_cast<int>(trace.size() - 1 - rs);
-                auto& slot = trace[current_idx];
-                
-                float reward = (current_idx == static_cast<int>(trace.size() - 1)) ? (final_potential * 10.0f) : 0.0f;
-                float next_q = (current_idx == static_cast<int>(trace.size() - 1)) ? 0.0f : trace[current_idx + 1].q_val;
-                float target_q = reward + discount * next_q;
-
-                if (slot.state_type == 0) buf_discard.push_reconstructed(slot.snap, slot.action, target_q, max_round);
-                else if (slot.state_type == 1) buf_pick.push_reconstructed(slot.snap, slot.action, target_q, max_round);
-                else buf_koikoi.push_reconstructed(slot.snap, slot.action, target_q, max_round);
+                auto& slot = trace[rs];
+                // TDターゲット計算を廃止し、MC Returnをそのまま記録
+                if (slot.state_type == 0) buf_discard.push_reconstructed(slot, mc_return, max_round);
+                else if (slot.state_type == 1) buf_pick.push_reconstructed(slot, mc_return, max_round);
+                else buf_koikoi.push_reconstructed(slot, mc_return, max_round);
             }
             trace.clear();
         }
         env.point[1] += env.round_point(1); env.point[2] += env.round_point(2);
     }
 
-    void play_games(int max_round, int current_loop) {
+    void play_games(int max_round) {
         std::vector<int> req_env_idx[3];
         float* feat_ptrs[3] = { feat_tensor[0].data_ptr<float>(), feat_tensor[1].data_ptr<float>(), feat_tensor[2].data_ptr<float>() };
         bool* mask_ptrs[3] = { mask_tensor[0].data_ptr<bool>(), mask_tensor[1].data_ptr<bool>(), mask_tensor[2].data_ptr<bool>() };
@@ -891,7 +933,7 @@ public:
             if (finished_games >= target_games) break;
 
             for (int p_id = 1; p_id <= 2; ++p_id) {
-                for(int i=0; i<3; ++i) req_env_idx[i].clear();
+                for(int i = 0; i < 3; ++i) req_env_idx[i].clear();
                 
                 for (int i = 0; i < num_envs; ++i) {
                     auto& env = envs[i];
@@ -916,20 +958,56 @@ public:
 
                     torch::Tensor f_gpu = feat_tensor[type].slice(0, 0, n).to(device, true).to(torch::kFloat32);
                     
-                    torch::Tensor output;
-                    if (type == 0) output = g_models.discard.forward({f_gpu}).toTensor();
-                    else if (type == 1) output = g_models.pick.forward({f_gpu}).toTensor();
-                    else output = g_models.koikoi.forward({f_gpu}).toTensor();
+                    // Design Intent: Policy(Logits)とValueをTupleとして受け取り分解する
+                    auto output_ivalue = (type == 0) ? g_models.discard.forward({f_gpu})
+                                       : (type == 1) ? g_models.pick.forward({f_gpu})
+                                       : g_models.koikoi.forward({f_gpu});
+                                       
+                    auto output_tuple = output_ivalue.toTuple();
+                    torch::Tensor logits_gpu = output_tuple->elements()[0].toTensor();
+                    torch::Tensor value_gpu  = output_tuple->elements()[1].toTensor();
 
-                    torch::Tensor output_cpu = output.cpu();
-                    const float* out_ptr = output_cpu.data_ptr<float>();
-                    const bool* mask_ptr = mask_tensor[type].data_ptr<bool>(); 
+                    torch::Tensor logits_cpu = logits_gpu.cpu();
+                    torch::Tensor value_cpu  = value_gpu.cpu();
+                    
+                    const float* logits_ptr = logits_cpu.data_ptr<float>();
+                    const float* value_ptr  = value_cpu.data_ptr<float>();
+                    const bool* mask_ptr    = mask_tensor[type].data_ptr<bool>(); 
 
                     int64_t act_ptr[8192]; 
-                    float q_val_ptr[8192];
 
-                    select_actions_epsilon_greedy(type, n, out_ptr, mask_ptr, act_ptr, q_val_ptr, current_loop);
-                    apply_actions_and_record(p_id, type, req_env_idx[type], act_ptr, q_val_ptr, max_round);
+                    // Design Intent: ハードコードを廃止し、外部から注入された探索パラメータ(exp_params)を使用
+                    select_actions_neurd(type, n, logits_ptr, mask_ptr, act_ptr, this->exp_params);
+
+                    // 状態とアクションの記録、および環境のステップ進行
+                    #pragma omp parallel for
+                    for (int i = 0; i < n; ++i) {
+                        int env_idx = req_env_idx[type][i];
+                        auto& env = envs[env_idx];
+
+                        TraceSlot slot;
+                        slot.state_type = type;
+                        slot.action = act_ptr[i];
+                        slot.old_value = value_ptr[i]; // Value Headの出力
+                        
+                        int cols = (type == 2) ? 2 : 48;
+                        
+                        // ゼロクリア
+                        std::memset(slot.old_logits, 0, 48 * sizeof(float));
+                        std::memset(slot.legal_mask, 0, 48 * sizeof(bool));
+                        
+                        // 収集時のPolicyロジットと合法手マスクを固定(Frozen)データとしてコピー
+                        for (int c = 0; c < cols; ++c) {
+                            slot.old_logits[c] = logits_ptr[i * cols + c];
+                            slot.legal_mask[c] = mask_ptr[i * cols + c];
+                        }
+
+                        int idle_id = (p_id == 1) ? 2 : 1;
+                        slot.snap = capture_snapshot(env, p_id, idle_id, type, max_round);
+                        traces[p_id][env_idx].push_back(slot);
+
+                        env.step(slot.action);
+                    }
                 }
             }
         }
@@ -977,205 +1055,65 @@ private:
         finished_games += local_finished;
     }
 
-    void select_actions_epsilon_greedy(int type, int n, const float* out_ptr, const bool* mask_ptr, int64_t* act_ptr, float* q_val_ptr, int current_loop) {
-        float epsilon = 0.05f + 0.95f * std::exp(-static_cast<float>(current_loop) / 200.0f);
+    void select_actions_neurd(int type, int n, const float* out_ptr, const bool* mask_ptr, int64_t* act_ptr, const ExplorationParams& params) {
         std::uniform_real_distribution<float> dist(0.0f, 1.0f);
         int cols = (type == 2) ? 2 : 48;
 
         for (int i = 0; i < n; ++i) {
-            if (dist(envs[0].rng) < epsilon) {
-                FixedVec<int, 48> valid_actions;
-                for (int c = 0; c < cols; ++c) {
-                    if (mask_ptr[i * cols + c]) valid_actions.push_back(c);
-                }
-                if (!valid_actions.empty()) {
-                    std::uniform_int_distribution<int> action_dist(0, valid_actions.size() - 1);
-                    act_ptr[i] = valid_actions[action_dist(envs[0].rng)];
-                    q_val_ptr[i] = out_ptr[i * cols + act_ptr[i]]; 
-                } else {
-                    act_ptr[i] = 0; q_val_ptr[i] = 0.0f;
-                }
-            } else {
-                float max_val = -1e9f;
-                int best_a = 0;
-                for (int c = 0; c < cols; ++c) {
-                    if (mask_ptr[i * cols + c]) {
-                        float val = out_ptr[i * cols + c];
-                        if (val > max_val) {
-                            max_val = val; best_a = c;
+            FixedVec<int, 48> valid_actions;
+            for (int c = 0; c < cols; ++c) {
+                if (mask_ptr[i * cols + c]) valid_actions.push_back(c);
+            }
+
+            if (valid_actions.empty()) {
+                act_ptr[i] = 0;
+                continue;
+            }
+
+            float rand_val = dist(envs[0].rng);
+
+            if (rand_val < params.uniform_noise_rate + params.epsilon) {
+                // ε-greedy または 一様ランダム
+                std::uniform_int_distribution<int> action_dist(0, valid_actions.size() - 1);
+                act_ptr[i] = valid_actions[action_dist(envs[0].rng)];
+            } 
+            else {
+                if (params.temperature <= 0.0f) {
+                    // Temperature=0 の場合は Argmax
+                    float max_val = -1e9f;
+                    int best_a = valid_actions[0];
+                    for (int a : valid_actions) {
+                        if (out_ptr[i * cols + a] > max_val) {
+                            max_val = out_ptr[i * cols + a];
+                            best_a = a;
                         }
                     }
+                    act_ptr[i] = best_a;
+                } else {
+                    // Softmax サンプリング
+                    float max_logit = -1e9f;
+                    for (int a : valid_actions) {
+                        if (out_ptr[i * cols + a] > max_logit) max_logit = out_ptr[i * cols + a];
+                    }
+                    float sum_exp = 0.0f;
+                    float exps[48];
+                    for (int a : valid_actions) {
+                        exps[a] = std::exp((out_ptr[i * cols + a] - max_logit) / params.temperature);
+                        sum_exp += exps[a];
+                    }
+                    float r = dist(envs[0].rng) * sum_exp;
+                    float acc = 0.0f;
+                    int chosen = valid_actions.back();
+                    for (int a : valid_actions) {
+                        acc += exps[a];
+                        if (r <= acc) {
+                            chosen = a;
+                            break;
+                        }
+                    }
+                    act_ptr[i] = chosen;
                 }
-                act_ptr[i] = best_a; q_val_ptr[i] = max_val;
             }
-        }
-    }
-
-    void apply_actions_and_record(int p_id, int type, const std::vector<int>& req_idx, const int64_t* act_ptr, const float* q_val_ptr, int max_round) {
-        int n = static_cast<int>(req_idx.size());
-        #pragma omp parallel for
-        for (int i = 0; i < n; ++i) {
-            int env_idx = req_idx[i];
-            int action = static_cast<int>(act_ptr[i]);
-            auto& env = envs[env_idx];
-
-            TraceSlot slot;
-            slot.state_type = type;
-            slot.action = action;
-            slot.q_val = q_val_ptr[i];
-            int idle_id = (p_id == 1) ? 2 : 1;
-            slot.snap = capture_snapshot(env, p_id, idle_id, type, max_round);
-            traces[p_id][env_idx].push_back(slot);
-
-            env.step(action);
-        }
-    }
-};
-
-class KoiKoiTrainer {
-private:
-    torch::jit::script::Module model;
-    std::shared_ptr<torch::optim::Adam> optimizer;
-    torch::Device device;
-
-    torch::Tensor batch_states[2];
-    torch::Tensor batch_rewards[2];
-    int64_t micro_batch_size = 1024;
-    int current_cols = 0;
-
-    void copy_parameters(torch::jit::script::Module& src, torch::jit::script::Module& dst) {
-        auto src_params = src.parameters();
-        auto dst_params = dst.parameters();
-        auto src_it = src_params.begin();
-        auto dst_it = dst_params.begin();
-        while (src_it != src_params.end() && dst_it != dst_params.end()) {
-            (*dst_it).copy_(*src_it);
-            ++src_it;
-            ++dst_it;
-        }
-    }
-
-public:
-    KoiKoiTrainer(torch::jit::Module py_model, float lr, const std::string& dev_str) 
-        : device(dev_str) {
-        
-        model = py_model;
-        model.train();
-        
-        std::vector<torch::Tensor> parameters;
-        for (const auto& p : model.parameters()) {
-            if (p.requires_grad()) {
-                parameters.push_back(p);
-            }
-        }
-        optimizer = std::make_shared<torch::optim::Adam>(
-            parameters, torch::optim::AdamOptions(lr));
-    }
-
-    float train_epoch(torch::Tensor states, torch::Tensor rewards, int batch_size) {
-        
-        states = states.contiguous();
-        rewards = rewards.contiguous();
-        
-        int64_t num_samples = states.size(0);
-        int rows = states.size(1);
-        int cols = states.size(2);
-        
-        if (current_cols != cols || !batch_states[0].defined()) {
-            auto opt_pinned = torch::TensorOptions().dtype(torch::kFloat32).pinned_memory(true);
-            batch_states[0] = torch::empty({micro_batch_size, rows, cols}, opt_pinned);
-            batch_states[1] = torch::empty({micro_batch_size, rows, cols}, opt_pinned);
-            batch_rewards[0] = torch::empty({micro_batch_size}, opt_pinned);
-            batch_rewards[1] = torch::empty({micro_batch_size}, opt_pinned);
-            current_cols = cols;
-        }
-
-        auto indices = torch::randperm(num_samples, torch::TensorOptions().dtype(torch::kLong));
-        const int64_t* idx_ptr = indices.data_ptr<int64_t>();
-        
-        float total_loss = 0.0f;
-        int num_batches = 0;
-        
-        const float* src_states_ptr = states.data_ptr<float>();
-        const float* src_rewards_ptr = rewards.data_ptr<float>();
-
-        py::gil_scoped_release release;
-        int buf_idx = 0;
-
-        for (int64_t i = 0; i < num_samples; i += batch_size) {
-            int64_t current_batch_size = std::min(static_cast<int64_t>(batch_size), num_samples - i);
-            optimizer->zero_grad();
-            
-            float batch_loss = 0.0f;
-
-            for (int64_t j = 0; j < current_batch_size; j += micro_batch_size) {
-                int64_t m_size = std::min(micro_batch_size, current_batch_size - j);
-                
-                float* dst_states_ptr = batch_states[buf_idx].data_ptr<float>();
-                float* dst_rewards_ptr = batch_rewards[buf_idx].data_ptr<float>();
-
-                for (int64_t b = 0; b < m_size; ++b) {
-                    int64_t src_idx = idx_ptr[i + j + b];
-                    std::memcpy(dst_states_ptr + b * rows * cols, 
-                                src_states_ptr + src_idx * rows * cols, 
-                                rows * cols * sizeof(float));
-                    dst_rewards_ptr[b] = src_rewards_ptr[src_idx];
-                }
-
-                auto state_gpu = batch_states[buf_idx].slice(0, 0, m_size).to(torch::kFloat32).to(device, true);
-                auto reward_gpu = batch_rewards[buf_idx].slice(0, 0, m_size).to(device, true);
-
-                std::vector<torch::jit::IValue> inputs;
-                inputs.push_back(state_gpu);
-                
-                torch::Tensor q_values = model.forward(inputs).toTensor().view({-1});
-                torch::Tensor reward_flat = reward_gpu.view({-1});
-                
-                auto loss = torch::nn::functional::smooth_l1_loss(
-                    q_values,
-                    reward_flat, 
-                    torch::nn::functional::SmoothL1LossFuncOptions().beta(30.0)
-                );
-
-                float scale = static_cast<float>(m_size) / current_batch_size;
-                auto scaled_loss = loss * scale;
-                scaled_loss.backward();
-
-                batch_loss += loss.item<float>() * scale;
-                buf_idx = 1 - buf_idx;
-            }
-
-            optimizer->step();
-            total_loss += batch_loss;
-            num_batches++;
-        }
-        
-        return num_batches > 0 ? total_loss / num_batches : 0.0f;
-    }
-
-    void sync_and_save_action_model(const std::string& action_model_path) {
-        try {
-            auto action_model = torch::jit::load(action_model_path, device);
-            torch::NoGradGuard no_grad;
-            copy_parameters(model, action_model);
-            action_model.save(action_model_path);
-        } catch (const c10::Error& e) {
-            (void)e;
-            std::cerr << "Error syncing weights to " << action_model_path << "\n";
-        }
-    }
-
-    void sync_to_inference_model(const std::string& type) {
-        torch::NoGradGuard no_grad;
-        std::lock_guard<std::mutex> lock(g_models.mtx);
-        
-        torch::jit::script::Module* target_model = nullptr;
-        if (type == "discard") target_model = &g_models.discard;
-        else if (type == "pick") target_model = &g_models.pick;
-        else if (type == "koikoi") target_model = &g_models.koikoi;
-        
-        if (target_model && g_models.loaded) {
-            copy_parameters(model, *target_model);
         }
     }
 };
@@ -1185,6 +1123,7 @@ struct SimConfig {
     float disc;
     std::string dev_str;
     int max_round;
+    ExplorationParams exp_params;
 
     bool operator==(const SimConfig& o) const {
         return num_threads == o.num_threads && n_envs == o.n_envs &&
@@ -1197,7 +1136,6 @@ struct SimConfig {
 class SimulationManager {
 public:
     std::vector<std::unique_ptr<BatchSimulator>> sims;
-    int current_loop_exec = 0;
     SimConfig current_config;
 
     std::vector<std::thread> workers;
@@ -1223,7 +1161,7 @@ public:
         for (int i = 0; i < config.num_threads; ++i) {
             sims.push_back(std::make_unique<BatchSimulator>(
                 config.n_envs, config.target, config.cap_d, config.cap_p, config.cap_k, 
-                config.disc, shared_win_prob_mat, config.dev_str
+                config.disc, shared_win_prob_mat, config.dev_str, config.exp_params
             ));
         }
 
@@ -1252,10 +1190,9 @@ public:
         }
     }
 
-    void run_simulation_parallel(int loop_num) {
+    void run_simulation_parallel() {
         {
             std::lock_guard<std::mutex> lock(pool_mtx);
-            current_loop_exec = loop_num;
             std::fill(worker_exceptions.begin(), worker_exceptions.end(), nullptr);
             done_workers = 0;
             generation++; 
@@ -1291,7 +1228,7 @@ private:
             }
 
             try {
-                sims[worker_id]->play_games(current_config.max_round, current_loop_exec);
+                sims[worker_id]->play_games(current_config.max_round);
             } catch (...) {
                 std::lock_guard<std::mutex> lock(pool_mtx);
                 worker_exceptions[worker_id] = std::current_exception();
@@ -1314,7 +1251,8 @@ py::list run_parallel_simulations(
     int num_threads, int n_envs_per_thread, int target_games_per_thread,
     int cap_d, int cap_p, int cap_k, float disc, py::array_t<float> wp_mat,
     torch::jit::Module discard_model, torch::jit::Module pick_model, torch::jit::Module koikoi_model,
-    std::string dev_str, int max_round, int current_loop) 
+    std::string dev_str, int max_round,
+    float temperature, float epsilon, float uniform_noise)
 {
     torch::Device device(dev_str);
 
@@ -1331,7 +1269,8 @@ py::list run_parallel_simulations(
         }
     }
 
-    SimConfig config = {num_threads, n_envs_per_thread, target_games_per_thread, cap_d, cap_p, cap_k, disc, dev_str, max_round};
+    ExplorationParams ep = {temperature, epsilon, uniform_noise};
+    SimConfig config = {num_threads, n_envs_per_thread, target_games_per_thread, cap_d, cap_p, cap_k, disc, dev_str, max_round, ep};
     
     if (g_sim_manager && g_sim_manager->current_config != config) {
         g_sim_manager.reset();
@@ -1345,7 +1284,7 @@ py::list run_parallel_simulations(
 
     {
         py::gil_scoped_release release;
-        g_sim_manager->run_simulation_parallel(current_loop);
+        g_sim_manager->run_simulation_parallel();
     }
 
     py::list results;
@@ -1367,6 +1306,7 @@ PYBIND11_MODULE(koikoicore, m) {
             std::cout << "[C++] SimulationManager and Pinned Tensors safely destroyed.\n";
         }
     });
+    m.def("run_parallel_simulations", &run_parallel_simulations);
 
     py::class_<KoiKoiStateManager>(m, "KoiKoiStateManager")
         .def(py::init<>())
@@ -1387,13 +1327,6 @@ PYBIND11_MODULE(koikoicore, m) {
         .def("finalize", &KoiKoiTraceBuffer::finalize);
 
     py::class_<BatchSimulator>(m, "BatchSimulator")
-        .def(py::init<int, int, int, int, int, float, const std::vector<float>&, std::string>())
         .def("play_games", &BatchSimulator::play_games)
         .def("finalize_buffers", &BatchSimulator::finalize_buffers);
-
-    py::class_<KoiKoiTrainer>(m, "KoiKoiTrainer")
-        .def(py::init<torch::jit::Module, float, std::string>())
-        .def("train_epoch", &KoiKoiTrainer::train_epoch)
-        .def("sync_and_save_action_model", &KoiKoiTrainer::sync_and_save_action_model)
-        .def("sync_to_inference_model", &KoiKoiTrainer::sync_to_inference_model);
 }

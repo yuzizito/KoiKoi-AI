@@ -90,3 +90,27 @@ class TargetQNet(nn.Module):
         
         x_out = self.out(encoded[:, :, 0].unsqueeze(2)).squeeze(1)
         return x_out
+
+class NeuRDModel(nn.Module):
+    def __init__(self, is_koikoi=False):
+        super(NeuRDModel, self).__init__()
+        self.is_koikoi = is_koikoi
+        self.encoder_block = KoiKoiEncoderBlockV2(**NetParameterV2)
+        
+        # Actor (Policy Head)
+        self.policy_out = nn.Conv1d(NetParameterV2['nEmb'], 1, 1)
+        # Critic (Value Head)
+        self.value_out = nn.Linear(NetParameterV2['nEmb'], 1)
+        
+    def forward(self, x):
+        encoded = self.encoder_block(x)
+        
+        if self.is_koikoi:
+            logits = self.policy_out(encoded[:, :, [0, 1]]).squeeze(1)
+        else:
+            logits = self.policy_out(encoded).squeeze(1)
+            
+        # Value head expects [B, nEmb]. Use the 0-th token for global state value.
+        value = self.value_out(encoded[:, :, 0]).squeeze(-1)
+        
+        return logits, value

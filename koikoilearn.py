@@ -27,24 +27,26 @@ class Agent:
 
     def __predict(self, state, feature_cpu, game_state):
         """モデル推論とC++バックエンドを利用した最適アクションの選択"""
-        # 動的にモデルのデバイスを取得して転送
         device = next(self.model[state].parameters()).device
         feature_device = feature_cpu.to(device, non_blocking=True)
         
         with torch.inference_mode():
-            output_tensor = self.model[state](feature_device)
+            output = self.model[state](feature_device)
         
+        # 互換性対応: NeuRDモデルは (logits, value) のタプルを返す
+        if isinstance(output, tuple):
+            logits_tensor = output[0]
+        else:
+            logits_tensor = output
+            
         # GPUからCPUに変換
-        logits_np = output_tensor.squeeze(0).cpu().numpy()
+        logits_np = logits_tensor.squeeze(0).cpu().numpy()
         
         state_types = {'discard': 0, 'discard-pick': 1, 'draw-pick': 1, 'koikoi': 2}
         state_type = state_types[state]
         turn_p = game_state.round_state.turn_player
         
-        # C++側でマスクチェックとargmaxを一瞬で行う
         best_index = game_state.round_state.cpp_state.get_best_action(state_type, turn_p, logits_np)
-        
-        # こいこいの場合はboolean、それ以外はカードのインデックス(整数)を返す
         return bool(best_index) if state == 'koikoi' else best_index
     
     def auto_action(self, game_state, for_test=True):
