@@ -12,11 +12,10 @@ from dataclasses import dataclass
 import numpy as np
 
 from koikoigame import MAX_ROUND
-from koikoinet_v2 import NeuRDModel
 import koikoilearn
 import koikoicore
 
-from koikoinet_v2 import DiscardModel, PickModel, KoiKoiModel, TargetQNet, NeuRDModel
+from koikoinet_v2 import NeuRDModel
 
 # --- 環境設定・スレッド制御 ---
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
@@ -31,7 +30,7 @@ setattr(my_linear, '_LinearWithBias', my_linear.Linear)
 # --- 定数定義 ---
 START_LOOP_NUM = 0
 LEARNING_RATE = 1e-5
-BATCH_SIZE = 4096
+BATCH_SIZE = 8192
 
 CPU_COUNT = 1
 LOOP_GAMES = 512
@@ -41,12 +40,11 @@ CAP_P = LOOP_GAMES // CPU_COUNT * 12
 CAP_K = LOOP_GAMES // CPU_COUNT * 12
 
 N_LOOP_ACTION_NET_UPDATE = 1
-N_LOOP_ARENA_TEST = 50
-ARENA_WORKERS = 4
+N_LOOP_ARENA_TEST = 100
 
-TEMP = 1.0 # Softmax関数における行動選択時のランダム性
-EPS = 0.05 # ランダム行動率
-UNR = 0.0 # 多いほどエージェントの探索を促進する
+TEMP = 0.7 # Softmax関数における行動選択時のランダム性
+EPS = 0.01 # ランダム行動率
+UNR = 0.01 # 多いほどエージェントの探索を促進する
 
 MODEL_FOLDER = 'model_v2'
 OPPONENT_PATHS = {
@@ -152,18 +150,16 @@ def test_result_analysis(result, loop):
 
 @dataclass
 class NeuRDConfig:
-    loss_mode: str = 'all_dims' # selected_only: 選択行動のみMSE / all_dims: 全48次元MSE
-    return_scale_mode: str = 'win_loss' # win_loss: [-1, 1] / normalize: 点数を60で割る / raw: 生の値
-    clip_min: float = -12.0
-    clip_max: float = 12.0
-    max_score: float = 60.0
     eta: float = 0.01
-    value_coef: float = 0.5
+    value_coef: float = 0.01
     
-    # 探索パラメータ（C++側への引き渡し用）
     temperature: float = TEMP
     epsilon: float = EPS 
     uniform_noise_rate: float = UNR
+
+    # GAEパラメータ
+    gamma: float = 0.99
+    gae_lambda: float = 0.95
     
 class NeuRDTrainer:
     def __init__(self, model, optimizer, config: NeuRDConfig):
@@ -171,97 +167,70 @@ class NeuRDTrainer:
         self.optimizer = optimizer
         self.config = config
 
-    def _scale_returns(self, raw_returns: torch.Tensor) -> torch.Tensor:
-        """
-        Design Intent: NeuRDの更新ステップ幅(ηA)を安定させるための報酬スケーリング。
-        """
-        mode = self.config.return_scale_mode
-        if mode == 'win_loss':
-            return torch.sign(raw_returns)
-        elif mode == 'clip':
-            return torch.clamp(raw_returns, min=self.config.clip_min, max=self.config.clip_max)
-        elif mode == 'normalize':
-            # Validation: ゼロ除算の防止
-            if self.config.max_score <= 0:
-                raise ValueError("max_score must be strictly positive.")
-            return raw_returns / self.config.max_score
-        elif mode == 'raw':
-            return raw_returns
-        else:
-            raise ValueError(f"Unknown return_scale_mode: {mode}")
-
     @torch.no_grad()
-    def prepare_fixed_targets(self, old_logits: torch.Tensor, old_values: torch.Tensor, actions: torch.Tensor, raw_returns: torch.Tensor):
-        """
-        Design Intent: NeuRDのEquation 9に基づく固定ターゲットをRollout直後に1回だけ計算する。
-        複数エポック回す際にAdvantageやTargetを再計算しないことで、Actor Targetの固定要件を満たす。
-        """
-        scaled_returns = self._scale_returns(raw_returns)
-        # old_values はC++から渡されたrollout収集時のfrozen value
-        advantage = scaled_returns - old_values
+    def _get_minibatch_target(self, old_logits: torch.Tensor, old_values: torch.Tensor, 
+                              actions: torch.Tensor, raw_returns: torch.Tensor, 
+                              legal_masks: torch.Tensor, old_action_probs: torch.Tensor):
+        """ミニバッチ内Advantage正規化 + IS補正 + 合法手ゼロ中心化ターゲット生成"""
+        # 1. ミニバッチ内でのAdvantage正規化 (A = (A - mean) / (std + 1e-8))
+        adv = raw_returns - old_values
+        adv_norm = (adv - adv.mean()) / (adv.std() + 1e-8)
 
-        batch_idx = torch.arange(old_logits.size(0), device=old_logits.device)
-        
+        sampled_mu = old_action_probs.clamp(min=1e-4)
+        batch_idx  = torch.arange(old_logits.size(0), device=old_logits.device)
+
+        # 2. IS補正付きターゲットロジットの導出
         target_logits = old_logits.clone()
-        target_logits[batch_idx, actions] += self.config.eta * advantage
+        target_logits[batch_idx, actions] += self.config.eta * (adv_norm / sampled_mu)
 
-        return scaled_returns, target_logits
+        # 3. 合法手でのロジットゼロ中心化
+        num_legals = legal_masks.float().sum(dim=-1, keepdim=True).clamp(min=1.0)
+        mean_legal = (target_logits * legal_masks).sum(dim=-1, keepdim=True) / num_legals
+        
+        centered_target = torch.where(legal_masks, target_logits - mean_legal, target_logits)
+        return centered_target
 
     def train_step(self, current_logits: torch.Tensor, current_values: torch.Tensor, 
-                   fixed_target_logits: torch.Tensor, scaled_returns: torch.Tensor, 
-                   actions: torch.Tensor, legal_masks: torch.Tensor):
-        """
-        Design Intent: 事前計算された固定ターゲット(fixed_target_logits, scaled_returns)を使用してLossを計算する。
-        """
-        # Critic Loss: 固定されたスケール済み報酬をターゲットとする
-        critic_loss = F.mse_loss(current_values.view(-1), scaled_returns.view(-1))
-
-        # Actor Loss
-        batch_idx = torch.arange(current_logits.size(0), device=current_logits.device)
+                   old_logits: torch.Tensor, old_values: torch.Tensor,
+                   raw_returns: torch.Tensor, actions: torch.Tensor, 
+                   legal_masks: torch.Tensor, old_action_probs: torch.Tensor):
         
-        if self.config.loss_mode == 'all_dims':
-            # Design Intent: 合法手数の違いによる勾配スケールの偏りを防ぐため、合法手のみの平均MSEをとる
-            squared_diff = (current_logits - fixed_target_logits) ** 2
-            
-            # Validation: legal_masksがbool型であることを確認してインデックス抽出を安全に行う
-            if legal_masks.dtype != torch.bool:
-                legal_masks = legal_masks.bool()
-                
-            actor_loss = squared_diff[legal_masks].mean()
-            
-        elif self.config.loss_mode == 'selected_only':
-            current_selected = current_logits[batch_idx, actions]
-            target_selected = fixed_target_logits[batch_idx, actions]
-            actor_loss = F.mse_loss(current_selected, target_selected)
-            
-        else:
-            raise ValueError(f"Unknown loss_mode: {self.config.loss_mode}")
+        act_dim = current_logits.size(-1)
+        masks_slice      = legal_masks[:, :act_dim]
+        old_logits_slice = old_logits[:, :act_dim]
 
-        total_loss = actor_loss + self.config.value_coef * critic_loss
-        
-        return total_loss, actor_loss, critic_loss
+        # ミニバッチターゲットのオンデマンド生成
+        target_centered = self._get_minibatch_target(
+            old_logits_slice, old_values, actions, raw_returns, masks_slice, old_action_probs
+        )
 
-def train_epochs(trainer: NeuRDTrainer, states, actions, old_logits, old_values, raw_returns, legal_masks, num_epochs: int, batch_size: int):
-    """
-    Design Intent: Rolloutデータに対して、固定ターゲットを事前計算した上で複数エポック学習を回す。
-    平均Lossを計算して返す。
-    """
+        # 予測ロジット側の中心化
+        num_legals = masks_slice.float().sum(dim=-1, keepdim=True).clamp(min=1.0)
+        curr_mean  = (current_logits * masks_slice).sum(dim=-1, keepdim=True) / num_legals
+        curr_centered = torch.where(masks_slice, current_logits - curr_mean, current_logits)
+
+        # Critic Loss (生のReturnを教師とする)
+        critic_huber = F.smooth_l1_loss(current_values.view(-1), raw_returns.view(-1), beta=1.0)
+        critic_mse   = F.mse_loss(current_values.view(-1), raw_returns.view(-1))
+
+        # Actor Loss (all_dims 固定仕様)
+        squared_diff = (curr_centered - target_centered) ** 2
+        if masks_slice.dtype != torch.bool:
+            masks_slice = masks_slice.bool()
+        actor_loss = squared_diff[masks_slice].mean()
+
+        total_loss = actor_loss + self.config.value_coef * critic_huber
+        return total_loss, actor_loss, critic_huber, critic_mse
+
+def train_epochs(trainer: NeuRDTrainer, states, actions, old_logits, old_values, raw_returns, legal_masks, old_action_probs, num_epochs: int, batch_size: int):
     num_samples = states.size(0)
     
-    # 1. Rollout直後に1回だけターゲットを計算して固定する
-    scaled_returns, fixed_target_logits = trainer.prepare_fixed_targets(
-        old_logits=old_logits,
-        old_values=old_values,
-        actions=actions,
-        raw_returns=raw_returns
-    )
-    
-    total_loss_sum = 0.0
-    actor_loss_sum = 0.0
-    critic_loss_sum = 0.0
+    total_loss_sum   = 0.0
+    actor_loss_sum   = 0.0
+    critic_huber_sum = 0.0
+    critic_mse_sum   = 0.0
     num_batches = 0
     
-    # 2. 複数エポックの学習ループ
     for epoch in range(num_epochs):
         indices = torch.randperm(num_samples, device=states.device)
         
@@ -270,86 +239,95 @@ def train_epochs(trainer: NeuRDTrainer, states, actions, old_logits, old_values,
             
             b_states = states[batch_idx]
             b_actions = actions[batch_idx]
+            b_old_logits = old_logits[batch_idx]
+            b_old_values = old_values[batch_idx]
+            b_raw_returns = raw_returns[batch_idx]
             b_legal_masks = legal_masks[batch_idx]
-            
-            b_scaled_returns = scaled_returns[batch_idx]
-            b_fixed_target_logits = fixed_target_logits[batch_idx]
+            b_old_action_probs = old_action_probs[batch_idx]
             
             trainer.optimizer.zero_grad()
-            
             b_current_logits, b_current_values = trainer.model(b_states)
             
-            loss, actor_loss, critic_loss = trainer.train_step(
+            loss, actor_loss, c_huber, c_mse = trainer.train_step(
                 current_logits=b_current_logits,
                 current_values=b_current_values.view(-1),
-                fixed_target_logits=b_fixed_target_logits,
-                scaled_returns=b_scaled_returns.view(-1),
+                old_logits=b_old_logits,
+                old_values=b_old_values,
+                raw_returns=b_raw_returns.view(-1),
                 actions=b_actions,
-                legal_masks=b_legal_masks
+                legal_masks=b_legal_masks,
+                old_action_probs=b_old_action_probs
             )
             
             loss.backward()
             trainer.optimizer.step()
             
-            total_loss_sum += loss.item()
-            actor_loss_sum += actor_loss.item()
-            critic_loss_sum += critic_loss.item()
+            total_loss_sum   += loss.item()
+            actor_loss_sum   += actor_loss.item()
+            critic_huber_sum += c_huber.item()
+            critic_mse_sum   += c_mse.item()
             num_batches += 1
             
     if num_batches == 0:
-        return 0.0, 0.0, 0.0
+        return 0.0, 0.0, 0.0, 0.0
         
-    return total_loss_sum / num_batches, actor_loss_sum / num_batches, critic_loss_sum / num_batches
+    return total_loss_sum / num_batches, actor_loss_sum / num_batches, critic_huber_sum / num_batches, critic_mse_sum / num_batches
 
 if __name__ == '__main__':
     if not os.path.isdir(MODEL_FOLDER):
         os.mkdir(MODEL_FOLDER)
-        
+    
     exit_thread = threading.Thread(target=wait_for_exit_key, daemon=True)
     exit_thread.start()
-        
-    with open('win_prob_mat.pkl', 'rb') as f:
-        win_prob_mat = pickle.load(f)
 
+    # ---------- 学習対象モデル(P1)のロードとトレース ----------
     action_net = {}
+    traced_action_net = {}
+    example_input_normal = torch.zeros((1, 24, 48), dtype=torch.float32, device=DEVICE)
+    example_input_koikoi = torch.zeros((1, 24, 48), dtype=torch.float32, device=DEVICE)
+    
     for key in PHASES:
         is_kk = (key == 'koikoi')
         action_net[key] = NeuRDModel(is_koikoi=is_kk).cpu()
-        
         path = f'{MODEL_FOLDER}/{key}.pt'
         if os.path.exists(path):
             try:
-                # 構造が変更されたため、古い重みを読み込んだ場合はエラーとなり初期状態から始まります
                 action_net[key].load_state_dict(torch.load(path, map_location='cpu', weights_only=True))
             except Exception as e:
                 print(f"Warning: NeuRD重みの読み込みスキップ ({e})。初期状態から開始します。")
         
         _patch_model_attributes(action_net[key])
-    
-    example_input_normal = torch.zeros((1, 24, 48), dtype=torch.float32, device=DEVICE)
-    example_input_koikoi = torch.zeros((1, 24, 48), dtype=torch.float32, device=DEVICE)
+        action_net[key].to(DEVICE).float().eval()
+        
+        ex_input = example_input_koikoi if key == 'koikoi' else example_input_normal
+        traced_action_net[key] = torch.jit.trace(action_net[key], ex_input, check_trace=False)
 
-    traced_action_net = {}
+    # ---------- 対戦相手モデル(P2)のロードとトレース ----------
+    # Design Intent: Multiprocessingを廃止したため、メインスレッドで一度だけ対戦相手をロード・トレースする
+    print_log("アリーナ対戦相手モデルを読み込み中...")
+    arena_opponent_models = {}
+    traced_arena_opponent_models = {}
     
     for key in PHASES:
-        ex_input = example_input_koikoi if key == 'koikoi' else example_input_normal
+        is_kk = (key == 'koikoi')
+        arena_opponent_models[key] = NeuRDModel(is_koikoi=is_kk).cpu()
+        path = OPPONENT_PATHS[key]
+        if os.path.exists(path):
+            arena_opponent_models[key].load_state_dict(torch.load(path, map_location='cpu', weights_only=True))
+        else:
+            print(f"Warning: アリーナ対戦相手が見つかりません。初期状態を使用: {path}")
         
-        # NeuRDModelを評価モードでC++推論用にトレース
-        action_net[key].to(DEVICE).float().eval()
-        traced_action_net[key] = torch.jit.trace(action_net[key], ex_input, check_trace=False)
+        _patch_model_attributes(arena_opponent_models[key])
+        arena_opponent_models[key] = arena_opponent_models[key].to(DEVICE).eval()
+        
+        ex_input = example_input_koikoi if key == 'koikoi' else example_input_normal
+        traced_arena_opponent_models[key] = torch.jit.trace(arena_opponent_models[key], ex_input, check_trace=False)
 
     # ========== 動作テスト用 NeuRD 初期化 ==========
     neurd_config = NeuRDConfig(
-        loss_mode='selected_only', 
-        return_scale_mode='win_loss', # まずは勝敗ベース[-1, 1]でテスト
-        eta=0.01,
-        value_coef=0.5,
-        temperature=1.0,
-        epsilon=0.05,
-        uniform_noise_rate=0.0
+        eta=0.01, value_coef=0.01, temperature=1.0, epsilon=0.05, uniform_noise_rate=0.0
     )
 
-    # 既存の C++ Trainer (koikoicore.KoiKoiTrainer) を破棄し、Python側の NeuRDTrainer に置き換え
     trainer = {
         key: NeuRDTrainer(
             model=action_net[key], 
@@ -360,55 +338,49 @@ if __name__ == '__main__':
     }
 
     score = [0.0]
-    wp_mat_np = win_prob_mat.astype(np.float32) if win_prob_mat is not None else np.zeros((2, 9, 61), dtype=np.float32)
 
-    # C++シミュレーション呼び出し用ヘルパー
     def run_sim():
         return koikoicore.run_parallel_simulations(
             CPU_COUNT, N_CORE_GAMES, N_CORE_GAMES,          
-            CAP_D, CAP_P, CAP_K, 1.0, wp_mat_np,
+            CAP_D, CAP_P, CAP_K, neurd_config.gamma,
             traced_action_net['discard']._c, traced_action_net['pick']._c, traced_action_net['koikoi']._c,
             DEVICE_STR, MAX_ROUND,
-            neurd_config.temperature, neurd_config.epsilon, neurd_config.uniform_noise_rate # <-- 追加
+            neurd_config.temperature, neurd_config.epsilon, neurd_config.uniform_noise_rate,
+            neurd_config.gae_lambda
         )
 
     def sync_neurd_training(data_list, trainers, num_epochs=3, batch_size=BATCH_SIZE):
-        losses, samples = {}, {}
+        actor_losses, critic_huber_losses, critic_mse_losses, samples = {}, {}, {}, {}  # ★辞書分離
         for key in PHASES:
-            tensors = {k: [] for k in ['states', 'actions', 'rewards', 'old_logits', 'old_values', 'legal_masks']}
-            
-            # Python側でバッチデータを抽出・結合
+            tensors = {k: [] for k in ['states', 'actions', 'rewards', 'old_logits', 'old_values', 'legal_masks', 'old_action_probs']}
             for d in data_list:
                 if isinstance(d, dict) and key in d:
                     s = d[key].get('states')
-                    # Validation: テンソルが存在し、かつ空でないことを確認
                     if s is not None and s.numel() > 0:
                         for k in tensors.keys():
                             tensors[k].append(d[key][k])
-            
+        
             if tensors['states']:
                 batch = {k: torch.cat(v, dim=0).to(DEVICE) for k, v in tensors.items()}
-                
-                # 同期的に複数エポックのNeuRD学習を実行
-                avg_loss, _, _ = train_epochs(
+                _, a_loss, c_huber, c_mse = train_epochs(
                     trainer=trainers[key],
-                    states=batch['states'],
-                    actions=batch['actions'],
-                    old_logits=batch['old_logits'],
-                    old_values=batch['old_values'],
-                    raw_returns=batch['rewards'],
-                    legal_masks=batch['legal_masks'],
-                    num_epochs=num_epochs,
-                    batch_size=batch_size
+                    states=batch['states'], actions=batch['actions'], old_logits=batch['old_logits'],
+                    old_values=batch['old_values'], raw_returns=batch['rewards'], legal_masks=batch['legal_masks'],
+                    old_action_probs=batch['old_action_probs'],
+                    num_epochs=num_epochs, batch_size=batch_size
                 )
-                losses[key] = avg_loss
+                actor_losses[key] = a_loss
+                critic_huber_losses[key] = c_huber
+                critic_mse_losses[key] = c_mse
                 samples[key] = batch['states'].shape[0]
             else:
-                losses[key] = 0.0
+                actor_losses[key] = 0.0
+                critic_huber_losses[key] = 0.0
+                critic_mse_losses[key] = 0.0
                 samples[key] = 0
-                
-        return samples, losses
-    
+            
+        return samples, actor_losses, critic_huber_losses, critic_mse_losses
+
     print_log("\n学習ループを起動します...")
     results = run_sim()
     
@@ -417,44 +389,59 @@ if __name__ == '__main__':
         sync_models = (loop % N_LOOP_ACTION_NET_UPDATE == 0)
         
         # 1. 取得したRolloutデータで即座に学習 (On-policy)
-        samples, losses = sync_neurd_training(results, trainer, num_epochs=3, batch_size=BATCH_SIZE)
+        samples, act_losses, crt_huber, crt_mse = sync_neurd_training(results, trainer, num_epochs=3, batch_size=BATCH_SIZE)
         
-        # 2. 推論用(C++送信用)トレースモデルへの重み同期
+        # 推論用トレースモデルへの重み同期
         if sync_models:
             for key in PHASES:
-                # Pythonモデル(Actor-Critic両方を含む)の重みを、C++推論用のTracedモデルへ同期
                 traced_action_net[key].load_state_dict(action_net[key].state_dict())
         
-        # 3. 次のOn-policyデータの収集
+        # 次のOn-policyデータの収集
         results = run_sim()
         
         elapsed_time = time.perf_counter() - loop_start_time
-        print_log(f'loop {loop:05}  time {elapsed_time:04.1f}s    loss:sample  discard {losses["discard"]:.4f}:{samples["discard"]:05}  pick {losses["pick"]:.4f}:{samples["pick"]:05}  koikoi {losses["koikoi"]:.4f}:{samples["koikoi"]:05}')
+        
+        if loop % 100 == 0:
+            print_log(f'sample | discard: {samples["discard"]:05} | pick: {samples["pick"]:05} | koikoi: {samples["koikoi"]:05}')
+        
+        print_log(f'loop{loop:05} time{elapsed_time:04.1f}s  Loss Actor:Critic | discard {act_losses["discard"]:.4f}:{crt_huber["discard"]:.4f} | pick {act_losses["pick"]:.4f}:{crt_huber["pick"]:.4f} | koikoi {act_losses["koikoi"]:.4f}:{crt_huber["koikoi"]:.4f}')
         
         # 4. 定期的なアリーナテスト
         if loop > 0 and loop % N_LOOP_ARENA_TEST == 0:
-            current_state_dicts = {
-                key: {k: v.cpu() for k, v in traced_action_net[key].state_dict().items()}
-                for key in PHASES
-            }
+            total_arena_games = 500
+            if total_arena_games % 2 != 0:
+                total_arena_games += 1 # Validation: Duplicate Match のため必ず偶数(ペア)にする
+                
+            print_log(f"アリーナテスト実行中... (C++ Backend, Batched Inference: {total_arena_games} games)")
             
-            with mp.Pool(ARENA_WORKERS, initializer=init_worker) as pool:
-                result_async = [
-                    pool.apply_async(parallel_arena_test, args=(current_state_dicts, 200 // ARENA_WORKERS)) 
-                    for _ in range(ARENA_WORKERS)
-                ]
-                arena_results = [res.get() for res in result_async]
+            # Design Intent: マルチスレッド分割を廃止し、全環境を1つの巨大バッチにまとめてGPU推論を最大化する
+            arena_res = koikoicore.run_arena_batch_simulations(
+                total_arena_games,
+                traced_action_net['discard']._c, traced_action_net['pick']._c, traced_action_net['koikoi']._c,
+                traced_arena_opponent_models['discard']._c, traced_arena_opponent_models['pick']._c, traced_arena_opponent_models['koikoi']._c,
+                DEVICE_STR, MAX_ROUND
+            )
             
-            torch.cuda.empty_cache()
-            s = test_result_analysis(arena_results, loop)
-            score.append(s)
+            # 結果の集計と出力
+            w, l, d = arena_res["win"], arena_res["lose"], arena_res["draw"]
+            total_played = w + l + d
+            
+            if total_played > 0:
+                wr = np.array([d, w, l]) / total_played
+                s = wr[0] * 0.5 + wr[1]
+                avg_pt = arena_res["score"] / total_played
+                
+                print_log(f'■■■  arena {loop:05}   win {w}   lose {l}  draw {d}   score {avg_pt:.1f}pt  ■■■')
+                score.append(s)
             
         # 5. 安全な終了処理と保存
         if stop_event.is_set():
-            print_log(f'\n{time_str()} チェックポイントを保存中...')
-            for key in PHASES:
-                torch.save(action_net[key].state_dict(), f'{MODEL_FOLDER}/{key}.pt')
-                
-            koikoicore.destroy_sim_manager()
-            print_log(f'{time_str()} プログラムを安全に終了しました。')
             break
+        
+    print_log(f'\n{time_str()} チェックポイントを保存中...')
+    for key in PHASES:
+        torch.save(action_net[key].state_dict(), f'{MODEL_FOLDER}/{key}.pt')
+                
+    koikoicore.destroy_sim_manager()
+    print_log(f'{time_str()} 正常に終了しました。')
+    

@@ -74,6 +74,37 @@ struct KoiKoiMasks {
 };
 static const KoiKoiMasks MASKS;
 
+struct KoiKoiRuleConfig {
+    int five_lights = 10;
+    int four_lights = 8;
+    int rainy_four_lights = 7;
+    int three_lights = 5;
+    int bdb = 5;
+    bool enable_flower_sake = true;
+    bool enable_moon_sake = true;
+    int flower_moon_base_pt = 1;
+    int flower_moon_koikoi_pt = 3;
+    int red_blue_ribbon = 10;
+    int red_ribbon = 5;
+    int blue_ribbon = 5;
+};
+static KoiKoiRuleConfig g_rules;
+
+void set_rules(py::dict rules) {
+    if (rules.contains("five_lights")) g_rules.five_lights = rules["five_lights"].cast<int>();
+    if (rules.contains("four_lights")) g_rules.four_lights = rules["four_lights"].cast<int>();
+    if (rules.contains("rainy_four_lights")) g_rules.rainy_four_lights = rules["rainy_four_lights"].cast<int>();
+    if (rules.contains("three_lights")) g_rules.three_lights = rules["three_lights"].cast<int>();
+    if (rules.contains("bdb")) g_rules.bdb = rules["bdb"].cast<int>();
+    if (rules.contains("enable_flower_sake")) g_rules.enable_flower_sake = rules["enable_flower_sake"].cast<bool>();
+    if (rules.contains("enable_moon_sake")) g_rules.enable_moon_sake = rules["enable_moon_sake"].cast<bool>();
+    if (rules.contains("flower_moon_base_pt")) g_rules.flower_moon_base_pt = rules["flower_moon_base_pt"].cast<int>();
+    if (rules.contains("flower_moon_koikoi_pt")) g_rules.flower_moon_koikoi_pt = rules["flower_moon_koikoi_pt"].cast<int>();
+    if (rules.contains("red_blue_ribbon")) g_rules.red_blue_ribbon = rules["red_blue_ribbon"].cast<int>();
+    if (rules.contains("red_ribbon")) g_rules.red_ribbon = rules["red_ribbon"].cast<int>();
+    if (rules.contains("blue_ribbon")) g_rules.blue_ribbon = rules["blue_ribbon"].cast<int>();
+}
+
 template<typename T, int Capacity>
 struct FixedVec {
     T data_[Capacity];
@@ -137,21 +168,24 @@ inline int ctz64(uint64_t bb) {
 int get_yaku_point_by_bitboard(uint64_t pile, int koikoi_num) {
     int total_point = 0;
     int num_light = popcount(pile & MASKS.light);
-    if (num_light == 5) total_point += 10;
-    else if (num_light == 4 && (pile & MASKS.rainman) == 0) total_point += 8;
-    else if (num_light == 4) total_point += 7;
-    else if (num_light == 3 && (pile & MASKS.rainman) == 0) total_point += 5;
+    if (num_light == 5) total_point += g_rules.five_lights;
+    else if (num_light == 4 && (pile & MASKS.rainman) == 0) total_point += g_rules.four_lights;
+    else if (num_light == 4) total_point += g_rules.rainy_four_lights;
+    else if (num_light == 3 && (pile & MASKS.rainman) == 0) total_point += g_rules.three_lights;
 
     int num_seed = popcount(pile & MASKS.seed);
-    if ((pile & MASKS.boar_deer_butterfly) == MASKS.boar_deer_butterfly) total_point += 5;
-    if ((pile & MASKS.flower_sake) == MASKS.flower_sake) total_point += (koikoi_num == 0 ? 1 : 3);
-    if ((pile & MASKS.moon_sake) == MASKS.moon_sake) total_point += (koikoi_num == 0 ? 1 : 3);
+    if ((pile & MASKS.boar_deer_butterfly) == MASKS.boar_deer_butterfly) total_point += g_rules.bdb;
+    
+    // 花見酒・月見酒の有効/無効判定と得点
+    if (g_rules.enable_flower_sake && (pile & MASKS.flower_sake) == MASKS.flower_sake) total_point += (koikoi_num == 0 ? g_rules.flower_moon_base_pt : g_rules.flower_moon_koikoi_pt);
+    if (g_rules.enable_moon_sake && (pile & MASKS.moon_sake) == MASKS.moon_sake) total_point += (koikoi_num == 0 ? g_rules.flower_moon_base_pt : g_rules.flower_moon_koikoi_pt);
+    
     if (num_seed >= 5) total_point += (num_seed - 4);
 
     int num_ribbon = popcount(pile & MASKS.ribbon);
-    if ((pile & MASKS.red_blue_ribbon) == MASKS.red_blue_ribbon) total_point += 10;
-    if ((pile & MASKS.red_ribbon) == MASKS.red_ribbon) total_point += 5;
-    if ((pile & MASKS.blue_ribbon) == MASKS.blue_ribbon) total_point += 5;
+    if ((pile & MASKS.red_blue_ribbon) == MASKS.red_blue_ribbon) total_point += g_rules.red_blue_ribbon;
+    if ((pile & MASKS.red_ribbon) == MASKS.red_ribbon) total_point += g_rules.red_ribbon;
+    if ((pile & MASKS.blue_ribbon) == MASKS.blue_ribbon) total_point += g_rules.blue_ribbon;
     if (num_ribbon >= 5) total_point += (num_ribbon - 4);
 
     int num_dross = popcount(pile & MASKS.dross);
@@ -166,21 +200,25 @@ int get_yaku_point_by_bitboard(uint64_t pile, int koikoi_num) {
 std::vector<std::tuple<int, std::string, int>> evaluate_yaku_by_bitboard(uint64_t pile, int koikoi_num) {
     std::vector<std::tuple<int, std::string, int>> yaku_list;
     int num_light = popcount(pile & MASKS.light);
-    if (num_light == 5) yaku_list.emplace_back(1, "Five Lights", 10);
-    else if (num_light == 4 && (pile & MASKS.rainman) == 0) yaku_list.emplace_back(2, "Four Lights", 8);
-    else if (num_light == 4) yaku_list.emplace_back(3, "Rainy Four Lights", 7);
-    else if (num_light == 3 && (pile & MASKS.rainman) == 0) yaku_list.emplace_back(4, "Three Lights", 5);
+    if (num_light == 5) yaku_list.emplace_back(1, "Five Lights", g_rules.five_lights);
+    else if (num_light == 4 && (pile & MASKS.rainman) == 0) yaku_list.emplace_back(2, "Four Lights", g_rules.four_lights);
+    else if (num_light == 4) yaku_list.emplace_back(3, "Rainy Four Lights", g_rules.rainy_four_lights);
+    else if (num_light == 3 && (pile & MASKS.rainman) == 0) yaku_list.emplace_back(4, "Three Lights", g_rules.three_lights);
 
     int num_seed = popcount(pile & MASKS.seed);
-    if ((pile & MASKS.boar_deer_butterfly) == MASKS.boar_deer_butterfly) yaku_list.emplace_back(5, "Boar-Deer-Butterfly", 5);
-    if ((pile & MASKS.flower_sake) == MASKS.flower_sake) yaku_list.emplace_back(koikoi_num == 0 ? 6 : 7, "Flower Viewing Sake", koikoi_num == 0 ? 1 : 3);
-    if ((pile & MASKS.moon_sake) == MASKS.moon_sake) yaku_list.emplace_back(koikoi_num == 0 ? 8 : 9, "Moon Viewing Sake", koikoi_num == 0 ? 1 : 3);
+    if ((pile & MASKS.boar_deer_butterfly) == MASKS.boar_deer_butterfly) yaku_list.emplace_back(5, "Boar-Deer-Butterfly", g_rules.bdb);
+    
+    if (g_rules.enable_flower_sake && (pile & MASKS.flower_sake) == MASKS.flower_sake) 
+        yaku_list.emplace_back(koikoi_num == 0 ? 6 : 7, "Flower Viewing Sake", koikoi_num == 0 ? g_rules.flower_moon_base_pt : g_rules.flower_moon_koikoi_pt);
+    if (g_rules.enable_moon_sake && (pile & MASKS.moon_sake) == MASKS.moon_sake) 
+        yaku_list.emplace_back(koikoi_num == 0 ? 8 : 9, "Moon Viewing Sake", koikoi_num == 0 ? g_rules.flower_moon_base_pt : g_rules.flower_moon_koikoi_pt);
+        
     if (num_seed >= 5) yaku_list.emplace_back(10, "Tane", num_seed - 4);
 
     int num_ribbon = popcount(pile & MASKS.ribbon);
-    if ((pile & MASKS.red_blue_ribbon) == MASKS.red_blue_ribbon) yaku_list.emplace_back(11, "Red & Blue Ribbons", 10);
-    if ((pile & MASKS.red_ribbon) == MASKS.red_ribbon) yaku_list.emplace_back(12, "Red Ribbons", 5);
-    if ((pile & MASKS.blue_ribbon) == MASKS.blue_ribbon) yaku_list.emplace_back(13, "Blue Ribbons", 5);
+    if ((pile & MASKS.red_blue_ribbon) == MASKS.red_blue_ribbon) yaku_list.emplace_back(11, "Red & Blue Ribbons", g_rules.red_blue_ribbon);
+    if ((pile & MASKS.red_ribbon) == MASKS.red_ribbon) yaku_list.emplace_back(12, "Red Ribbons", g_rules.red_ribbon);
+    if ((pile & MASKS.blue_ribbon) == MASKS.blue_ribbon) yaku_list.emplace_back(13, "Blue Ribbons", g_rules.blue_ribbon);
     if (num_ribbon >= 5) yaku_list.emplace_back(14, "Tan", num_ribbon - 4);
 
     int num_dross = popcount(pile & MASKS.dross);
@@ -215,9 +253,10 @@ struct Snapshot {
 struct TraceSlot {
     int state_type; 
     int action;
-    float old_value;            // 追加: 収集時のValue (Critic) 出力
-    float old_logits[48];       // 追加: 収集時のPolicy (Actor) 出力
-    bool legal_mask[48];        // 追加: 合法手マスク
+    float old_value;            // 収集時のValue (Critic) 出力
+    float old_action_prob;      // 収集時の挙動方策確率 μ(a_t|s_t)
+    float old_logits[48];       // 収集時のPolicy (Actor) 出力
+    bool legal_mask[48];        // 合法手マスク
     Snapshot snap;
 };
 
@@ -233,7 +272,7 @@ struct ExplorationParams {
 };
 
 inline void write_feature_core(
-    float* dest, const Snapshot& snap, int action_to_align, int max_round)
+    float* dest, const Snapshot& snap, int max_round)
 {
     // [24, 48] のゼロクリア
     std::memset(dest, 0, 24 * 48 * sizeof(float));
@@ -315,17 +354,6 @@ inline void write_feature_core(
         dest[22 * 48 + i] = c22;
         dest[23 * 48 + i] = c23;
     }
-
-    // [重要] Q-Target学習のために選択したアクションをColumn 0に寄せる既存仕様を継承
-    // （アクション評価時のみ発動し、普段の推論時は action_to_align = -1 のため作動しません）
-    if (action_to_align > 0 && action_to_align < 48) {
-        float temp;
-        for (int r = 0; r < 24; ++r) {
-            temp = dest[r * 48];
-            dest[r * 48] = dest[r * 48 + action_to_align];
-            dest[r * 48 + action_to_align] = temp;
-        }
-    }
 }
 
 class KoiKoiStateManager {
@@ -353,6 +381,20 @@ public:
         bb_discard_hist[1] = 0; bb_discard_hist[2] = 0;
         suit_played[1] = 0; suit_played[2] = 0;
         suit_ignored[1] = 0; suit_ignored[2] = 0;
+    }
+
+    void set_state_from_vision(
+        uint64_t hand1, uint64_t hand2, uint64_t field, uint64_t stock,
+        uint64_t pile1, uint64_t pile2,
+        uint64_t my_discard, uint16_t op_played, uint16_t op_ignored) 
+    {
+        bb_hand[1] = hand1; bb_hand[2] = hand2;
+        bb_field = field; bb_stock = stock;
+        bb_pile[1] = pile1; bb_pile[2] = pile2;
+        
+        bb_discard_hist[1] = my_discard; bb_discard_hist[2] = 0;
+        suit_played[1] = 0; suit_played[2] = op_played;
+        suit_ignored[1] = 0; suit_ignored[2] = op_ignored;
     }
 
     void discard(int p, int card, uint64_t pairing, int turn_16) {
@@ -434,8 +476,7 @@ public:
         snap.koikoi_num_idle = koikoi_num_idle;
         snap.state_type = is_koikoi ? 2 : 0;
 
-        // 推論時は action_to_align は -1
-        write_feature_core(result.mutable_data(), snap, -1, max_round);
+        write_feature_core(result.mutable_data(), snap, max_round);
         return result;
     }
 
@@ -481,25 +522,17 @@ public:
 
 class KoiKoiTraceBuffer {
 public:
-    int capacity;
-    int rows;
-    int cols;
-    int current_size;
+    int capacity, rows, cols, current_size;
     
-    torch::Tensor states_tensor;
-    torch::Tensor actions_tensor;
-    torch::Tensor rewards_tensor;
-
-    torch::Tensor old_logits_tensor;
-    torch::Tensor old_values_tensor;
-    torch::Tensor legal_masks_tensor;
+    torch::Tensor states_tensor, actions_tensor, rewards_tensor;
+    torch::Tensor old_logits_tensor, old_values_tensor, legal_masks_tensor;
+    torch::Tensor old_action_probs_tensor; // ★追加
 
     float* states_ptr;
     int64_t* actions_ptr;
-    float* rewards_ptr;
-    float* old_logits_ptr;
-    float* old_values_ptr;
+    float *rewards_ptr, *old_logits_ptr, *old_values_ptr;
     bool* legal_masks_ptr;
+    float* old_action_probs_ptr;
 
     KoiKoiTraceBuffer(int cap, int r, int c) : capacity(cap), rows(r), cols(c), current_size(0) {
         auto opt_f32 = torch::TensorOptions().dtype(torch::kFloat32);
@@ -510,10 +543,10 @@ public:
         actions_tensor = torch::empty({capacity}, opt_i64);
         rewards_tensor = torch::empty({capacity}, opt_f32);
         
-        // --- 追加 ---
         old_logits_tensor = torch::empty({capacity, 48}, opt_f32);
         old_values_tensor = torch::empty({capacity}, opt_f32);
         legal_masks_tensor = torch::empty({capacity, 48}, opt_bool);
+        old_action_probs_tensor = torch::empty({capacity}, opt_f32);
 
         states_ptr = states_tensor.data_ptr<float>();
         actions_ptr = actions_tensor.data_ptr<int64_t>();
@@ -522,6 +555,7 @@ public:
         old_logits_ptr = old_logits_tensor.data_ptr<float>();
         old_values_ptr = old_values_tensor.data_ptr<float>();
         legal_masks_ptr = legal_masks_tensor.data_ptr<bool>();
+        old_action_probs_ptr = old_action_probs_tensor.data_ptr<float>();
     }
 
     void clear() { current_size = 0; }
@@ -543,13 +577,13 @@ public:
         float* dest_state = states_ptr + idx * rows * cols;
         actions_ptr[idx] = slot.action;
         rewards_ptr[idx] = mc_return; // MC Return
-        
         old_values_ptr[idx] = slot.old_value;
+        old_action_probs_ptr[idx] = slot.old_action_prob;
+
         std::memcpy(old_logits_ptr + idx * 48, slot.old_logits, 48 * sizeof(float));
         std::memcpy(legal_masks_ptr + idx * 48, slot.legal_mask, 48 * sizeof(bool));
 
-        // 特徴量の書き込み (NeuRDでは action_to_align は不要なため -1 固定)
-        write_feature_core(dest_state, slot.snap, -1, max_round);
+        write_feature_core(dest_state, slot.snap, max_round);
     }
 
     py::dict finalize() {
@@ -561,6 +595,7 @@ public:
             result["old_logits"] = torch::empty({0, 48});
             result["old_values"] = torch::empty({0});
             result["legal_masks"] = torch::empty({0, 48}, torch::kBool);
+            result["old_action_probs"] = torch::empty({0}, torch::kFloat32);
         } else {
             result["states"] = states_tensor.slice(0, 0, current_size).clone();
             result["actions"] = actions_tensor.slice(0, 0, current_size).clone();
@@ -568,6 +603,7 @@ public:
             result["old_logits"] = old_logits_tensor.slice(0, 0, current_size).clone();
             result["old_values"] = old_values_tensor.slice(0, 0, current_size).clone();
             result["legal_masks"] = legal_masks_tensor.slice(0, 0, current_size).clone();
+            result["old_action_probs"] = old_action_probs_tensor.slice(0, 0, current_size).clone();
         }
         return result;
     }
@@ -600,6 +636,13 @@ public:
         // ★ 修正: 初期ディーラーの完全ランダム化
         std::uniform_int_distribution<int> dist(1, 2);
         dealer = dist(rng);
+        winner = dealer;
+        state = GameState::ROUND_OVER;
+    }
+
+    void reset_game_with_dealer(int initial_dealer) {
+        round_num = 1; point[1] = 30; point[2] = 30;
+        dealer = initial_dealer;
         winner = dealer;
         state = GameState::ROUND_OVER;
     }
@@ -765,12 +808,19 @@ private:
             for (int i = 0; i < 48; ++i) cards[i] = i;
             std::shuffle(cards, cards + 48, rng);
             
-            hand[1].clear(); hand[2].clear(); field_slot.clear(); stock.clear();
-            for (int i = 0; i < 8; ++i) hand[1].push_back(cards[i]);
-            std::sort(hand[1].begin(), hand[1].end());
+            // 現在の親（Dealer）と子（Non-Dealer）のインデックスを取得
+            int d_idx = dealer;
+            int nd_idx = (dealer == 1) ? 2 : 1;
             
-            for (int i = 8; i < 16; ++i) hand[2].push_back(cards[i]);
-            std::sort(hand[2].begin(), hand[2].end());
+            hand[d_idx].clear(); hand[nd_idx].clear(); field_slot.clear(); stock.clear();
+            
+            // 親（Dealer）に最初の8枚を配る
+            for (int i = 0; i < 8; ++i) hand[d_idx].push_back(cards[i]);
+            std::sort(hand[d_idx].begin(), hand[d_idx].end());
+            
+            // 子（Non-Dealer）に次の8枚を配る
+            for (int i = 8; i < 16; ++i) hand[nd_idx].push_back(cards[i]);
+            std::sort(hand[nd_idx].begin(), hand[nd_idx].end());
             
             int init_f[8];
             for (int i = 16; i < 24; ++i) init_f[i - 16] = cards[i];
@@ -797,11 +847,11 @@ class BatchSimulator {
 public: 
     int num_envs, target_games;
     float discount;
+    float gae_lambda;
     std::vector<KoiKoiEnv> envs;
     std::vector<FixedVec<TraceSlot, 64>> traces[3];
 
     KoiKoiTraceBuffer buf_discard, buf_pick, buf_koikoi;
-    const std::vector<float>& win_prob_mat;
 
     int finished_games = 0;
     torch::Device device;
@@ -811,11 +861,10 @@ public:
 
     ExplorationParams exp_params;
 
-    BatchSimulator(int n_envs, int target, int cap_d, int cap_p, int cap_k, float disc, const std::vector<float>& wp_mat, std::string dev_str, ExplorationParams ep)
-        : num_envs(n_envs), target_games(target), discount(disc),
-          // ★ 新仕様 [24, 48] に完全統一
+    BatchSimulator(int n_envs, int target, int cap_d, int cap_p, int cap_k, float disc, float lambda_val, std::string dev_str, ExplorationParams ep)
+        : num_envs(n_envs), target_games(target), discount(disc), gae_lambda(lambda_val),
           buf_discard(cap_d, 24, 48), buf_pick(cap_p, 24, 48), buf_koikoi(cap_k, 24, 48),
-          win_prob_mat(wp_mat), device(dev_str), exp_params(ep) // ← 【追加】
+          device(dev_str), exp_params(ep)
     {
         envs.reserve(n_envs);
         std::random_device rd;
@@ -868,7 +917,7 @@ public:
         int pt = env.turn_player(); 
         int pi = env.idle_player();
         Snapshot snap = capture_snapshot(env, pt, pi, type, max_round);
-        write_feature_core(feat, snap, -1, max_round);
+        write_feature_core(feat, snap, max_round);
     }
 
     void build_mask_into(int i, bool* mk, int type) {
@@ -882,44 +931,53 @@ public:
         }
     }
 
-    float get_potential(int p_idx, int n_rnd, int n_pt, int dealer, int winner, bool exhausted, int max_round) {
-        if (n_rnd > max_round || n_pt <= 0 || n_pt >= 60) {
-            if (n_pt <= 0) return 0.0f;       
-            if (n_pt >= 60) return 1.0f;      
-            if (n_rnd > max_round) {
-                if (n_pt == 30) return 0.5f;  
-                return (n_pt > 30) ? 1.0f : 0.0f; 
-            }
-        }
-        int mapped_rnd = n_rnd + (8 - max_round);
-        int is_d = (exhausted ? dealer : winner) == p_idx ? 1 : 0;
-        return win_prob_mat[(is_d * 9 + mapped_rnd) * 61 + n_pt];
-    }
-
-    void process_round_over(int i, int max_round) {
+    void process_game_over(int i, int max_round) {
         auto& env = envs[i];
+        
+        int final_winner = 0;
+        if (env.point[1] > env.point[2]) final_winner = 1;
+        else if (env.point[2] > env.point[1]) final_winner = 2;
+
         for (int p_id = 1; p_id <= 2; ++p_id) {
             auto& trace = traces[p_id][i];
             if (trace.empty()) continue;
 
-            // Design Intent: Python側で多様なスケーリングを試せるように、ここでは「生の獲得予定ポイント（差分ベースの期待値）」等を返すことも可能。
-            // 既存の win_prob_mat を活用したポテンシャル値をベースとする場合
-            int final_pt = env.point[p_id] + env.round_point(p_id);
-            float final_potential = get_potential(p_id, env.round_num + 1, final_pt, env.dealer, env.winner, env.exhausted, max_round);
-            
-            // Raw Return として設定（Python側の scale_returns で勝敗[-1, 1]等に変換される前提）
-            float mc_return = final_potential; 
+            float terminal_reward = 0.0f;
+            if (final_winner == p_id) terminal_reward = 1.0f;
+            else if (final_winner != 0) terminal_reward = -1.0f;
 
-            for (size_t rs = 0; rs < trace.size(); ++rs) {
-                auto& slot = trace[rs];
-                // TDターゲット計算を廃止し、MC Returnをそのまま記録
-                if (slot.state_type == 0) buf_discard.push_reconstructed(slot, mc_return, max_round);
-                else if (slot.state_type == 1) buf_pick.push_reconstructed(slot, mc_return, max_round);
-                else buf_koikoi.push_reconstructed(slot, mc_return, max_round);
+            int T = static_cast<int>(trace.size());
+            std::vector<float> gae_returns(T);
+            float gae_a = 0.0f;
+
+            // --- GAE 逆順ループ (t = T-1 down to 0) ---
+            for (int t = T - 1; t >= 0; --t) {
+                // 中間報酬 r_t は 0、最終ステップのみ勝敗報酬
+                float r_t = (t == T - 1) ? terminal_reward : 0.0f;
+                float v_t = trace[t].old_value;
+                float v_next = (t == T - 1) ? 0.0f : trace[t + 1].old_value;
+
+                // δ_t = r_t + γ * V(s_{t+1}) - V(s_t)
+                float delta = r_t + this->discount * v_next - v_t;
+
+                // A_t = δ_t + (γ * λ) * A_{t+1}
+                gae_a = delta + (this->discount * this->gae_lambda) * gae_a;
+
+                // Return = A_t + V(s_t)
+                gae_returns[t] = gae_a + v_t;
             }
-            trace.clear();
+
+            // バッファへの格納は時系列がバグらないよう「正順」で行う
+            for (int t = 0; t < T; ++t) {
+                auto& slot = trace[t];
+                float ret = gae_returns[t];
+                if (slot.state_type == 0) buf_discard.push_reconstructed(slot, ret, max_round);
+                else if (slot.state_type == 1) buf_pick.push_reconstructed(slot, ret, max_round);
+                else buf_koikoi.push_reconstructed(slot, ret, max_round);
+            }
+
+            trace.clear(); 
         }
-        env.point[1] += env.round_point(1); env.point[2] += env.round_point(2);
     }
 
     void play_games(int max_round) {
@@ -975,9 +1033,10 @@ public:
                     const bool* mask_ptr    = mask_tensor[type].data_ptr<bool>(); 
 
                     int64_t act_ptr[8192]; 
+                    float prob_ptr[8192];
 
                     // Design Intent: ハードコードを廃止し、外部から注入された探索パラメータ(exp_params)を使用
-                    select_actions_neurd(type, n, logits_ptr, mask_ptr, act_ptr, this->exp_params);
+                    select_actions_neurd(type, n, logits_ptr, mask_ptr, act_ptr, prob_ptr, this->exp_params);
 
                     // 状態とアクションの記録、および環境のステップ進行
                     #pragma omp parallel for
@@ -988,7 +1047,8 @@ public:
                         TraceSlot slot;
                         slot.state_type = type;
                         slot.action = act_ptr[i];
-                        slot.old_value = value_ptr[i]; // Value Headの出力
+                        slot.old_value = value_ptr[i];
+                        slot.old_action_prob = prob_ptr[i];
                         
                         int cols = (type == 2) ? 2 : 48;
                         
@@ -1044,18 +1104,32 @@ private:
             auto& env = envs[i];
             while (!env.needs_action() && env.state != GameState::GAME_OVER) {
                 if (env.state == GameState::ROUND_OVER) {
-                    process_round_over(i, max_round);
-                    if (env.point[1] <= 0 || env.point[2] <= 0 || env.round_num == 8) {
+                    
+                    // 1. ラウンド終了時の得点計算 (トレースはクリアしない)
+                    env.point[1] += env.round_point(1);
+                    env.point[2] += env.round_point(2);
+
+                    // 2. ゲーム終了判定 (ポイント枯渇 または 最終ラウンド到達)
+                    if (env.point[1] <= 0 || env.point[2] <= 0 || env.round_num == max_round) {
+                        // ゲーム終了時にまとめてバッファへ書き込む
+                        process_game_over(i, max_round);
                         local_finished++;
-                        env.reset_game(); env.reset_round();
-                    } else { env.round_num++; env.reset_round(); }
-                } else { env.step(-1); }
+                        env.reset_game(); 
+                        env.reset_round();
+                    } else {
+                        // 次のラウンドへ移行 (トレースは保持されたまま)
+                        env.round_num++; 
+                        env.reset_round(); 
+                    }
+                } else { 
+                    env.step(-1); 
+                }
             }
         }
         finished_games += local_finished;
     }
 
-    void select_actions_neurd(int type, int n, const float* out_ptr, const bool* mask_ptr, int64_t* act_ptr, const ExplorationParams& params) {
+    void select_actions_neurd(int type, int n, const float* out_ptr, const bool* mask_ptr, int64_t* act_ptr, float* prob_ptr, const ExplorationParams& params) {
         std::uniform_real_distribution<float> dist(0.0f, 1.0f);
         int cols = (type == 2) ? 2 : 48;
 
@@ -1067,53 +1141,55 @@ private:
 
             if (valid_actions.empty()) {
                 act_ptr[i] = 0;
+                prob_ptr[i] = 1.0f;
                 continue;
             }
 
-            float rand_val = dist(envs[0].rng);
+            int num_legals = valid_actions.size();
+            float p_noise = params.uniform_noise_rate + params.epsilon;
+            float uniform_part = p_noise / num_legals;
+            float policy_weight = 1.0f - p_noise;
 
-            if (rand_val < params.uniform_noise_rate + params.epsilon) {
-                // ε-greedy または 一様ランダム
-                std::uniform_int_distribution<int> action_dist(0, valid_actions.size() - 1);
-                act_ptr[i] = valid_actions[action_dist(envs[0].rng)];
-            } 
-            else {
-                if (params.temperature <= 0.0f) {
-                    // Temperature=0 の場合は Argmax
-                    float max_val = -1e9f;
-                    int best_a = valid_actions[0];
-                    for (int a : valid_actions) {
-                        if (out_ptr[i * cols + a] > max_val) {
-                            max_val = out_ptr[i * cols + a];
-                            best_a = a;
-                        }
-                    }
-                    act_ptr[i] = best_a;
-                } else {
-                    // Softmax サンプリング
-                    float max_logit = -1e9f;
-                    for (int a : valid_actions) {
-                        if (out_ptr[i * cols + a] > max_logit) max_logit = out_ptr[i * cols + a];
-                    }
-                    float sum_exp = 0.0f;
-                    float exps[48];
-                    for (int a : valid_actions) {
-                        exps[a] = std::exp((out_ptr[i * cols + a] - max_logit) / params.temperature);
-                        sum_exp += exps[a];
-                    }
-                    float r = dist(envs[0].rng) * sum_exp;
-                    float acc = 0.0f;
-                    int chosen = valid_actions.back();
-                    for (int a : valid_actions) {
-                        acc += exps[a];
-                        if (r <= acc) {
-                            chosen = a;
-                            break;
-                        }
-                    }
-                    act_ptr[i] = chosen;
+            float mu[48] = {0.0f};
+
+            if (params.temperature <= 0.0f) {
+                // Argmax（ε-greedy）時の確率分布構築
+                float max_val = -1e9f;
+                for (int a : valid_actions) if (out_ptr[i * cols + a] > max_val) max_val = out_ptr[i * cols + a];
+                
+                int best_count = 0;
+                for (int a : valid_actions) if (out_ptr[i * cols + a] == max_val) best_count++;
+                
+                for (int a : valid_actions) {
+                    float pi_a = (out_ptr[i * cols + a] == max_val) ? (1.0f / best_count) : 0.0f;
+                    mu[a] = uniform_part + policy_weight * pi_a;
+                }
+            } else {
+                // Softmax時の確率分布構築
+                float max_logit = -1e9f;
+                for (int a : valid_actions) if (out_ptr[i * cols + a] > max_logit) max_logit = out_ptr[i * cols + a];
+                
+                float sum_exp = 0.0f, exps[48];
+                for (int a : valid_actions) {
+                    exps[a] = std::exp((out_ptr[i * cols + a] - max_logit) / params.temperature);
+                    sum_exp += exps[a];
+                }
+                for (int a : valid_actions) {
+                    mu[a] = uniform_part + policy_weight * (exps[a] / sum_exp);
                 }
             }
+
+            // 真の挙動方策 μ(a) からの直接ルーレットサンプリング
+            float r = dist(envs[0].rng);
+            float acc = 0.0f;
+            int chosen = valid_actions.back();
+            for (int a : valid_actions) {
+                acc += mu[a];
+                if (r <= acc) { chosen = a; break; }
+            }
+
+            act_ptr[i] = chosen;
+            prob_ptr[i] = mu[chosen]; // ★選ばれた手の「本当の確率」を確定記録
         }
     }
 };
@@ -1121,6 +1197,7 @@ private:
 struct SimConfig {
     int num_threads, n_envs, target, cap_d, cap_p, cap_k;
     float disc;
+    float gae_lambda;
     std::string dev_str;
     int max_round;
     ExplorationParams exp_params;
@@ -1128,7 +1205,8 @@ struct SimConfig {
     bool operator==(const SimConfig& o) const {
         return num_threads == o.num_threads && n_envs == o.n_envs &&
                target == o.target && cap_d == o.cap_d && cap_p == o.cap_p &&
-               cap_k == o.cap_k && disc == o.disc && dev_str == o.dev_str && max_round == o.max_round;
+               cap_k == o.cap_k && disc == o.disc && gae_lambda == o.gae_lambda && // ★判定追加
+               dev_str == o.dev_str && max_round == o.max_round && exp_params == o.exp_params;
     }
     bool operator!=(const SimConfig& o) const { return !(*this == o); }
 };
@@ -1148,20 +1226,14 @@ public:
     int done_workers = 0;
     
     std::vector<std::exception_ptr> worker_exceptions;
-    std::vector<float> shared_win_prob_mat;
 
-    SimulationManager(const SimConfig& config, py::array_t<float>& wp_mat) 
+    SimulationManager(const SimConfig& config) 
         : current_config(config), worker_exceptions(config.num_threads, nullptr) 
     {
-        auto wp = wp_mat.unchecked<3>();
-        shared_win_prob_mat.resize(2 * 9 * 61, 0.0f);
-        for(int i=0; i<2; ++i) for(int j=0; j<9; ++j) for(int k=0; k<61; ++k)
-            shared_win_prob_mat[(i*9+j)*61+k] = static_cast<float>(wp(i, j, k));
-
         for (int i = 0; i < config.num_threads; ++i) {
             sims.push_back(std::make_unique<BatchSimulator>(
                 config.n_envs, config.target, config.cap_d, config.cap_p, config.cap_k, 
-                config.disc, shared_win_prob_mat, config.dev_str, config.exp_params
+                config.disc, config.gae_lambda, config.dev_str, config.exp_params
             ));
         }
 
@@ -1245,14 +1317,300 @@ private:
     }
 };
 
+// ---------------------------------------------------------
+// [追加] アリーナ（評価フェーズ）専用のバッチシミュレータ
+// ---------------------------------------------------------
+struct SharedArenaModels {
+    torch::jit::script::Module p1_discard, p1_pick, p1_koikoi;
+    torch::jit::script::Module p2_discard, p2_pick, p2_koikoi;
+    std::mutex mtx;
+    bool loaded = false;
+};
+static SharedArenaModels g_arena_models;
+
+class ArenaBatchSimulator {
+public: 
+    int num_envs, target_games;
+    std::vector<KoiKoiEnv> envs;
+    
+    int next_match_to_start = 0;
+    int finished_games = 0;
+    std::vector<int> match_seeds;
+
+    int wins_p1 = 0, wins_p2 = 0, draws = 0;
+    double total_score_p1 = 0.0;
+
+    torch::Device device;
+    torch::Tensor feat_tensor[3];
+    torch::Tensor mask_tensor[3];
+
+    ArenaBatchSimulator(int n_envs, int target, std::string dev_str)
+        : num_envs(n_envs), target_games(target), device(dev_str) 
+    {
+        // Design Intent: Duplicate Match のため、試合数の半分のシードを生成する
+        int target_pairs = target_games / 2;
+        std::random_device rd;
+        for(int i = 0; i < target_pairs; ++i) {
+            match_seeds.push_back(rd());
+        }
+
+        auto opt_f32_pinned = torch::TensorOptions().dtype(torch::kFloat32).pinned_memory(true);
+        auto opt_bool_pinned = torch::TensorOptions().dtype(torch::kBool).pinned_memory(true);
+
+        feat_tensor[0] = torch::empty({num_envs, 24, 48}, opt_f32_pinned);
+        feat_tensor[1] = torch::empty({num_envs, 24, 48}, opt_f32_pinned);
+        feat_tensor[2] = torch::empty({num_envs, 24, 48}, opt_f32_pinned);
+
+        mask_tensor[0] = torch::empty({num_envs, 48}, opt_bool_pinned);
+        mask_tensor[1] = torch::empty({num_envs, 48}, opt_bool_pinned);
+        mask_tensor[2] = torch::empty({num_envs, 2}, opt_bool_pinned);
+
+        envs.reserve(n_envs);
+        for(int i = 0; i < n_envs; ++i) {
+            envs.emplace_back(rd());
+            start_next_match(i);
+        }
+    }
+
+    // Design Intent: 空いた環境に新しいシードとディーラーを割り当てて再利用する
+    void start_next_match(int env_idx) {
+        if (next_match_to_start < target_games) {
+            int seed = match_seeds[next_match_to_start / 2];
+            int dealer = (next_match_to_start % 2) + 1; // 先手・後手をペアで完全交互にする
+            envs[env_idx].rng.seed(seed);
+            envs[env_idx].reset_game_with_dealer(dealer);
+            envs[env_idx].reset_round();
+            next_match_to_start++;
+        } else {
+            envs[env_idx].state = GameState::GAME_OVER;
+        }
+    }
+
+    void process_game_over(int i) {
+        auto& env = envs[i];
+        int p1_pt = env.point[1];
+        int p2_pt = env.point[2];
+
+        if (p1_pt > p2_pt) {
+            #pragma omp atomic
+            wins_p1++;
+        } else if (p2_pt > p1_pt) {
+            #pragma omp atomic
+            wins_p2++;
+        } else {
+            #pragma omp atomic
+            draws++;
+        }
+
+        #pragma omp atomic
+        total_score_p1 += p1_pt;
+    }
+
+    void build_feature_into(int i, float* feat, int type, int max_round) {
+        auto& env = envs[i]; 
+        int pt = env.turn_player(); 
+        int pi = env.idle_player();
+        Snapshot snap;
+        snap.bb_hand = env.state_manager.bb_hand[pt];
+        snap.bb_unseen = env.state_manager.bb_stock | env.state_manager.bb_hand[pi];
+        snap.bb_my_pile = env.state_manager.bb_pile[pt];
+        snap.bb_field = env.state_manager.bb_field;
+        snap.bb_op_pile = env.state_manager.bb_pile[pi];
+        snap.bb_my_discard = env.state_manager.bb_discard_hist[pt];
+        snap.suit_op_played = env.state_manager.suit_played[pi];
+        snap.suit_op_ignored = env.state_manager.suit_ignored[pi];
+        snap.point_turn = env.point[pt];
+        snap.point_idle = env.point[pi];
+        snap.round_num = env.round_num;
+        snap.turn_16 = env.turn_16;
+        snap.is_dealer = (env.dealer == pt);
+        snap.koikoi_num_turn = env.koikoi_num(pt);
+        snap.koikoi_num_idle = env.koikoi_num(pi);
+        snap.state_type = type;
+        
+        write_feature_core(feat, snap, max_round);
+    }
+
+    void build_mask_into(int i, bool* mk, int type) {
+        auto& env = envs[i]; 
+        int sz = (type == 2) ? 2 : 48;
+        std::memset(mk, 0, sz * sizeof(bool));
+        if (type == 2) { mk[0] = true; mk[1] = true; }
+        else {
+            uint64_t bb = (type == 0) ? env.state_manager.bb_hand[env.turn_player()] : env.state_manager.bb_pairing;
+            for(int c = 0; c < 48; ++c) if((bb >> c) & 1) mk[c] = true;
+        }
+    }
+
+    void step_environments_without_action(int max_round) {
+        int local_finished = 0;
+        #pragma omp parallel for reduction(+:local_finished)
+        for (int i = 0; i < num_envs; ++i) {
+            auto& env = envs[i];
+            while (!env.needs_action() && env.state != GameState::GAME_OVER) {
+                if (env.state == GameState::ROUND_OVER) {
+                    env.point[1] += env.round_point(1);
+                    env.point[2] += env.round_point(2);
+
+                    // Design Intent: ヒューリスティックを廃止し、純粋に60点超え枯渇か最終ラウンドで決着させる
+                    if (env.point[1] <= 0 || env.point[2] <= 0 || env.round_num == max_round) {
+                        process_game_over(i);
+                        local_finished++;
+                        env.state = GameState::GAME_OVER; 
+                    } else {
+                        env.round_num++; 
+                        env.reset_round(); 
+                    }
+                } else { 
+                    env.step(-1); 
+                }
+            }
+        }
+        
+        if (local_finished > 0) {
+            finished_games += local_finished;
+            for (int i = 0; i < num_envs; ++i) {
+                if (envs[i].state == GameState::GAME_OVER && next_match_to_start < target_games) {
+                    start_next_match(i);
+                }
+            }
+        }
+    }
+
+    // Design Intent: アリーナ時は Temperature = 0.0 固定の Argmax 選択
+    void select_actions_argmax(int type, int n, const float* out_ptr, const bool* mask_ptr, int64_t* act_ptr) {
+        int cols = (type == 2) ? 2 : 48;
+        for (int i = 0; i < n; ++i) {
+            float max_val = -1e9f;
+            int best_a = 0;
+            bool found = false;
+            for (int c = 0; c < cols; ++c) {
+                if (mask_ptr[i * cols + c]) {
+                    if (!found || out_ptr[i * cols + c] > max_val) {
+                        max_val = out_ptr[i * cols + c];
+                        best_a = c;
+                        found = true;
+                    }
+                }
+            }
+            act_ptr[i] = best_a;
+        }
+    }
+
+    void play_games(int max_round) {
+        std::vector<int> req_env_idx[3];
+        float* feat_ptrs[3] = { feat_tensor[0].data_ptr<float>(), feat_tensor[1].data_ptr<float>(), feat_tensor[2].data_ptr<float>() };
+        bool* mask_ptrs[3] = { mask_tensor[0].data_ptr<bool>(), mask_tensor[1].data_ptr<bool>(), mask_tensor[2].data_ptr<bool>() };
+
+        while (finished_games < target_games) {
+            step_environments_without_action(max_round);
+            if (finished_games >= target_games) break;
+
+            for (int p_id = 1; p_id <= 2; ++p_id) {
+                for(int i = 0; i < 3; ++i) req_env_idx[i].clear();
+                
+                for (int i = 0; i < num_envs; ++i) {
+                    auto& env = envs[i];
+                    if (env.needs_action() && env.turn_player() == p_id) {
+                        int type = (env.state == GameState::DISCARD) ? 0 : (env.state == GameState::KOIKOI ? 2 : 1);
+                        req_env_idx[type].push_back(i);
+                    }
+                }
+
+                torch::NoGradGuard no_grad; 
+                for (int type = 0; type < 3; ++type) {
+                    int n = static_cast<int>(req_env_idx[type].size());
+                    if (n == 0) continue;
+
+                    #pragma omp parallel for
+                    for (int i = 0; i < n; ++i) {
+                        int env_idx = req_env_idx[type][i];
+                        int m_cols = (type == 2) ? 2 : 48;
+                        build_feature_into(env_idx, feat_ptrs[type] + i * 24 * 48, type, max_round);
+                        build_mask_into(env_idx, mask_ptrs[type] + i * m_cols, type);
+                    }
+
+                    torch::Tensor f_gpu = feat_tensor[type].slice(0, 0, n).to(device, true).to(torch::kFloat32);
+                    
+                    // Design Intent: p_id に応じて P1(評価対象) と P2(対戦相手) のモデルを切り替える
+                    torch::jit::script::Module* model_ptr;
+                    if (p_id == 1) {
+                        model_ptr = (type == 0) ? &g_arena_models.p1_discard :
+                                    (type == 1) ? &g_arena_models.p1_pick : &g_arena_models.p1_koikoi;
+                    } else {
+                        model_ptr = (type == 0) ? &g_arena_models.p2_discard :
+                                    (type == 1) ? &g_arena_models.p2_pick : &g_arena_models.p2_koikoi;
+                    }
+                    
+                    auto output_ivalue = model_ptr->forward({f_gpu});
+                    auto output_tuple = output_ivalue.toTuple();
+                    torch::Tensor logits_gpu = output_tuple->elements()[0].toTensor();
+                    torch::Tensor logits_cpu = logits_gpu.cpu();
+                    
+                    const float* logits_ptr = logits_cpu.data_ptr<float>();
+                    const bool* mask_ptr    = mask_tensor[type].data_ptr<bool>(); 
+                    int64_t act_ptr[8192]; 
+
+                    select_actions_argmax(type, n, logits_ptr, mask_ptr, act_ptr);
+
+                    #pragma omp parallel for
+                    for (int i = 0; i < n; ++i) {
+                        int env_idx = req_env_idx[type][i];
+                        envs[env_idx].step(act_ptr[i]);
+                    }
+                }
+            }
+        }
+    }
+};
+
+// ---------------------------------------------------------
+// [変更] Pythonから呼び出されるアリーナバインディング関数（大バッチ化版）
+// ---------------------------------------------------------
+py::dict run_arena_batch_simulations(
+    int total_games, // スレッド分割の引数を廃止し、合計試合数のみを受け取る
+    torch::jit::Module p1_discard, torch::jit::Module p1_pick, torch::jit::Module p1_koikoi,
+    torch::jit::Module p2_discard, torch::jit::Module p2_pick, torch::jit::Module p2_koikoi,
+    std::string dev_str, int max_round)
+{
+    // モデルの格納
+    {
+        std::lock_guard<std::mutex> lock(g_arena_models.mtx);
+        g_arena_models.p1_discard = p1_discard; g_arena_models.p1_pick = p1_pick; g_arena_models.p1_koikoi = p1_koikoi;
+        g_arena_models.p2_discard = p2_discard; g_arena_models.p2_pick = p2_pick; g_arena_models.p2_koikoi = p2_koikoi;
+        
+        g_arena_models.p1_discard.eval(); g_arena_models.p1_pick.eval(); g_arena_models.p1_koikoi.eval();
+        g_arena_models.p2_discard.eval(); g_arena_models.p2_pick.eval(); g_arena_models.p2_koikoi.eval();
+        g_arena_models.loaded = true;
+    }
+    
+    // Validation: 奇数のゲーム数が指定された場合は Duplicate Match 用に偶数へ切り上げる
+    if (total_games % 2 != 0) {
+        total_games++;
+    }
+
+    // Design Intent: マルチスレッドを廃止し、1つのシミュレータに全環境を乗せて「巨大バッチ化」する
+    // CPUの並列処理（OpenMP）はシミュレータ内で有効なまま、GPUへのリクエストだけ一極集中させる
+    ArenaBatchSimulator sim(total_games, total_games, dev_str);
+    sim.play_games(max_round);
+
+    py::dict res;
+    res["win"] = sim.wins_p1;
+    res["lose"] = sim.wins_p2;
+    res["draw"] = sim.draws;
+    res["score"] = sim.total_score_p1;
+    return res;
+}
+
 static std::unique_ptr<SimulationManager> g_sim_manager = nullptr;
 
 py::list run_parallel_simulations(
     int num_threads, int n_envs_per_thread, int target_games_per_thread,
-    int cap_d, int cap_p, int cap_k, float disc, py::array_t<float> wp_mat,
+    int cap_d, int cap_p, int cap_k, float disc,
     torch::jit::Module discard_model, torch::jit::Module pick_model, torch::jit::Module koikoi_model,
     std::string dev_str, int max_round,
-    float temperature, float epsilon, float uniform_noise)
+    float temperature, float epsilon, float uniform_noise,
+    float gae_lambda)
 {
     torch::Device device(dev_str);
 
@@ -1270,14 +1628,14 @@ py::list run_parallel_simulations(
     }
 
     ExplorationParams ep = {temperature, epsilon, uniform_noise};
-    SimConfig config = {num_threads, n_envs_per_thread, target_games_per_thread, cap_d, cap_p, cap_k, disc, dev_str, max_round, ep};
+    SimConfig config = {num_threads, n_envs_per_thread, target_games_per_thread, cap_d, cap_p, cap_k, disc, gae_lambda, dev_str, max_round, ep};
     
     if (g_sim_manager && g_sim_manager->current_config != config) {
         g_sim_manager.reset();
     }
 
     if (!g_sim_manager) {
-        g_sim_manager = std::make_unique<SimulationManager>(config, wp_mat);
+        g_sim_manager = std::make_unique<SimulationManager>(config);
     } else {
         g_sim_manager->reset_all();
     }
@@ -1307,10 +1665,13 @@ PYBIND11_MODULE(koikoicore, m) {
         }
     });
     m.def("run_parallel_simulations", &run_parallel_simulations);
+    m.def("run_arena_batch_simulations", &run_arena_batch_simulations);
+    m.def("set_rules", &set_rules);
 
     py::class_<KoiKoiStateManager>(m, "KoiKoiStateManager")
         .def(py::init<>())
         .def("init_board", &KoiKoiStateManager::init_board)
+        .def("set_state_from_vision", &KoiKoiStateManager::set_state_from_vision)
         .def("discard", &KoiKoiStateManager::discard)
         .def("discard_pick", &KoiKoiStateManager::discard_pick)
         .def("draw", &KoiKoiStateManager::draw)

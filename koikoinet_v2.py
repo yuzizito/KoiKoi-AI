@@ -45,52 +45,6 @@ class KoiKoiEncoderBlockV2(nn.Module):
         
         return x
 
-class DiscardModel(nn.Module):
-    def __init__(self):
-        super(DiscardModel, self).__init__()
-        self.encoder_block = KoiKoiEncoderBlockV2(**NetParameterV2)
-        self.out = nn.Conv1d(NetParameterV2['nEmb'], 1, 1)
-        
-    def forward(self, x):
-        x = self.encoder_block(x)
-        x = self.out(x).squeeze(1)
-        return x
-
-class PickModel(nn.Module):
-    def __init__(self):
-        super(PickModel, self).__init__()
-        self.encoder_block = KoiKoiEncoderBlockV2(**NetParameterV2)
-        self.out = nn.Conv1d(NetParameterV2['nEmb'], 1, 1)
-        
-    def forward(self, x):
-        x = self.encoder_block(x)
-        x = self.out(x).squeeze(1)
-        return x
-
-class KoiKoiModel(nn.Module):
-    def __init__(self):
-        super(KoiKoiModel, self).__init__()
-        self.encoder_block = KoiKoiEncoderBlockV2(**NetParameterV2)
-        self.out = nn.Conv1d(NetParameterV2['nEmb'], 1, 1)
-        
-    def forward(self, x):
-        encoded = self.encoder_block(x)
-        
-        x_out = self.out(encoded[:, :, [0, 1]]).squeeze(1)
-        return x_out
-
-class TargetQNet(nn.Module):
-    def __init__(self):
-        super(TargetQNet, self).__init__()
-        self.encoder_block = KoiKoiEncoderBlockV2(**NetParameterV2)
-        self.out = nn.Conv1d(NetParameterV2['nEmb'], 1, 1)
-        
-    def forward(self, x):
-        encoded = self.encoder_block(x)
-        
-        x_out = self.out(encoded[:, :, 0].unsqueeze(2)).squeeze(1)
-        return x_out
-
 class NeuRDModel(nn.Module):
     def __init__(self, is_koikoi=False):
         super(NeuRDModel, self).__init__()

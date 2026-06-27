@@ -3,7 +3,7 @@ import sys
 import koikoigui as gui
 from koikoigame import KoiKoiGameState
 import koikoilearn
-from koikoinet_v2 import DiscardStrategyNet, PickStrategyNet, KoiKoiStrategyNet
+from koikoinet_v2 import NeuRDModel
 
 import torch.nn.modules.linear as my_linear
 setattr(my_linear, '_LinearWithBias', my_linear.Linear)
@@ -13,32 +13,38 @@ RECORD_PATH = 'gamerecords_player/'
 os.makedirs(RECORD_PATH, exist_ok=True)
 DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-def load_native_model(path, model_class):
+def load_native_model(path, is_koikoi=False):
     """ネイティブモデルを読み込み、互換性パッチを適用して評価モードにする"""
-    model = model_class().to(DEVICE)
+    # Design Intent: NeuRDModelにアーキテクチャが統一されたため、is_koikoiフラグで出力ヘッドを切り替える
+    model = NeuRDModel(is_koikoi=is_koikoi).to(DEVICE)
+    
+    # Validation: モデルファイルが存在しない場合は初期化状態のまま続行できるようにする
     if not os.path.exists(path):
-        raise FileNotFoundError(f"モデルファイルが見つかりません: {path}")
-        
-    state_dict = torch.load(path, map_location=DEVICE, weights_only=False)
-    if isinstance(state_dict, torch.nn.Module):
-        state_dict = state_dict.state_dict()
-        
-    model.load_state_dict(state_dict)
+        print(f"Warning: モデルファイルが見つかりません。初期状態を使用します: {path}")
+    else:
+        # セキュリティ向上と警告回避のため weights_only=True に設定
+        state_dict = torch.load(path, map_location=DEVICE, weights_only=True)
+        if isinstance(state_dict, torch.nn.Module):
+            state_dict = state_dict.state_dict()
+            
+        model.load_state_dict(state_dict)
     
     for module in model.modules():
         if type(module).__name__ == 'MultiheadAttention':
-            if not hasattr(module, 'batch_first'): module.batch_first = False
+            if not hasattr(module, 'batch_first'): module.batch_first = False # type: ignore
         elif type(module).__name__ == 'TransformerEncoderLayer':
-            if not hasattr(module, 'norm_first'): module.norm_first = False
+            if not hasattr(module, 'norm_first'): module.norm_first = False # type: ignore
             
     return model.float().eval()
 
 # ゲーム状態の初期化
 game_state = KoiKoiGameState(player_name=[YOUR_NAME, AI_NAME], record_path=RECORD_PATH, save_record=True)
+
+# Design Intent: 新しいモデルの保存ファイル名に合わせてパスを更新
 ai_agent = koikoilearn.Agent(
-    load_native_model('model_v2/discard_strat.pt', DiscardStrategyNet),
-    load_native_model('model_v2/pick_strat.pt', PickStrategyNet),
-    load_native_model('model_v2/koikoi_strat.pt', KoiKoiStrategyNet)
+    load_native_model('model_v2/discard.pt', is_koikoi=False),
+    load_native_model('model_v2/pick.pt', is_koikoi=False),
+    load_native_model('model_v2/koikoi.pt', is_koikoi=True)
 )
 window = gui.InitGUI()
 window = gui.UpdateGameStatusGUI(window, game_state)

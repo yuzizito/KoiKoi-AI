@@ -5,9 +5,39 @@ import time
 import numpy as np
 import torch
 import random
+import configparser
+import os
 import koikoicore
 
 MAX_ROUND = 6  # 1〜8の整数で設定可能
+
+def apply_koikoi_config(cfg_path='koikoi.cfg'):
+    config = configparser.ConfigParser()
+    default_rules = {
+        'five_lights': 10, 'four_lights': 8, 'rainy_four_lights': 7,
+        'three_lights': 5, 'bdb': 5,
+        'enable_flower_sake': True, 'enable_moon_sake': True,
+        'flower_moon_base_pt': 1, 'flower_moon_koikoi_pt': 3,
+        'red_blue_ribbon': 10, 'red_ribbon': 5, 'blue_ribbon': 5
+    }
+    
+    if os.path.exists(cfg_path):
+        config.read(cfg_path, encoding='utf-8')
+        if 'Rules' in config:
+            cfg_rules = config['Rules']
+            apply_dict = {}
+            for key, default_val in default_rules.items():
+                if key in cfg_rules:
+                    if isinstance(default_val, bool):
+                        apply_dict[key] = cfg_rules.getboolean(key)
+                    else:
+                        apply_dict[key] = cfg_rules.getint(key)
+            koikoicore.set_rules(apply_dict)
+            return
+            
+    koikoicore.set_rules(default_rules)
+    
+apply_koikoi_config()
 
 class KoiKoiRoundState:
     def __init__(self, dealer=None):

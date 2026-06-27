@@ -4,7 +4,7 @@ import numpy as np
 import koikoigame
 
 class Agent:
-    def __init__(self, discard_model, pick_model, koikoi_model, random_action_prob=None):
+    def __init__(self, discard_model, pick_model, koikoi_model):
         self.model = {
             'discard': discard_model, 
             'discard-pick': pick_model, 
@@ -13,17 +13,6 @@ class Agent:
         }
         for model in self.model.values():
             model.eval()
-
-        if random_action_prob is None:
-            random_action_prob = [0.0, 0.0, 0.0, 0.0]
-            
-        self.random_action_prob = {
-            'discard': random_action_prob[0],
-            'discard-pick': random_action_prob[1],
-            'draw': 0.0,
-            'draw-pick': random_action_prob[2],
-            'koikoi': random_action_prob[3]
-        }
 
     def __predict(self, state, feature_cpu, game_state):
         """モデル推論とC++バックエンドを利用した最適アクションの選択"""
@@ -67,10 +56,6 @@ class Agent:
                 return False
             if game_state.round == MAX_ROUND:
                 return end_point < 30
-                
-        # ランダム行動（探索）の判定
-        if random.random() <= self.random_action_prob.get(state, 0.0):
-            return self._auto_random_action(game_state, state)
             
         # 決定論的（モデル推論）行動
         feature_cpu = game_state.feature_tensor.unsqueeze(0)
@@ -107,7 +92,8 @@ class Arena:
             self.test_point = {1: [], 2: []}
             self.test_winner = []
             
-        for _ in range(num_game):
+        for i in range(num_game):
+            self.game_state_kwargs['init_dealer'] = (i % 2) + 1
             self._duel()
             
         # 結果の集計 (0: 引き分け, 1: P1勝利, 2: P2勝利)
