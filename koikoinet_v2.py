@@ -1,70 +1,83 @@
+# author: shguan3
+from typing import Tuple
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-NetParameterV2 = {
-    'nInput': 24,
-    'nEmb': 128,
-    'nFw': 256,
-    'nAttnHead': 4,
-    'nLayer': 3
-}
+NUM_MONTHS = 12
+CARDS_PER_MONTH = 4
+TOTAL_CARDS = NUM_MONTHS * CARDS_PER_MONTH  # 48
+
 
 class KoiKoiEncoderBlockV2(nn.Module):
-    def __init__(self, nInput, nEmb, nFw, nAttnHead, nLayer):
-        super(KoiKoiEncoderBlockV2, self).__init__()
-        
-        # Design Intent: Extract spatial features per month (4 cards) and aggregate into nEmb dimensions
-        self.month_conv = nn.Conv2d(nInput, nEmb, kernel_size=(1, 4))
-        
-        # Design Intent: Learn sequence correlations between the 12 months (e.g., Yaku compositions)
-        attn_layer = nn.TransformerEncoderLayer(nEmb, nAttnHead, nFw, batch_first=True)
-        self.attn_encoder = nn.TransformerEncoder(attn_layer, nLayer)
-        
-    def forward(self, x):
-        if x.dim() != 3:
-            raise ValueError(f"Expected 3D tensor [Batch, Channels, SeqLen], got {x.dim()}D tensor.")
-            
-        B = x.size(0)
-        
-        # Design Intent: Reshape to treat the 48 cards as 12 distinct groups of 4 (months)
-        x = x.view(B, -1, 12, 4)
-        
-        # Feature extraction per month: [B, 24, 12, 4] -> [B, nEmb, 12, 1] -> [B, nEmb, 12]
-        x = self.month_conv(x).squeeze(3)
-        x = F.relu(x)
-        
-        # Sequence correlation: [B, nEmb, 12] -> [B, 12, nEmb] -> Transformer -> [B, 12, nEmb]
+    """花札48枚を「12ヶ月×4枚」の空間構造として捉え直す特徴量抽出器"""
+
+    def __init__(
+        self,
+        n_input: int = 24,
+        n_emb: int = 128,
+        n_fw: int = 256,
+        n_attn_head: int = 4,
+        n_layer: int = 3,
+    ):
+        super().__init__()
+        self.n_input = n_input
+
+        # Design Intent: 月単位(4枚)の空間相関を圧縮しn_emb次元へ写像する
+        self.month_conv = nn.Conv2d(n_input, n_emb, kernel_size=(1, CARDS_PER_MONTH))
+
+        # Design Intent: 12ヶ月間の出来役シーケンス相関を学習する
+        encoder_layer = nn.TransformerEncoderLayer(
+            d_model=n_emb, nhead=n_attn_head, dim_feedforward=n_fw, batch_first=True
+        )
+        self.attn_encoder = nn.TransformerEncoder(encoder_layer, num_layers=n_layer)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # JITトレースコンパイル中はこの動的チェックをバイパスさせる
+        if not torch.jit.is_tracing(): # type: ignore
+            if x.dim() != 3 or x.size(1) != self.n_input or x.size(2) != TOTAL_CARDS:
+                raise ValueError(
+                    f"Expected tensor shape [Batch, {self.n_input}, {TOTAL_CARDS}], got {list(x.shape)}"
+                )
+
+        b_size = x.size(0)
+
+        # [B, 24, 48] -> [B, 24, 12, 4]
+        x = x.view(b_size, self.n_input, NUM_MONTHS, CARDS_PER_MONTH)
+
+        # [B, 24, 12, 4] -> [B, nEmb, 12, 1] -> [B, nEmb, 12]
+        x = F.relu(self.month_conv(x).squeeze(-1))
+
+        # [B, nEmb, 12] -> [B, 12, nEmb] -> Transformer -> [B, 12, nEmb]
         x = x.permute(0, 2, 1)
         x = F.layer_norm(x, [x.size(-1)])
         x = self.attn_encoder(x)
-        
-        # Spatial expansion back to card level: [B, 12, nEmb] -> [B, nEmb, 12] -> [B, nEmb, 48]
+
+        # [B, 12, nEmb] -> [B, nEmb, 12] -> [B, nEmb, 48]
         x = x.permute(0, 2, 1)
-        x = x.repeat_interleave(4, dim=2)
-        
-        return x
+        return x.repeat_interleave(CARDS_PER_MONTH, dim=2)
+
 
 class NeuRDModel(nn.Module):
-    def __init__(self, is_koikoi=False):
-        super(NeuRDModel, self).__init__()
+    def __init__(
+        self, is_koikoi: bool = False, n_input: int = 24, n_emb: int = 128
+    ):
+        super().__init__()
         self.is_koikoi = is_koikoi
-        self.encoder_block = KoiKoiEncoderBlockV2(**NetParameterV2)
-        
-        # Actor (Policy Head)
-        self.policy_out = nn.Conv1d(NetParameterV2['nEmb'], 1, 1)
-        # Critic (Value Head)
-        self.value_out = nn.Linear(NetParameterV2['nEmb'], 1)
-        
-    def forward(self, x):
+        self.encoder_block = KoiKoiEncoderBlockV2(n_input=n_input, n_emb=n_emb)
+
+        self.policy_out = nn.Conv1d(n_emb, 1, kernel_size=1)
+        self.value_out = nn.Linear(n_emb, 1)
+
+    def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         encoded = self.encoder_block(x)
-        
+
+        # こいこい判断時は最初の2トークン[こいこい, 勝負]のみを抽出
         if self.is_koikoi:
             logits = self.policy_out(encoded[:, :, [0, 1]]).squeeze(1)
         else:
             logits = self.policy_out(encoded).squeeze(1)
-            
-        # Value head expects [B, nEmb]. Use the 0-th token for global state value.
+
+        # 状態価値は0番トークンをグローバル表現として利用
         value = self.value_out(encoded[:, :, 0]).squeeze(-1)
-        
         return logits, value
