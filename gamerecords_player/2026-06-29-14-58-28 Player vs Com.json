@@ -1,0 +1,570 @@
+{
+  "info": {
+    "start": "2026-06-29-14-58-28",
+    "p1": "Player",
+    "p2": "Com",
+    "pts": {
+      "1": 30,
+      "2": 30
+    },
+    "tot_rnd": 6,
+    "end": "2026-06-29-15-02-41"
+  },
+  "res": {
+    "over": true,
+    "win": 1,
+    "final_pts": {
+      "1": 44,
+      "2": 16
+    }
+  },
+  "rec": {
+    "rnd1": {
+      "init": {
+        "board": [
+          9,
+          10,
+          17,
+          18,
+          21,
+          26,
+          37,
+          46
+        ]
+      },
+      "t1": {
+        "pairs": [
+          37
+        ],
+        "drw_pairs": []
+      },
+      "t2": {
+        "pairs": [
+          46
+        ],
+        "drw_pairs": [
+          26
+        ]
+      },
+      "t3": {
+        "pairs": [],
+        "drw_pairs": []
+      },
+      "t4": {
+        "pairs": [
+          21
+        ],
+        "drw_pairs": []
+      },
+      "t5": {
+        "pairs": [],
+        "drw_pairs": [
+          1
+        ]
+      },
+      "t6": {
+        "pairs": [
+          17,
+          18
+        ],
+        "drw_pairs": []
+      },
+      "t7": {
+        "pairs": [
+          18
+        ],
+        "drw_pairs": []
+      },
+      "t8": {
+        "pairs": [
+          38
+        ],
+        "drw_pairs": [
+          9,
+          10
+        ]
+      },
+      "t9": {
+        "pairs": [],
+        "drw_pairs": [
+          34
+        ]
+      },
+      "t10": {
+        "pairs": [
+          28
+        ],
+        "drw_pairs": [
+          12
+        ]
+      },
+      "t11": {
+        "pairs": [],
+        "drw_pairs": []
+      },
+      "t12": {
+        "pairs": [
+          45
+        ],
+        "drw_pairs": []
+      },
+      "t13": {
+        "pairs": [],
+        "drw_pairs": [
+          0
+        ]
+      },
+      "t14": {
+        "pairs": [],
+        "drw_pairs": [
+          5
+        ]
+      },
+      "basic": {
+        "p1_rnd_pt": 1,
+        "p2_rnd_pt": -1,
+        "dlr": 2
+      }
+    },
+    "rnd2": {
+      "init": {
+        "board": [
+          1,
+          5,
+          21,
+          31,
+          33,
+          39,
+          40,
+          45
+        ]
+      },
+      "t1": {
+        "pairs": [
+          21
+        ],
+        "drw_pairs": []
+      },
+      "t2": {
+        "pairs": [],
+        "drw_pairs": [
+          18
+        ]
+      },
+      "t3": {
+        "pairs": [
+          5
+        ],
+        "drw_pairs": []
+      },
+      "t4": {
+        "pairs": [],
+        "drw_pairs": []
+      },
+      "t5": {
+        "pairs": [
+          14
+        ],
+        "drw_pairs": []
+      },
+      "t6": {
+        "pairs": [],
+        "drw_pairs": [
+          4
+        ]
+      },
+      "t7": {
+        "pairs": [
+          40
+        ],
+        "drw_pairs": [
+          10
+        ]
+      },
+      "t8": {
+        "pairs": [
+          17
+        ],
+        "drw_pairs": [
+          45
+        ]
+      },
+      "t9": {
+        "pairs": [
+          31
+        ],
+        "drw_pairs": [
+          33
+        ]
+      },
+      "t10": {
+        "pairs": [],
+        "drw_pairs": []
+      },
+      "t11": {
+        "pairs": [],
+        "drw_pairs": []
+      },
+      "t12": {
+        "pairs": [
+          39
+        ],
+        "drw_pairs": []
+      },
+      "t13": {
+        "pairs": [
+          9
+        ],
+        "drw_pairs": []
+      },
+      "basic": {
+        "p1_rnd_pt": 1,
+        "p2_rnd_pt": -1,
+        "dlr": 1
+      }
+    },
+    "rnd3": {
+      "init": {
+        "board": [
+          0,
+          3,
+          20,
+          24,
+          29,
+          30,
+          40,
+          44
+        ]
+      },
+      "t1": {
+        "pairs": [
+          0,
+          3
+        ],
+        "drw_pairs": []
+      },
+      "t2": {
+        "pairs": [],
+        "drw_pairs": []
+      },
+      "t3": {
+        "pairs": [
+          44
+        ],
+        "drw_pairs": []
+      },
+      "t4": {
+        "pairs": [],
+        "drw_pairs": [
+          40
+        ]
+      },
+      "t5": {
+        "pairs": [
+          9
+        ],
+        "drw_pairs": []
+      },
+      "t6": {
+        "pairs": [],
+        "drw_pairs": []
+      },
+      "t7": {
+        "pairs": [
+          20
+        ],
+        "drw_pairs": [
+          45
+        ]
+      },
+      "t8": {
+        "pairs": [],
+        "drw_pairs": [
+          16
+        ]
+      },
+      "t9": {
+        "pairs": [
+          13
+        ],
+        "drw_pairs": [
+          29,
+          30
+        ]
+      },
+      "basic": {
+        "p1_rnd_pt": 9,
+        "p2_rnd_pt": -9,
+        "dlr": 1
+      }
+    },
+    "rnd4": {
+      "init": {
+        "board": [
+          5,
+          6,
+          12,
+          15,
+          26,
+          28,
+          29,
+          45
+        ]
+      },
+      "t1": {
+        "pairs": [
+          26
+        ],
+        "drw_pairs": [
+          12,
+          15
+        ]
+      },
+      "t2": {
+        "pairs": [],
+        "drw_pairs": [
+          45
+        ]
+      },
+      "t3": {
+        "pairs": [
+          28,
+          29
+        ],
+        "drw_pairs": []
+      },
+      "t4": {
+        "pairs": [
+          43
+        ],
+        "drw_pairs": []
+      },
+      "t5": {
+        "pairs": [
+          29
+        ],
+        "drw_pairs": [
+          15
+        ]
+      },
+      "t6": {
+        "pairs": [],
+        "drw_pairs": []
+      },
+      "t7": {
+        "pairs": [
+          3
+        ],
+        "drw_pairs": []
+      },
+      "t8": {
+        "pairs": [],
+        "drw_pairs": [
+          39
+        ]
+      },
+      "t9": {
+        "pairs": [
+          1
+        ],
+        "drw_pairs": []
+      },
+      "t10": {
+        "pairs": [
+          11
+        ],
+        "drw_pairs": [
+          32
+        ]
+      },
+      "t11": {
+        "pairs": [
+          17
+        ],
+        "drw_pairs": []
+      },
+      "t12": {
+        "pairs": [],
+        "drw_pairs": [
+          5,
+          6
+        ]
+      },
+      "t13": {
+        "pairs": [
+          42
+        ],
+        "drw_pairs": [
+          21
+        ]
+      },
+      "basic": {
+        "p1_rnd_pt": 1,
+        "p2_rnd_pt": -1,
+        "dlr": 1
+      }
+    },
+    "rnd5": {
+      "init": {
+        "board": [
+          9,
+          13,
+          17,
+          21,
+          28,
+          31,
+          34,
+          37
+        ]
+      },
+      "t1": {
+        "pairs": [
+          28,
+          31
+        ],
+        "drw_pairs": []
+      },
+      "t2": {
+        "pairs": [
+          44
+        ],
+        "drw_pairs": []
+      },
+      "t3": {
+        "pairs": [
+          5
+        ],
+        "drw_pairs": []
+      },
+      "t4": {
+        "pairs": [
+          27
+        ],
+        "drw_pairs": [
+          21
+        ]
+      },
+      "t5": {
+        "pairs": [
+          9
+        ],
+        "drw_pairs": [
+          37
+        ]
+      },
+      "t6": {
+        "pairs": [],
+        "drw_pairs": []
+      },
+      "t7": {
+        "pairs": [
+          17
+        ],
+        "drw_pairs": [
+          34
+        ]
+      },
+      "t8": {
+        "pairs": [],
+        "drw_pairs": []
+      },
+      "t9": {
+        "pairs": [
+          3
+        ],
+        "drw_pairs": []
+      },
+      "t10": {
+        "pairs": [
+          32
+        ],
+        "drw_pairs": [
+          31
+        ]
+      },
+      "t11": {
+        "pairs": [
+          18
+        ],
+        "drw_pairs": []
+      },
+      "t12": {
+        "pairs": [
+          39
+        ],
+        "drw_pairs": []
+      },
+      "t13": {
+        "pairs": [],
+        "drw_pairs": [
+          13
+        ]
+      },
+      "basic": {
+        "p1_rnd_pt": 1,
+        "p2_rnd_pt": -1,
+        "dlr": 1
+      }
+    },
+    "rnd6": {
+      "init": {
+        "board": [
+          0,
+          8,
+          14,
+          15,
+          16,
+          26,
+          43,
+          44
+        ]
+      },
+      "t1": {
+        "pairs": [
+          0
+        ],
+        "drw_pairs": []
+      },
+      "t2": {
+        "pairs": [],
+        "drw_pairs": []
+      },
+      "t3": {
+        "pairs": [
+          22
+        ],
+        "drw_pairs": []
+      },
+      "t4": {
+        "pairs": [],
+        "drw_pairs": []
+      },
+      "t5": {
+        "pairs": [
+          43
+        ],
+        "drw_pairs": []
+      },
+      "t6": {
+        "pairs": [
+          7
+        ],
+        "drw_pairs": []
+      },
+      "t7": {
+        "pairs": [
+          14,
+          15
+        ],
+        "drw_pairs": [
+          38
+        ]
+      },
+      "basic": {
+        "p1_rnd_pt": 1,
+        "p2_rnd_pt": -1,
+        "dlr": 1
+      }
+    }
+  }
+}

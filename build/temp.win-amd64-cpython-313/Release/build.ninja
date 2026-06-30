@@ -2,7 +2,7 @@ ninja_required_version = 1.3
 cxx = cl
 
 cflags = /nologo /O2 /W3 /GL /DNDEBUG /MD -IC:\dev\KoiKoi-AI\venv\Lib\site-packages\torch\include -IC:\dev\KoiKoi-AI\venv\Lib\site-packages\torch\include\torch\csrc\api\include -IC:\dev\KoiKoi-AI\venv\include -IC:\Users\uio\AppData\Local\Programs\Python\Python313\include -IC:\Users\uio\AppData\Local\Programs\Python\Python313\Include "-IC:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include" "-IC:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\ATLMFC\include" "-IC:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\VS\include" "-IC:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt" "-IC:\Program Files (x86)\Windows Kits\10\\include\10.0.26100.0\\um" "-IC:\Program Files (x86)\Windows Kits\10\\include\10.0.26100.0\\shared" "-IC:\Program Files (x86)\Windows Kits\10\\include\10.0.26100.0\\winrt" "-IC:\Program Files (x86)\Windows Kits\10\\include\10.0.26100.0\\cppwinrt" "-IC:\Program Files (x86)\Windows Kits\NETFXSDK\4.8\include\um" /MD /wd4819 /wd4251 /wd4244 /wd4267 /wd4275 /wd4018 /wd4190 /wd4624 /wd4067 /wd4068 /EHsc
-post_cflags = /O2 /utf-8 /std:c++17 /fp:fast /arch:AVX2 /openmp:llvm -DTORCH_API_INCLUDE_EXTENSION_H -DTORCH_EXTENSION_NAME=koikoicore
+post_cflags = /O2 /utf-8 /std:c++17 /fp:fast /arch:AVX2 /openmp:llvm -DTORCH_API_INCLUDE_EXTENSION_H -DTORCH_EXTENSION_NAME=core
 cuda_dlink_post_cflags = 
 sycl_dlink_post_cflags = 
 ldflags = 
@@ -17,7 +17,7 @@ rule compile
 
 
 
-build C$:\dev\KoiKoi-AI\build\temp.win-amd64-cpython-313\Release\koikoicore.obj: compile C$:\dev\KoiKoi-AI\koikoicore.cpp
+build C$:\dev\KoiKoi-AI\build\temp.win-amd64-cpython-313\Release\core.obj: compile C$:\dev\KoiKoi-AI\core.cpp
 
 
 

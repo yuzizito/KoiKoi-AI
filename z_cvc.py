@@ -8,7 +8,7 @@ os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
 import torch
 import koikoicore
-from koikoinet_v2 import NeuRDModel
+from neurd import NeuRD
 
 import torch.nn.modules.linear as my_linear
 setattr(my_linear, '_LinearWithBias', my_linear.Linear)
@@ -22,14 +22,14 @@ DEVICE_STR = "cuda:0" if torch.cuda.is_available() else "cpu"
 MAX_ROUND = 6
 
 def load_and_trace_models(paths):
-    """指定されたパスからNeuRDModelを読み込み、C++推論用のJITトレースモデルを構築する"""
+    """指定されたパスからNeuRDを読み込み、C++推論用のJITトレースモデルを構築する"""
     traced_models = {}
     example_input_normal = torch.zeros((1, 24, 48), dtype=torch.float32, device=DEVICE)
     example_input_koikoi = torch.zeros((1, 24, 48), dtype=torch.float32, device=DEVICE)
     
     for key in ['discard', 'pick', 'koikoi']:
         is_kk = (key == 'koikoi')
-        model = NeuRDModel(is_koikoi=is_kk).to(DEVICE)
+        model = NeuRD(is_koikoi=is_kk).to(DEVICE)
         
         # Validation: モデルファイルが存在しない場合のフォールバック
         if os.path.exists(paths[key]):
