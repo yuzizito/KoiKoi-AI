@@ -26,7 +26,7 @@
 namespace py = pybind11;
 using namespace pybind11::literals;
 
-constexpr int C_CH = 26; // カード特徴チャネル数
+constexpr int C_CH = 43; // カード特徴チャネル数
 constexpr int G_CH = 7;  // グローバル特徴要素数
 
 struct ModelBox {
@@ -176,7 +176,7 @@ int calc_yaku_pt(uint64_t pile, int koi_num) {
 }
 
 struct Snap {
-    uint64_t hand, unseen, my_pile, field, op_pile, my_dis;
+    uint64_t hand, unseen, my_pile, field, op_pile, my_dis, show;
     uint16_t op_play, op_ign;
     int pt_t, pt_i, rnd, t16, koi_t, koi_i;
     bool is_dl;
@@ -185,7 +185,7 @@ struct Snap {
 
 struct Slot {
     int st_type, act;
-    float old_val, old_prb;
+    float old_val, old_pi, old_mu; // 探索前の純粋な方策(pi)と実際のサンプリング確率(mu)
     float old_log[48];
     bool mask[48];
     Snap snap;
@@ -193,6 +193,7 @@ struct Slot {
 
 struct ExpPars { float temp, eps, noise; };
 
+// write_feat関数の完全書き換え
 inline void write_feat(float* c_dst, float* g_dst, const Snap& sn, int max_rnd) {
     std::memset(c_dst, 0, C_CH * 48 * sizeof(float));
 
@@ -207,49 +208,126 @@ inline void write_feat(float* c_dst, float* g_dst, const Snap& sn, int max_rnd) 
         uint64_t m_bb = 0xFULL << (m * 4);
         float val = popcnt(sn.unseen & m_bb) * 0.25f;
         std::fill_n(c_dst + 5 * 48 + m * 4, 4, val);
-        if (sn.field & m_bb) std::fill_n(c_dst + 6 * 48 + m * 4, 4, 1.0f);
     }
 
-    auto set_pot = [&](int r, uint64_t mk, int req, int lim, uint64_t sf, uint64_t op, bool is_fixed = false) {
-    if (popcnt(op & mk) < lim) {
-        int my_cnt = popcnt(sf & mk);
-        // 【追加】上限固定役で、すでに必要枚数に達していたら「0」のまま抜ける
-        if (is_fixed && my_cnt >= req) return; 
-        
-        set_bb(r, mk, std::min(1.0f, static_cast<float>(my_cnt + 1) / req));
-    }
-};
-
-    set_pot(7,  M.lt,     5,  3,  sn.my_pile, sn.op_pile, false); // 光(五光が天井だが発展型)
-    set_pot(8,  M.bdb,    3,  1,  sn.my_pile, sn.op_pile, true);  // 猪鹿蝶【固定】
-    set_pot(9,  M.r_rib,  3,  1,  sn.my_pile, sn.op_pile, true);  // 赤短【固定】
-    set_pot(10, M.b_rib,  3,  1,  sn.my_pile, sn.op_pile, true);  // 青短【固定】
-    set_pot(11, M.f_sake, 2,  1,  sn.my_pile, sn.op_pile, true);  // 花見【固定】
-    set_pot(12, M.m_sake, 2,  1,  sn.my_pile, sn.op_pile, true);  // 月見【固定】
-    set_pot(13, M.sd,     5,  5,  sn.my_pile, sn.op_pile, false); // タネ
-    set_pot(14, M.rb,     5,  6,  sn.my_pile, sn.op_pile, false); // タン
-    set_pot(15, M.ks,     10, 16, sn.my_pile, sn.op_pile, false); // カス
-
-    for (int m = 0; m < 12; ++m) {
-        bool played  = (sn.op_play >> m) & 1;
-        bool ignored = (sn.op_ign  >> m) & 1;
-
-        // 「1枚も出しておらず、かつ場札をスルーした」場合のみ、確実に持っていない(-1.0)
-        if (ignored && !played) {
-            std::fill_n(c_dst + 16 * 48 + m * 4, 4, -1.0f);
+    // C6: 合法マッチフラグ (DISCARDフェーズは場札と一致する手札、PICKフェーズは取得契機札と一致する場札)
+    if (sn.st_type == 0) {
+        uint64_t h = sn.hand;
+        while (h) {
+            int c = ctz(h);
+            uint64_t m_bb = 0xFULL << ((c / 4) * 4);
+            if (sn.field & m_bb) c_dst[6 * 48 + c] = 1.0f;
+            h &= (h - 1);
         }
-        // それ以外（0,0 / 1,0 / 1,1）はすべて 0.0f（初期値のまま）
+    } else if (sn.st_type == 1 && sn.show != 0) {
+        int s_c = ctz(sn.show);
+        uint64_t m_bb = 0xFULL << ((s_c / 4) * 4);
+        set_bb(6, sn.field & m_bb, 1.0f);
     }
 
-    set_pot(17, M.lt,     5,  3, sn.op_pile, sn.my_pile, false);
-    set_pot(18, M.bdb,    3,  1, sn.op_pile, sn.my_pile, true);
-    set_pot(19, M.r_rib,  3,  1, sn.op_pile, sn.my_pile, true);
-    set_pot(20, M.b_rib,  3,  1, sn.op_pile, sn.my_pile, true);
-    set_pot(21, M.f_sake, 2,  1, sn.op_pile, sn.my_pile, true);
-    set_pot(22, M.m_sake, 2,  1, sn.op_pile, sn.my_pile, true);
-    set_pot(23, M.sd,     5,  5, sn.op_pile, sn.my_pile, false);
-    set_pot(24, M.rb,     5,  6, sn.op_pile, sn.my_pile, false);
-    set_pot(25, M.ks,     10, 16, sn.op_pile, sn.my_pile, false);
+    // --- ポテンシャル (取りに行く価値) ---
+    auto set_pot = [&](int r, uint64_t mk, int req, int lim, uint64_t sf, uint64_t op, bool is_fixed) {
+        int op_cnt = popcnt(op & mk);
+        int my_cnt = popcnt(sf & mk);
+
+        if (is_fixed && op_cnt > 0) return;
+        if (!is_fixed && op_cnt >= lim) return;
+        if (is_fixed && my_cnt >= req) return; // 固定役完成後はポテンシャル0
+
+        int n;
+        if (my_cnt >= req) {
+            int total_cards = popcnt(mk);
+            if (my_cnt + op_cnt >= total_cards) return; // 札枯渇により発展不可能な場合は0
+            n = 1; // 発展可能であれば、常に次は「あと1枚」で更新される
+        } else {
+            n = req - my_cnt;
+        }
+        
+        float val = std::max(0.0f, 0.1f * (11 - n));
+        set_bb(r, mk, val);
+    };
+
+    // --- 光役専用ポテンシャル ---
+    auto set_lt_pot = [&](int r, uint64_t sf, uint64_t op) {
+        int my_reg = popcnt(sf & (M.lt & ~M.rain));
+        int op_reg = popcnt(op & (M.lt & ~M.rain));
+        bool my_rain = (sf & M.rain) != 0;
+        bool op_rain = (op & M.rain) != 0;
+
+        // 柳以外の光札 (次に達成可能な役までの最短距離を算出)
+        int min_n_reg = 999;
+        if (my_reg < 3 && op_reg <= 1) min_n_reg = std::min(min_n_reg, 3 - my_reg);
+        if ((my_reg < 3 || my_rain == 0) && op_reg <= 1 && op_rain == 0) min_n_reg = std::min(min_n_reg, 3 - my_reg + (1 - my_rain));
+        if (my_reg < 4 && op_reg == 0) min_n_reg = std::min(min_n_reg, 4 - my_reg);
+        if ((my_reg < 4 || my_rain == 0) && op_reg == 0 && op_rain == 0) min_n_reg = std::min(min_n_reg, 4 - my_reg + (1 - my_rain));
+
+        if (min_n_reg != 999) set_bb(r, M.lt & ~M.rain, std::min(1.0f, 0.1f * (11 - min_n_reg)));
+
+        // 柳の札 (三光には貢献しない)
+        int min_n_rain = 999;
+        if ((my_reg < 3 || my_rain == 0) && op_reg <= 1 && op_rain == 0) min_n_rain = std::min(min_n_rain, 3 - my_reg + (1 - my_rain));
+        if ((my_reg < 4 || my_rain == 0) && op_reg == 0 && op_rain == 0) min_n_rain = std::min(min_n_rain, 4 - my_reg + (1 - my_rain));
+        
+        if (min_n_rain != 999) set_bb(r, M.rain, std::min(1.0f, 0.1f * (11 - min_n_rain)));
+    };
+
+    // --- 確定ステータス ---
+    auto set_stat = [&](int r, uint64_t mk, int req, uint64_t sf) {
+        if (popcnt(sf & mk) >= req) set_bb(r, mk, 1.0f);
+    };
+
+    // --- 光役専用確定ステータス ---
+    auto set_lt_stat = [&](int r, uint64_t sf) {
+        int my_reg = popcnt(sf & (M.lt & ~M.rain));
+        bool my_rain = (sf & M.rain) != 0;
+        
+        if (my_reg >= 3) set_bb(r, M.lt & ~M.rain, 1.0f); // 三光以上なら柳以外はすべて役の一部
+        if ((my_reg == 3 || my_reg == 4) && my_rain) set_bb(r, M.rain, 1.0f); // 雨四光・五光なら柳も役の一部
+    };
+
+    // C7-C15: 自分 役ポテンシャル
+    set_lt_pot(7, sn.my_pile, sn.op_pile);
+    set_pot(8,  M.bdb,    3,  1,  sn.my_pile, sn.op_pile, true);
+    set_pot(9,  M.r_rib,  3,  1,  sn.my_pile, sn.op_pile, true);
+    set_pot(10, M.b_rib,  3,  1,  sn.my_pile, sn.op_pile, true);
+    set_pot(11, M.f_sake, 2,  1,  sn.my_pile, sn.op_pile, true);
+    set_pot(12, M.m_sake, 2,  1,  sn.my_pile, sn.op_pile, true);
+    set_pot(13, M.sd,     5,  5,  sn.my_pile, sn.op_pile, false);
+    set_pot(14, M.rb,     5,  6,  sn.my_pile, sn.op_pile, false);
+    set_pot(15, M.ks,    10, 15,  sn.my_pile, sn.op_pile, false);
+
+    // C16-C24: 自分 確定ステータス
+    set_lt_stat(16, sn.my_pile);
+    set_stat(17, M.bdb,    3, sn.my_pile);
+    set_stat(18, M.r_rib,  3, sn.my_pile);
+    set_stat(19, M.b_rib,  3, sn.my_pile);
+    set_stat(20, M.f_sake, 2, sn.my_pile);
+    set_stat(21, M.m_sake, 2, sn.my_pile);
+    set_stat(22, M.sd,     5, sn.my_pile);
+    set_stat(23, M.rb,     5, sn.my_pile);
+    set_stat(24, M.ks,    10, sn.my_pile);
+
+    // C25-C33: 相手 役ポテンシャル
+    set_lt_pot(25, sn.op_pile, sn.my_pile);
+    set_pot(26, M.bdb,    3,  1,  sn.op_pile, sn.my_pile, true);
+    set_pot(27, M.r_rib,  3,  1,  sn.op_pile, sn.my_pile, true);
+    set_pot(28, M.b_rib,  3,  1,  sn.op_pile, sn.my_pile, true);
+    set_pot(29, M.f_sake, 2,  1,  sn.op_pile, sn.my_pile, true);
+    set_pot(30, M.m_sake, 2,  1,  sn.op_pile, sn.my_pile, true);
+    set_pot(31, M.sd,     5,  5,  sn.op_pile, sn.my_pile, false);
+    set_pot(32, M.rb,     5,  6,  sn.op_pile, sn.my_pile, false);
+    set_pot(33, M.ks,    10, 15,  sn.op_pile, sn.my_pile, false);
+
+    // C34-C42: 相手 確定ステータス
+    set_lt_stat(34, sn.op_pile);
+    set_stat(35, M.bdb,    3, sn.op_pile);
+    set_stat(36, M.r_rib,  3, sn.op_pile);
+    set_stat(37, M.b_rib,  3, sn.op_pile);
+    set_stat(38, M.f_sake, 2, sn.op_pile);
+    set_stat(39, M.m_sake, 2, sn.op_pile);
+    set_stat(40, M.sd,     5, sn.op_pile);
+    set_stat(41, M.rb,     5, sn.op_pile);
+    set_stat(42, M.ks,    10, sn.op_pile);
 
     g_dst[0] = (sn.pt_t - sn.pt_i) / 30.0f;
     g_dst[1] = calc_yaku_pt(sn.my_pile, sn.koi_t) / 10.0f;
@@ -283,9 +361,9 @@ public:
     void draw(int c, uint64_t pr) { stock &= ~(1ULL << c); show = (1ULL << c); pair = pr; }
 
     py::tuple feat(bool is_koi, int pt_t, int pt_i, int rnd, int t16, bool is_dl, int koi_t, int koi_i, int tp, int ip, int mx_rnd) {
-        auto c_arr = py::array_t<float>({26, 48});
+        auto c_arr = py::array_t<float>({C_CH, 48});
         auto g_arr = py::array_t<float>({7});
-        Snap sn{hand[tp], stock | hand[ip], pile[tp], field, pile[ip], dis_hist[tp], play[ip], ign[ip], pt_t, pt_i, rnd, t16, koi_t, koi_i, is_dl, static_cast<uint8_t>(is_koi ? 2 : 0)};
+        Snap sn{hand[tp], stock | hand[ip], pile[tp], field, pile[ip], dis_hist[tp], show, play[ip], ign[ip], pt_t, pt_i, rnd, t16, koi_t, koi_i, is_dl, static_cast<uint8_t>(is_koi ? 2 : 0)};
         write_feat(c_arr.mutable_data(), g_arr.mutable_data(), sn, mx_rnd);
         return py::make_tuple(c_arr, g_arr);
     }
@@ -307,19 +385,21 @@ public:
 class TraceBuf {
 public:
     int cap, sz = 0;
-    torch::Tensor c_st, g_st, act, rew, old_log, old_val, mask, old_prb;
-    float *cp, *gp, *rp, *lp, *vp, *pp; int64_t* ap; bool* mp;
+    torch::Tensor c_st, g_st, act, rew, old_log, old_val, mask, old_pi, old_mu;
+    float *cp, *gp, *rp, *lp, *vp, *pi_p, *mu_p; int64_t* ap; bool* mp;
 
     explicit TraceBuf(int c) : cap(c) {
         auto opt_f = torch::TensorOptions().dtype(torch::kFloat32);
         c_st = torch::empty({cap, C_CH, 48}, opt_f); g_st = torch::empty({cap, G_CH}, opt_f);
         act = torch::empty({cap}, torch::kInt64); rew = torch::empty({cap}, opt_f);
         old_log = torch::empty({cap, 48}, opt_f); old_val = torch::empty({cap}, opt_f);
-        mask = torch::empty({cap, 48}, torch::kBool); old_prb = torch::empty({cap}, opt_f);
+        mask = torch::empty({cap, 48}, torch::kBool); 
+        old_pi = torch::empty({cap}, opt_f); old_mu = torch::empty({cap}, opt_f);
 
         cp = c_st.data_ptr<float>(); gp = g_st.data_ptr<float>(); ap = act.data_ptr<int64_t>();
         rp = rew.data_ptr<float>(); lp = old_log.data_ptr<float>(); vp = old_val.data_ptr<float>();
-        mp = mask.data_ptr<bool>(); pp = old_prb.data_ptr<float>();
+        mp = mask.data_ptr<bool>(); 
+        pi_p = old_pi.data_ptr<float>(); mu_p = old_mu.data_ptr<float>();
     }
 
     void clear() { sz = 0; }
@@ -332,7 +412,8 @@ public:
             #pragma omp atomic write
             sz = cap; return;
         }
-        ap[ix] = sl.act; rp[ix] = ret; vp[ix] = sl.old_val; pp[ix] = sl.old_prb;
+        ap[ix] = sl.act; rp[ix] = ret; vp[ix] = sl.old_val; 
+        pi_p[ix] = sl.old_pi; mu_p[ix] = sl.old_mu;
         std::memcpy(lp + ix * 48, sl.old_log, 48 * sizeof(float));
         std::memcpy(mp + ix * 48, sl.mask, 48 * sizeof(bool));
         write_feat(cp + ix * C_CH * 48, gp + ix * G_CH, sl.snap, mx_rnd);
@@ -343,7 +424,8 @@ public:
         return py::dict("card_states"_a=c_st.slice(0,0,s).clone(), "global_states"_a=g_st.slice(0,0,s).clone(),
                         "actions"_a=act.slice(0,0,s).clone(), "rewards"_a=rew.slice(0,0,s).clone(),
                         "old_logits"_a=old_log.slice(0,0,s).clone(), "old_values"_a=old_val.slice(0,0,s).clone(),
-                        "legal_masks"_a=mask.slice(0,0,s).clone(), "old_action_probs"_a=old_prb.slice(0,0,s).clone());
+                        "legal_masks"_a=mask.slice(0,0,s).clone(), 
+                        "old_pi"_a=old_pi.slice(0,0,s).clone(), "old_mu"_a=old_mu.slice(0,0,s).clone());
     }
 };
 
@@ -353,6 +435,7 @@ class Env {
 public:
     int rnd = 1, dlr = 1, win = 1, t16 = 1, t_pt = 0, pt[3]{}, koi[3][8]{};
     bool ex = false, wait = false;
+    float phi_begin[3]{0.0f, 0.0f, 0.0f};
     GState st = GState::ROUND_OVER;
     StateMgr mgr; std::mt19937 rng;
     SVec<int, 48> hand[3], field, stock, pile[3];
@@ -465,16 +548,19 @@ private:
 
 class BatchSim {
 public:
-    int n_env, tg_games, fin = 0; float disc, lam;
+    int n_env, tg_games, fin = 0;
+    bool force_stop_koikoi;
+    int mx_rnd;
+    std::vector<float> wpm; // Design Intent: Pythonから渡された勝率マトリクス[2, 9, 61]のフラット配列
     std::vector<Env> envs; std::vector<SVec<Slot, 512>> tr[3];
     TraceBuf b_dis, b_pic, b_koi; torch::Device dev;
     torch::Tensor ct[3], gt[3], mk[3]; ExpPars ep;
 private:
-    std::vector<int64_t> ab_; std::vector<float> pb_, vb_;
+    std::vector<int64_t> ab_; std::vector<float> pi_b_, mu_b_, vb_;
 
 public:
-    BatchSim(int ne, int tg, int cd, int cp, int ck, float dc, float lm, const std::string& dv, ExpPars e)
-        : n_env(ne), tg_games(tg), disc(dc), lam(lm), b_dis(cd), b_pic(cp), b_koi(ck), dev(dv), ep(e), ab_(ne), pb_(ne), vb_(ne) {
+    BatchSim(int ne, int tg, int cd, int cp, int ck, const std::string& dv, ExpPars e, bool fs, int mx_r, const std::vector<float>& wp)
+        : n_env(ne), tg_games(tg), force_stop_koikoi(fs), mx_rnd(mx_r), wpm(wp), b_dis(cd), b_pic(cp), b_koi(ck), dev(dv), ep(e), ab_(ne), pi_b_(ne), mu_b_(ne), vb_(ne) {
         envs.reserve(ne); std::random_device rd;
         for (int i=0;i<ne;++i) envs.emplace_back(rd());
         for (int p=1;p<=2;++p) tr[p].resize(ne);
@@ -482,10 +568,28 @@ public:
         auto ob = torch::TensorOptions().dtype(torch::kBool).pinned_memory(true);
         for (int i=0;i<3;++i) { ct[i] = torch::empty({ne, C_CH, 48}, of); gt[i] = torch::empty({ne, G_CH}, of); }
         mk[0] = torch::empty({ne, 48}, ob); mk[1] = torch::empty({ne, 48}, ob); mk[2] = torch::empty({ne, 2}, ob);
+        reset();
+    }
+
+    // Design Intent: 現在手番プレイヤー視点での勝率を win_prob_mat[2, 9, 61] から高速に取得する
+    float get_phi(int pt, int op_pt, int dlr, int rnd) const {
+        int safe_rnd = std::max(1, std::min(rnd, 8));
+        int diff = pt - op_pt;
+        diff = std::max(-30, std::min(diff, 30));
+        int idx_diff = diff + 30;
+        
+        int idx = (dlr * 9 * 61) + (safe_rnd * 61) + idx_diff;
+        return wpm[idx];
     }
 
     void reset() {
-        fin = 0; for (auto& e : envs) { e.reset_game(); e.reset_round(); }
+        fin = 0; 
+        for (auto& e : envs) { 
+            e.reset_game(); 
+            e.reset_round(); 
+            e.phi_begin[1] = get_phi(e.pt[1], e.pt[2], e.dlr == 1 ? 1 : 0, e.rnd);
+            e.phi_begin[2] = get_phi(e.pt[2], e.pt[1], e.dlr == 2 ? 1 : 0, e.rnd);
+        }
         for (int p=1;p<=2;++p) for (auto& v : tr[p]) v.clear();
         b_dis.clear(); b_pic.clear(); b_koi.clear();
     }
@@ -494,20 +598,21 @@ public:
 
     Snap get_snap(const Env& e, int pt, int pi, int type) {
         uint64_t my_p = e.mgr.pile[pt];
-
-        // 拾い選択フェーズ(type == 1)のとき、
-        // 「獲得することが100%確定しているトリガー札(show)」を自身の獲得札に先行合流させる
+        uint64_t sh = 0;
+        
         if (type == 1 && !e.show.empty()) {
-            my_p |= (1ULL << e.show[0]);
+            sh = (1ULL << e.show[0]);
+            my_p |= sh;
         }
 
         return {
             e.mgr.hand[pt],
             e.mgr.stock | e.mgr.hand[pi],
-            my_p,                          // <-- 自身の取札に先行合流
-            e.mgr.field,                   // 場札は純粋に「選択肢となる2枚」だけが残る
+            my_p,
+            e.mgr.field,
             e.mgr.pile[pi],
             e.mgr.dis_hist[pt], 
+            sh, // <-- 追加部分
             e.mgr.play[pi], 
             e.mgr.ign[pi], 
             e.pt[pt], e.pt[pi], e.rnd, e.t16, 
@@ -519,26 +624,14 @@ public:
 
     void set_mask(int i, bool* m, int t) {
         int sz = (t == 2) ? 2 : 48; std::memset(m, 0, sz * sizeof(bool));
-        if (t == 2) { m[0] = true; m[1] = true; }
+        if (t == 2) { 
+            m[0] = true; 
+            m[1] = !force_stop_koikoi; // Design Intent: force_stop_koikoiがtrueの場合、こいこい継続(1)を合法手から除外し必ずストップ(0)に誘導する
+        }
         else { uint64_t b = (t == 0) ? envs[i].mgr.hand[envs[i].turn_p()] : envs[i].mgr.pair; while (b) { m[ctz(b)] = true; b &= (b - 1); } }
     }
 
-    void end_game(int i, int mx_rnd) {
-        auto& e = envs[i]; int w = (e.pt[1] > e.pt[2]) ? 1 : ((e.pt[2] > e.pt[1]) ? 2 : 0);
-        for (int p=1;p<=2;++p) {
-            auto& t = tr[p][i]; if (t.empty()) continue;
-            float r = (w == p) ? 1.0f : (w != 0 ? -1.0f : 0.0f);
-            int T = t.size(); std::array<float, 512> ret{}; float ga = 0.0f;
-            for (int k = T - 1; k >= 0; --k) {
-                float v = t[k].old_val, vn = (k == T - 1) ? 0.0f : t[k + 1].old_val;
-                ga = ((k == T - 1 ? r : 0.0f) + disc * vn - v) + (disc * lam) * ga; ret[k] = ga + v;
-            }
-            for (int k=0;k<T;++k) (t[k].st_type == 0 ? b_dis : (t[k].st_type == 1 ? b_pic : b_koi)).push(t[k], ret[k], mx_rnd);
-            t.clear();
-        }
-    }
-
-    void step_idle(int mx_rnd) {
+    void step_idle() {
         int f = 0;
         #pragma omp parallel for reduction(+:f)
         for (int i = 0; i < n_env; ++i) {
@@ -546,15 +639,53 @@ public:
             while (!e.needs_act() && e.st != GState::GAME_OVER) {
                 if (e.st == GState::ROUND_OVER) {
                     e.pt[1] += e.rnd_pt(1); e.pt[2] += e.rnd_pt(2);
-                    if (e.pt[1] <= 0 || e.pt[2] <= 0 || e.rnd == mx_rnd) { end_game(i, mx_rnd); f++; e.reset_game(); e.reset_round(); }
-                    else { e.rnd++; e.reset_round(); }
-                } else e.step(-1);
+                    float phi_end[3];
+                    bool game_end = (e.pt[1] <= 0 || e.pt[2] <= 0 || e.rnd == mx_rnd);
+
+                    // Design Intent: ラウンド終了状態に応じた phi_end の取得（終局時は勝敗固定値）
+                    if (game_end) {
+                        if (e.pt[1] > e.pt[2]) { phi_end[1] = 1.0f; phi_end[2] = 0.0f; }
+                        else if (e.pt[2] > e.pt[1]) { phi_end[1] = 0.0f; phi_end[2] = 1.0f; }
+                        else { phi_end[1] = 0.5f; phi_end[2] = 0.5f; }
+                    } else {
+                        e.rnd++; 
+                        e.reset_round(); 
+                        phi_end[1] = get_phi(e.pt[1], e.pt[2], e.dlr == 1 ? 1 : 0, e.rnd);
+                        phi_end[2] = get_phi(e.pt[2], e.pt[1], e.dlr == 2 ? 1 : 0, e.rnd);
+                    }
+
+                    // Design Intent: 時間割引を廃止し、ラウンド内の全行動に PBRS 報酬 (phi_end - phi_begin) を一括付与
+                    for (int p = 1; p <= 2; ++p) {
+                        auto& t = tr[p][i];
+                        if (!t.empty()) {
+                            float r = phi_end[p] - e.phi_begin[p];
+                            int T = t.size();
+                            for (int k = 0; k < T; ++k) {
+                                (t[k].st_type == 0 ? b_dis : (t[k].st_type == 1 ? b_pic : b_koi)).push(t[k], r, mx_rnd);
+                            }
+                            t.clear();
+                        }
+                    }
+
+                    if (game_end) {
+                        f++; 
+                        e.reset_game(); 
+                        e.reset_round();
+                        e.phi_begin[1] = get_phi(e.pt[1], e.pt[2], e.dlr == 1 ? 1 : 0, e.rnd);
+                        e.phi_begin[2] = get_phi(e.pt[2], e.pt[1], e.dlr == 2 ? 1 : 0, e.rnd);
+                    } else {
+                        e.phi_begin[1] = phi_end[1];
+                        e.phi_begin[2] = phi_end[2];
+                    }
+                } else {
+                    e.step(-1);
+                }
             }
         }
         fin += f;
     }
 
-    void sample_neurd(int t, int n, const int* ix_list, const float* l_ptr, const float* q_ptr, const bool* m_ptr, int64_t* a_ptr, float* p_ptr, float* v_ptr) {
+    void sample_neurd(int t, int n, const int* ix_list, const float* l_ptr, const float* q_ptr, const bool* m_ptr, int64_t* a_ptr, float* pi_ptr, float* mu_ptr, float* v_ptr) {
         std::uniform_real_distribution<float> dist(0.0f, 1.0f); 
         int cols = (t == 2) ? 2 : 48;
         
@@ -563,9 +694,8 @@ public:
             for (int c = 0; c < cols; ++c) {
                 if (m_ptr[i * cols + c]) leg.push(c);
             }
-            if (leg.empty()) { a_ptr[i] = 0; p_ptr[i] = 1.0f; v_ptr[i] = 0.0f; continue; }
+            if (leg.empty()) { a_ptr[i] = 0; pi_ptr[i] = 1.0f; mu_ptr[i] = 1.0f; v_ptr[i] = 0.0f; continue; }
 
-            // 1. ベースとなるネットワークの方策確率 (Greedy または Softmax) を計算
             std::array<float, 48> base_pi{};
             float mx = -1e9f, sum_e = 0.0f;
             for (int a : leg) if (l_ptr[i * cols + a] > mx) mx = l_ptr[i * cols + a];
@@ -581,15 +711,16 @@ public:
                 for (int a : leg) base_pi[a] /= sum_e;
             }
 
-            // 2. Dirichletノイズの適用 (合法手が複数ある場合のみ)
+            std::array<float, 48> pure_pi{};
+            for (int a : leg)
+                pure_pi[a] = base_pi[a];
+
             if (ep.noise > 0.0f && leg.size() > 1) {
-                // Design Intent: alpha=0.3はチェスや将棋などのAlphaZero系でよく使われる標準的な分散パラメータ
                 float alpha = 0.3f; 
                 std::gamma_distribution<float> gamma(alpha, 1.0f);
                 std::array<float, 48> dir{};
                 float sum_dir = 0.0f;
                 
-                // ガンマ分布からサンプリングして合計で割ることでディリクレ分布を生成
                 for (int a : leg) {
                     dir[a] = gamma(envs[ix_list[i]].rng);
                     sum_dir += dir[a];
@@ -602,7 +733,6 @@ public:
                 }
             }
 
-            // 3. ε-greedy (一様ランダム探索) の適用
             std::array<float, 48> mu{};
             float uni = ep.eps / leg.size();
             float w_pi = 1.0f - ep.eps;
@@ -610,32 +740,32 @@ public:
                 mu[a] = uni + w_pi * base_pi[a];
             }
 
-            // 4. 最終的な確率分布 `mu` に従ってサンプリング
             float r = dist(envs[ix_list[i]].rng), acc = 0.0f; 
-            int ch = leg.back(); // フォールバック
+            int ch = leg.back();
             for (int a : leg) { 
                 acc += mu[a]; 
                 if (r <= acc) { ch = a; break; } 
             }
             
             a_ptr[i] = ch; 
-            p_ptr[i] = mu[ch]; // Design Intent: NeuRDのアドバンテージ補正に使うため、実際にサンプリングされた確率を保存
+            // それぞれ純粋方策πと挙動方策μを独立して保存する
+            pi_ptr[i] = pure_pi[ch];
+            mu_ptr[i] = mu[ch];
 
-            // 5. 価値(Q)の期待値を計算
             float vs = 0.0f; 
-            for (int a : leg) vs += mu[a] * q_ptr[i * cols + a];
+            for (int a : leg) vs += pure_pi[a] * q_ptr[i * cols + a];
             v_ptr[i] = vs;
         }
     }
 
-    void play(int mx_rnd) {
+    void play() {
         std::array<std::vector<int>, 3> req{};
         float *cp[3] = {ct[0].data_ptr<float>(), ct[1].data_ptr<float>(), ct[2].data_ptr<float>()};
         float *gp[3] = {gt[0].data_ptr<float>(), gt[1].data_ptr<float>(), gt[2].data_ptr<float>()};
         bool  *mp[3] = {mk[0].data_ptr<bool>(),  mk[1].data_ptr<bool>(),  mk[2].data_ptr<bool>()};
 
         while (fin < tg_games) {
-            step_idle(mx_rnd); if (fin >= tg_games) break;
+            step_idle(); if (fin >= tg_games) break;
             for (int p = 1; p <= 2; ++p) {
                 for (int t=0;t<3;++t) req[t].clear();
                 for (int i=0;i<n_env;++i) if (envs[i].needs_act() && envs[i].turn_p() == p) req[(envs[i].st == GState::DISCARD) ? 0 : (envs[i].st == GState::KOIKOI ? 2 : 1)].push_back(i);
@@ -649,11 +779,11 @@ public:
                     auto out = g_box.model.forward({ct[t].slice(0,0,n).to(dev,true), gt[t].slice(0,0,n).to(dev,true)}).toTuple();
                     torch::Tensor l_cpu = out->elements()[(t == 2) ? 2 : 0].toTensor().cpu(), q_cpu = out->elements()[(t == 2) ? 3 : 1].toTensor().cpu();
 
-                    sample_neurd(t, n, req[t].data(), l_cpu.data_ptr<float>(), q_cpu.data_ptr<float>(), mp[t], ab_.data(), pb_.data(), vb_.data());
+                    sample_neurd(t, n, req[t].data(), l_cpu.data_ptr<float>(), q_cpu.data_ptr<float>(), mp[t], ab_.data(), pi_b_.data(), mu_b_.data(), vb_.data());
 
                     #pragma omp parallel for
                     for (int i=0;i<n;++i) {
-                        int ei = req[t][i]; Slot sl{t, static_cast<int>(ab_[i]), vb_[i], pb_[i]};
+                        int ei = req[t][i]; Slot sl{t, static_cast<int>(ab_[i]), vb_[i], pi_b_[i], mu_b_[i]};
                         int cols = (t == 2) ? 2 : 48; std::memset(sl.old_log, 0, 48 * sizeof(float)); std::memset(sl.mask, 0, 48 * sizeof(bool));
                         for (int c=0;c<cols;++c) { sl.old_log[c] = l_cpu.data_ptr<float>()[i * cols + c]; sl.mask[c] = mp[t][i * cols + c]; }
                         sl.snap = get_snap(envs[ei], p, 3 - p, t); tr[p][ei].push_back(sl); envs[ei].step(sl.act);
@@ -664,7 +794,7 @@ public:
     }
 };
 
-py::list run_sim(int nth, int ne, int tg, int cd, int cp, int ck, float dc, const std::string& mod_bytes, const std::string& dv, int mx_rnd, float tmp, float eps, float nz, float lam) {
+py::list run_sim(int nth, int ne, int tg, int cd, int cp, int ck, const std::string& mod_bytes, const std::string& dv, int mx_rnd, float tmp, float eps, float nz, bool force_stop_koikoi, const std::vector<float>& wpm_vec) {
     { 
         std::lock_guard<std::mutex> lk(g_box.mtx); 
         if (!g_box.loaded) { 
@@ -675,38 +805,44 @@ py::list run_sim(int nth, int ne, int tg, int cd, int cp, int ck, float dc, cons
         } 
     }
     ExpPars ep{tmp, eps, nz}; std::vector<std::unique_ptr<BatchSim>> s(nth);
-    for(int i=0;i<nth;++i) s[i] = std::make_unique<BatchSim>(ne, tg, cd, cp, ck, dc, lam, dv, ep);
+    for(int i=0;i<nth;++i) s[i] = std::make_unique<BatchSim>(ne, tg, cd, cp, ck, dv, ep, force_stop_koikoi, mx_rnd, wpm_vec);
     { py::gil_scoped_release rel;
         #pragma omp parallel for schedule(dynamic)
-        for (int i=0;i<nth;++i) s[i]->play(mx_rnd); }
+        for (int i=0;i<nth;++i) s[i]->play(); }
     py::list res; for (int i=0;i<nth;++i) res.append(s[i]->fin_bufs()); return res;
 }
 
+// グローバルに相手モデルをキャッシュするための構造体を追加
+struct ArenaBox {
+    torch::jit::script::Module opp_mod;
+    std::mutex mtx;
+    bool loaded = false;
+};
+static ArenaBox a_box;
+
 class ArenaSim {
 public:
-    int n_env, tg_games, task_idx = 0;
-    int p1_wins = 0, p2_wins = 0, draws = 0, fin = 0;
+    int n_env, tg, task_idx = 0;
+    int w1 = 0, w2 = 0, draws = 0, fin = 0;
+    int start_rnd, start_p1, start_p2, start_dlr;
     std::vector<Env> envs;
-    std::vector<bool> is_mirror_env;
+    std::vector<bool> is_mir;
     std::vector<unsigned int> seeds;
     torch::jit::Module m1, m2;
     torch::Device dev;
     torch::Tensor ct[3], gt[3], mk[3];
     std::vector<int64_t> ab_;
 
-    ArenaSim(int ne, int tg, torch::jit::Module p1, torch::jit::Module p2, const std::string& dv)
-        : n_env(ne), tg_games(tg), m1(p1), m2(p2), dev(dv), ab_(ne) {
+    ArenaSim(int ne, int t, torch::jit::Module p1, torch::jit::Module p2, const std::string& dv, int s_r = 0, int s_p1 = 30, int s_p2 = 30, int s_d = 0)
+        : n_env(ne), tg(t), m1(p1), m2(p2), dev(dv), ab_(ne), start_rnd(s_r), start_p1(s_p1), start_p2(s_p2), start_dlr(s_d) {
         
         envs.reserve(ne);
-        is_mirror_env.resize(ne, false);
+        is_mir.resize(ne, false);
         
-        // Design Intent: 指定ゲーム数をペア(2試合1組)で分割し、マスターシードを生成
-        int num_pairs = tg_games / 2;
-        seeds.resize(num_pairs);
+        int num_seeds = (start_rnd > 0) ? tg : (tg / 2);
+        seeds.resize(num_seeds);
         std::random_device rd;
-        for (int i = 0; i < num_pairs; ++i) {
-            seeds[i] = rd();
-        }
+        for (int i = 0; i < num_seeds; ++i) seeds[i] = rd();
 
         auto of = torch::TensorOptions().dtype(torch::kFloat32).pinned_memory(true);
         auto ob = torch::TensorOptions().dtype(torch::kBool).pinned_memory(true);
@@ -714,199 +850,186 @@ public:
             ct[i] = torch::empty({ne, C_CH, 48}, of); 
             gt[i] = torch::empty({ne, G_CH}, of); 
         }
-        mk[0] = torch::empty({ne, 48}, ob); 
-        mk[1] = torch::empty({ne, 48}, ob); 
-        mk[2] = torch::empty({ne, 2}, ob);
+        mk[0] = torch::empty({ne, 48}, ob); mk[1] = torch::empty({ne, 48}, ob); mk[2] = torch::empty({ne, 2}, ob);
 
-        for (int i = 0; i < ne; ++i) {
-            envs.emplace_back(42); 
-            assign_task(i);
-        }
+        for (int i = 0; i < ne; ++i) { envs.emplace_back(42); assign_task(i); }
     }
 
-    // 環境が空いた際に、共有タスクキューから次のシードと担当陣営(ノーマルorミラー)を割り当てる
-    bool assign_task(int env_idx) {
-        if (task_idx >= tg_games) {
-            envs[env_idx].st = GState::GAME_OVER; // 全タスク完了で待機状態へ
-            return false;
-        }
-        int pair_idx = task_idx / 2;
-        bool is_mirror = (task_idx % 2 == 1); // 奇数番目のタスクはミラーマッチ(モデル反転)
-        task_idx++;
+    bool assign_task(int i) {
+        if (task_idx >= tg) { envs[i].st = GState::GAME_OVER; return false; }
         
-        envs[env_idx].set_seed(seeds[pair_idx]); // ペアで全く同じシードを注入
-        envs[env_idx].reset_game();
-        envs[env_idx].reset_round();
-        is_mirror_env[env_idx] = is_mirror;
-        return true;
+        bool mir = false;
+        int s_idx = 0;
+
+        if (start_rnd > 0) {
+            s_idx = task_idx;
+            mir = false;
+            envs[i].rnd = start_rnd;
+            envs[i].pt[1] = start_p1;
+            envs[i].pt[2] = start_p2;
+            envs[i].dlr = (start_dlr == 0) ? std::uniform_int_distribution<>(1, 2)(envs[i].rng) : start_dlr;
+            envs[i].win = envs[i].dlr;
+            envs[i].st = GState::ROUND_OVER;
+        } else {
+            s_idx = task_idx / 2;
+            mir = (task_idx % 2 == 1);
+            envs[i].reset_game();
+        }
+        
+        envs[i].set_seed(seeds[s_idx]);
+        task_idx++;
+        envs[i].reset_round();
+        
+        is_mir[i] = mir; return true;
     }
 
     Snap get_snap(const Env& e, int pt, int pi, int type) {
         uint64_t my_p = e.mgr.pile[pt];
-        if (type == 1 && !e.show.empty()) my_p |= (1ULL << e.show[0]);
-        return {
-            e.mgr.hand[pt], e.mgr.stock | e.mgr.hand[pi], my_p, e.mgr.field, e.mgr.pile[pi],
-            e.mgr.dis_hist[pt], e.mgr.play[pi], e.mgr.ign[pi], e.pt[pt], e.pt[pi], e.rnd, e.t16, 
-            e.koi_num(pt), e.koi_num(pi), e.dlr == pt, static_cast<uint8_t>(type)
-        };
+        uint64_t sh = 0;
+        if (type == 1 && !e.show.empty()) {
+            sh = (1ULL << e.show[0]);
+            my_p |= sh;
+        }
+        return { e.mgr.hand[pt], e.mgr.stock | e.mgr.hand[pi], my_p, e.mgr.field, e.mgr.pile[pi], e.mgr.dis_hist[pt], sh, e.mgr.play[pi], e.mgr.ign[pi], e.pt[pt], e.pt[pi], e.rnd, e.t16, e.koi_num(pt), e.koi_num(pi), e.dlr == pt, static_cast<uint8_t>(type) };
     }
 
     void set_mask(int i, bool* m, int t) {
-        int sz = (t == 2) ? 2 : 48; 
-        std::memset(m, 0, sz * sizeof(bool));
+        int sz = (t == 2) ? 2 : 48; std::memset(m, 0, sz * sizeof(bool));
         if (t == 2) { m[0] = true; m[1] = true; }
-        else { 
-            uint64_t b = (t == 0) ? envs[i].mgr.hand[envs[i].turn_p()] : envs[i].mgr.pair; 
-            while (b) { m[ctz(b)] = true; b &= (b - 1); } 
-        }
+        else { uint64_t b = (t == 0) ? envs[i].mgr.hand[envs[i].turn_p()] : envs[i].mgr.pair; while (b) { m[ctz(b)] = true; b &= (b - 1); } }
     }
 
     void step_idle(int mx_rnd) {
+        int f = 0, win1 = 0, win2 = 0, drw = 0;
+        // Design Intent: GPU推論前の環境ステップ(CPU処理)を並列化しボトルネックを解消
+        #pragma omp parallel for reduction(+:f, win1, win2, drw)
         for (int i = 0; i < n_env; ++i) {
             auto& e = envs[i];
             while (!e.needs_act() && e.st != GState::GAME_OVER) {
                 if (e.st == GState::ROUND_OVER) {
-                    e.pt[1] += e.rnd_pt(1); 
-                    e.pt[2] += e.rnd_pt(2);
+                    e.pt[1] += e.rnd_pt(1); e.pt[2] += e.rnd_pt(2);
                     if (e.pt[1] <= 0 || e.pt[2] <= 0 || e.rnd == mx_rnd) {
-                        bool p1_won = (e.pt[1] > e.pt[2]);
-                        bool p2_won = (e.pt[2] > e.pt[1]);
-                        
-                        // Design Intent: ミラー対戦時はゲーム内のP1が外部のModel 2に相当するため勝敗を反転して集計
-                        if (is_mirror_env[i]) {
-                            if (p1_won) p2_wins++; 
-                            else if (p2_won) p1_wins++;
-                            else draws++;
-                        } else {
-                            if (p1_won) p1_wins++;
-                            else if (p2_won) p2_wins++;
-                            else draws++;
-                        }
-                        
-                        fin++; 
-                        assign_task(i); 
-                    } else { 
-                        e.rnd++; e.reset_round(); 
-                    }
-                } else {
-                    e.step(-1);
-                }
+                        bool p1_won = (e.pt[1] > e.pt[2]), p2_won = (e.pt[2] > e.pt[1]);
+                        if (is_mir[i]) { if (p1_won) win2++; else if (p2_won) win1++; else drw++; } 
+                        else { if (p1_won) win1++; else if (p2_won) win2++; else drw++; }
+                        f++; 
+                        bool assigned = false;
+                        #pragma omp critical
+                        { assigned = assign_task(i); }
+                        if (!assigned) break; 
+                    } else { e.rnd++; e.reset_round(); }
+                } else e.step(-1);
             }
         }
+        fin += f; w1 += win1; w2 += win2; draws += drw;
     }
 
     void sample_greedy(int t, int n, const float* l_ptr, const bool* m_ptr, int64_t* a_ptr) {
         int cols = (t == 2) ? 2 : 48;
         for (int i = 0; i < n; ++i) {
-            int best_a = -1; float mx = -1e9f;
+            int best = -1; float mx = -1e9f;
             for (int c = 0; c < cols; ++c) {
-                if (m_ptr[i * cols + c] && l_ptr[i * cols + c] > mx) {
-                    mx = l_ptr[i * cols + c]; 
-                    best_a = c;
-                }
+                if (m_ptr[i * cols + c] && l_ptr[i * cols + c] > mx) { mx = l_ptr[i * cols + c]; best = c; }
             }
-            a_ptr[i] = (best_a != -1) ? best_a : 0; 
+            a_ptr[i] = (best != -1) ? best : 0; 
         }
     }
 
     void play(int mx_rnd) {
-        // Design Intent: ターンプレイヤーとミラー状態を掛け合わせ、モデル毎の推論バッチを分割する
-        std::array<std::vector<int>, 3> req_m1{};
-        std::array<std::vector<int>, 3> req_m2{};
+        std::array<std::vector<int>, 3> req1{}, req2{};
         float *cp[3] = {ct[0].data_ptr<float>(), ct[1].data_ptr<float>(), ct[2].data_ptr<float>()};
         float *gp[3] = {gt[0].data_ptr<float>(), gt[1].data_ptr<float>(), gt[2].data_ptr<float>()};
         bool  *mp[3] = {mk[0].data_ptr<bool>(),  mk[1].data_ptr<bool>(),  mk[2].data_ptr<bool>()};
 
-        while (fin < tg_games) {
+        while (fin < tg) {
             step_idle(mx_rnd); 
-            if (fin >= tg_games) break;
-            
-            for (int t = 0; t < 3; ++t) {
-                req_m1[t].clear();
-                req_m2[t].clear();
-            }
+            if (fin >= tg) break;
+            for (int t = 0; t < 3; ++t) { req1[t].clear(); req2[t].clear(); }
             
             for (int i = 0; i < n_env; ++i) {
                 if (envs[i].needs_act()) {
                     int p = envs[i].turn_p();
                     int t = (envs[i].st == GState::DISCARD) ? 0 : ((envs[i].st == GState::KOIKOI) ? 2 : 1);
-                    
-                    // ノーマル環境ならP1がm1、ミラー環境ならP2がm1
-                    bool is_m1 = (!is_mirror_env[i] && p == 1) || (is_mirror_env[i] && p == 2);
-                    if (is_m1) req_m1[t].push_back(i);
-                    else       req_m2[t].push_back(i);
+                    bool is_m1 = (!is_mir[i] && p == 1) || (is_mir[i] && p == 2);
+                    if (is_m1) req1[t].push_back(i); else req2[t].push_back(i);
                 }
             }
 
-            auto process_model = [&](torch::jit::Module& model, std::array<std::vector<int>, 3>& req) {
+            auto proc_mod = [&](torch::jit::Module& model, std::array<std::vector<int>, 3>& req) {
                 torch::NoGradGuard ng;
                 for (int t = 0; t < 3; ++t) {
-                    int n = req[t].size(); 
-                    if (n == 0) continue;
-                    
+                    int n = req[t].size(); if (n == 0) continue;
                     #pragma omp parallel for
                     for (int i = 0; i < n; ++i) { 
                         int ei = req[t][i];
-                        int p = envs[ei].turn_p();
-                        write_feat(cp[t] + i * C_CH * 48, gp[t] + i * G_CH, get_snap(envs[ei], p, 3 - p, t), mx_rnd); 
+                        write_feat(cp[t] + i * C_CH * 48, gp[t] + i * G_CH, get_snap(envs[ei], envs[ei].turn_p(), 3 - envs[ei].turn_p(), t), mx_rnd); 
                         set_mask(ei, mp[t] + i * ((t == 2) ? 2 : 48), t); 
                     }
-
                     auto out = model.forward({ct[t].slice(0, 0, n).to(dev, true), gt[t].slice(0, 0, n).to(dev, true)}).toTuple();
-                    torch::Tensor l_cpu = out->elements()[(t == 2) ? 2 : 0].toTensor().cpu(); 
-                    sample_greedy(t, n, l_cpu.data_ptr<float>(), mp[t], ab_.data());
-
+                    sample_greedy(t, n, out->elements()[(t == 2) ? 2 : 0].toTensor().cpu().data_ptr<float>(), mp[t], ab_.data());
                     for (int i = 0; i < n; ++i) envs[req[t][i]].step(ab_[i]);
                 }
             };
-
-            process_model(m1, req_m1);
-            process_model(m2, req_m2);
+            proc_mod(m1, req1); proc_mod(m2, req2);
         }
     }
 };
 
-py::dict run_arena(int tot, const std::string& p1_bytes, const std::string& p2_bytes, const std::string& dv, int mx) {
+py::dict run_arena(int tot, const std::string& p1_b, const std::string& p2_b, const std::string& dv, int mx, int s_rnd, int s_p1, int s_p2, int s_dlr) {
     torch::jit::Module p1, p2;
+    torch::Device dev(dv);
     try {
-        std::istringstream p1_stream(p1_bytes);
-        p1 = torch::jit::load(p1_stream);
-        p1.eval();
+        if (p1_b.empty()) {
+            std::lock_guard<std::mutex> lk(g_box.mtx);
+            if (!g_box.loaded) throw std::runtime_error("P1 Cache not loaded. Call reload_model first.");
+            p1 = g_box.model;
+        } else {
+            p1 = torch::jit::load(std::istringstream(p1_b));
+            p1.to(dev); p1.eval();
+        }
 
-        std::istringstream p2_stream(p2_bytes);
-        p2 = torch::jit::load(p2_stream);
-        p2.eval();
-    } catch (const c10::Error& e) {
-        throw std::runtime_error("Error loading JIT module from bytes: " + std::string(e.what()));
-    }
+        if (p2_b.empty()) {
+            std::lock_guard<std::mutex> lk(a_box.mtx);
+            if (!a_box.loaded) {
+                std::lock_guard<std::mutex> lk_g(g_box.mtx);
+                p2 = g_box.model;
+            } else {
+                p2 = a_box.opp_mod;
+            }
+        } else {
+            std::lock_guard<std::mutex> lk(a_box.mtx);
+            a_box.opp_mod = torch::jit::load(std::istringstream(p2_b));
+            a_box.opp_mod.to(dev);
+            a_box.opp_mod.eval();
+            a_box.loaded = true;
+            p2 = a_box.opp_mod;
+        }
+    } catch (const c10::Error& e) { throw std::runtime_error("JIT Load Error: " + std::string(e.what())); }
     
-    // Design Intent: デュプリケート方式を成立させるため、指定ゲーム数を必ず偶数に丸める
-    int tg_games = (tot % 2 == 0) ? tot : tot + 1;
-    
-    // 同時実行環境数はテスト総数または上限(例:32)の小さい方を採用
-    int n_env = std::min(32, tg_games); 
-    ArenaSim sim(n_env, tg_games, p1, p2, dv);
-    
-    { 
-        py::gil_scoped_release rel; 
-        sim.play(mx); 
-    }
-    
-    return py::dict("win"_a=sim.p1_wins, "lose"_a=sim.p2_wins, "draw"_a=sim.draws, "score"_a=0.0);
+    int tg = (tot % 2 == 0) ? tot : tot + 1;
+    ArenaSim sim(tg, tg, p1, p2, dv, s_rnd, s_p1, s_p2, s_dlr);
+    { py::gil_scoped_release rel; sim.play(mx); }
+    return py::dict("win"_a=sim.w1, "lose"_a=sim.w2, "draw"_a=sim.draws, "score"_a=0.0);
 }
 
 PYBIND11_MODULE(core, m) {
     m.def("calc_yaku_pt", &calc_yaku_pt);
-    m.def("run_sim", [](int nth, int ne, int tg, int cd, int cp, int ck, float dc,
+    m.def("run_sim", [](int nth, int ne, int tg, int cd, int cp, int ck,
                         const py::bytes& mod_bytes_py,
-                        const std::string& dv, int mx_rnd, float tmp, float eps, float nz, float lam) {
-        std::string mod_bytes = mod_bytes_py; // py::bytes -> std::stringへ自動キャスト
-        return run_sim(nth, ne, tg, cd, cp, ck, dc, mod_bytes, dv, mx_rnd, tmp, eps, nz, lam);
-    });
+                        const std::string& dv, int mx_rnd, float tmp, float eps, float nz, bool force_stop_koikoi, const py::array_t<float>& wpm_arr) {
+        std::string mod_bytes = mod_bytes_py;
+        
+        auto buf = wpm_arr.request();
+        if (buf.size != 2 * 9 * 61) throw std::runtime_error("wpm shape error: Expected [2, 9, 61]");
+        std::vector<float> wpm_vec(2 * 9 * 61);
+        std::memcpy(wpm_vec.data(), buf.ptr, 2 * 9 * 61 * sizeof(float));
 
-    m.def("run_arena", [](int tot, const py::bytes& p1_bytes, const py::bytes& p2_bytes, const std::string& dv, int mx) {
-        return run_arena(tot, std::string(p1_bytes), std::string(p2_bytes), dv, mx);
-    });
+        return run_sim(nth, ne, tg, cd, cp, ck, mod_bytes, dv, mx_rnd, tmp, eps, nz, force_stop_koikoi, wpm_vec);
+    }, "nth"_a, "ne"_a, "tg"_a, "cd"_a, "cp"_a, "ck"_a, "mod_bytes_py"_a, "dv"_a, "mx_rnd"_a, "tmp"_a, "eps"_a, "nz"_a, "force_stop_koikoi"_a = false, "wpm_arr"_a);
+
+   m.def("run_arena", [](int tot, const py::bytes& p1_bytes, const py::bytes& p2_bytes, const std::string& dv, int mx, int s_rnd, int s_p1, int s_p2, int s_dlr) {
+        return run_arena(tot, std::string(p1_bytes), std::string(p2_bytes), dv, mx, s_rnd, s_p1, s_p2, s_dlr);
+    }, "tot"_a, "p1_bytes"_a, "p2_bytes"_a, "dv"_a, "mx"_a, "s_rnd"_a=0, "s_p1"_a=30, "s_p2"_a=30, "s_dlr"_a=0);
     m.def("set_rules", &set_rules);
     m.def("close_sim", []() {});
     m.def("reload_model", [](const py::bytes& mod_bytes_py) {
@@ -915,6 +1038,7 @@ PYBIND11_MODULE(core, m) {
         std::lock_guard<std::mutex> lk(g_box.mtx);
         g_box.model = torch::jit::load(stream);
         g_box.model.eval();
+        g_box.loaded = true;
     });
 
     py::class_<StateMgr>(m, "StateMgr")
